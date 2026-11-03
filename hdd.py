@@ -379,8 +379,6 @@ def png_bytes(fig):
 
 def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD"):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
-    for m in range(hdd.shape[0]):
-        ax.plot(days, hdd[m], color="gray", alpha=0.25, lw=0.7)
     ax.fill_between(days, p10, p90, color="tab:blue", alpha=0.2, label="10th-90th percentile")
     ax.plot(days, median, color="tab:blue", lw=2.2, marker="o", ms=3.5, label="Ensemble median")
     ax.set_ylabel("Gas-weighted HDD (°F-days)")
@@ -394,19 +392,14 @@ def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted H
     return png_bytes(fig)
 
 
-def make_bcf_chart(region, run, days, bcfd, cal, total, hdd_median):
-    """Daily res/comm demand: members in grey, median line, raw p10-p90 shaded,
-    calibrated p10-p90 as a dashed outline, +/-10% weather as dotted lines."""
+def make_bcf_chart(region, run, days, bcfd, cal, total):
+    """Daily res/comm demand: median line, raw p10-p90 shaded, calibrated
+    p10-p90 as a dashed outline."""
     p10, median, p90 = np.percentile(bcfd, [10, 50, 90], axis=0)
-    ten_pct = 0.10 * region["slope_bcfd_per_hdd"] * hdd_median
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
-    for m in range(bcfd.shape[0]):
-        ax.plot(days, bcfd[m], color="gray", alpha=0.25, lw=0.7)
     ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="Raw p10-p90 (GEFS spread)")
     ax.plot(days, cal["daily_lo"], color="tab:red", lw=1.3, ls="--", label="Calibrated p10-p90")
     ax.plot(days, cal["daily_hi"], color="tab:red", lw=1.3, ls="--")
-    ax.plot(days, median + ten_pct, color="black", lw=0.8, ls=":", label="Median +/-10% HDD")
-    ax.plot(days, median - ten_pct, color="black", lw=0.8, ls=":")
     ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median")
     ax.set_ylabel("Res/comm gas demand (Bcf/d)")
     ax.set_ylim(bottom=0)
@@ -523,7 +516,7 @@ def main():
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
             pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
                                               title=f"{r['name']} gas-consumption-weighted HDD")
-            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], s["cal"], s["total"], s["hdd_median"])
+            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], s["cal"], s["total"])
             basins = [b for b in BASINS if b[0] in r["basins"]]
             points = [(c[2], c[3]) for c in r["cities"]]
             for label, a, b in PERIODS:

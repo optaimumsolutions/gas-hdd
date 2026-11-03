@@ -22,10 +22,10 @@ serves the `docs/` folder as the dashboard. No servers, no accounts, no paid dat
 
 ## What the dashboard shows and how to read it
 
-The chart is the next 15 days of US gas-weighted heating demand. Each of the 31 GEFS
-ensemble members is a faint grey line: one possible version of the weather. The bold blue
-line is the median of those 31, and the shaded band runs from the 10th to the 90th
-percentile. A narrow band means the members agree and the forecast is trustworthy; a wide
+The chart is the next 15 days of US gas-weighted heating demand. GEFS runs 31 ensemble
+members, each one possible version of the weather. The bold blue line is the median of
+those 31, and the shaded band runs from the 10th to the 90th percentile (the individual
+members are in `history/` but not drawn, to keep the chart readable). A narrow band means the members agree and the forecast is trustworthy; a wide
 band means they do not. The number that matters most is the 15-day total, shown above the
 chart with how much it moved since the previous run and since the run 24 hours earlier.
 Green arrow up means the forecast got colder (more gas burned); red arrow down means warmer.
@@ -61,7 +61,7 @@ with **Midwest**, works differently:
   15 days *before* percentiles are taken. That is why the 15-day median is not exactly the
   sum of the daily medians. With the cold kink the conversion is nonlinear, so converting an
   HDD percentile to Bcf would give the wrong answer; `tests/test_regions.py` checks this.
-- **±10% weather**: the line under the headline (and the dotted lines on the Bcf chart) is
+- **±10% weather**: the line under the headline is
   how many Bcf the 15 days would move if every day were 10% colder or warmer in HDD than the
   median path: 0.10 × slope × the 15-day median HDD.
 - **Implied storage withdrawal**: for each EIA storage week (Saturday–Friday) that overlaps
