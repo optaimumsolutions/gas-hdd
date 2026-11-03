@@ -92,7 +92,7 @@ FXX = list(range(0, 385, 6))       # lead times in hours: 0, 6, ..., 384 (65 of 
 SEARCH = ":TMP:2 m above ground:"  # the one GRIB field we want (2 m temperature)
 LAT_MIN, LAT_MAX = 24.0, 50.0      # Lower-48 bounding box
 LON_MIN, LON_MAX = -125.0, -66.0
-THREADS = 16                       # parallel HTTP requests to S3
+THREADS = 8                        # parallel HTTP requests to S3 (more = more "Slow Down" errors)
 FREEZE_F = 32.0                    # the map's freeze line
 HDD_BASE_F = 65.0                  # HDD = max(0, 65 - daily mean temperature)
 PERIODS = [("d1-5", 0, 5), ("d6-10", 5, 10), ("d11-15", 10, 15)]  # map panels
@@ -115,6 +115,19 @@ class step:
         print(f"[{self.name}] done in {time.time() - self.t0:.0f}s", flush=True)
 
 
+def retry(call):
+    """Run call() and, if it raises, wait and try again (up to 5 attempts).
+    NOAA's S3 bucket sometimes answers "503 Slow Down" or drops a connection;
+    the second try almost always works."""
+    for attempt in range(5):
+        try:
+            return call()
+        except Exception:
+            if attempt == 4:
+                raise
+            time.sleep(2 ** attempt + random.random())
+
+
 # ------------------------------------------------------------ 1. pick a run
 def find_files(run):
     """Make one Herbie object per (member, lead time). Creating it checks that
@@ -123,8 +136,8 @@ def find_files(run):
 
     def make(mf):
         m, f = mf
-        H = Herbie(run, model="gefs", product="atmos.5", member=m, fxx=f,
-                   priority="aws", save_dir=CACHE, verbose=False)
+        H = retry(lambda: Herbie(run, model="gefs", product="atmos.5", member=m, fxx=f,
+                                 priority="aws", save_dir=CACHE, verbose=False))
         return mf, H
 
     pairs = [(m, f) for m in MEMBERS for f in FXX]
@@ -169,20 +182,9 @@ def pick_run(explicit):
 
 # ------------------------------------------------------------- 2. download
 def download_all(files):
-    """Fetch the 2 m temperature field for every file, 16 at a time. S3 sometimes
-    answers "503 Slow Down"; back off and retry up to 5 times before giving up."""
-
-    def fetch(H):
-        for attempt in range(5):
-            try:
-                return H.download(SEARCH)
-            except Exception:  # herbie wraps the HTTP error in a RuntimeError
-                if attempt == 4:
-                    raise
-                time.sleep(2 ** attempt + random.random())
-
+    """Fetch the 2 m temperature field for every file, THREADS at a time."""
     with ThreadPoolExecutor(THREADS) as pool:
-        list(pool.map(fetch, files.values()))
+        list(pool.map(lambda H: retry(lambda: H.download(SEARCH)), files.values()))
 
 
 # ------------------------------------------------------ 3. build the array
