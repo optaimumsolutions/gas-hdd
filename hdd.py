@@ -129,10 +129,10 @@ def retry(call):
 
 
 # ------------------------------------------------------------ 1. pick a run
-def find_files(run):
-    """Make one Herbie object per (member, lead time). Creating it checks that
-    the GRIB file and its .idx index exist on S3. Returns the dict of objects
-    and a list of the (member, lead) pairs that are missing."""
+def find_files(run, pairs):
+    """Make one Herbie object per (member, lead time) pair. Creating it checks
+    that the GRIB file and its .idx index exist on S3. Returns the dict of
+    objects and the list of pairs that are missing."""
 
     def make(mf):
         m, f = mf
@@ -140,7 +140,6 @@ def find_files(run):
                                  priority="aws", save_dir=CACHE, verbose=False))
         return mf, H
 
-    pairs = [(m, f) for m in MEMBERS for f in FXX]
     with ThreadPoolExecutor(THREADS) as pool:
         files = dict(pool.map(make, pairs))
     missing = [mf for mf, H in files.items() if H.grib is None or H.idx is None]
@@ -154,15 +153,25 @@ def find_files(run):
     return files, missing
 
 
+def probe(run):
+    """Check whether a run is complete. GEFS writes lead times in order, so the
+    last lead time is checked first for every member (31 files, seconds); only
+    if all of those exist are all 2015 files checked (minutes)."""
+    files, missing = find_files(run, [(m, FXX[-1]) for m in MEMBERS])
+    if missing:
+        return files, missing
+    return find_files(run, [(m, f) for m in MEMBERS for f in FXX])
+
+
 def pick_run(explicit):
     """Return (run datetime, Herbie objects, note). With --run, that run must be
     complete. Otherwise try the newest cycle and step back 6 h at a time."""
     if explicit is not None:
-        files, missing = find_files(explicit)
+        files, missing = probe(explicit)
         if missing:
             m, f = missing[0]
             raise RuntimeError(f"run {explicit:%Y-%m-%d %H}Z is missing {len(missing)} "
-                               f"of {len(files)} files on S3 (first: member {m}, f{f:03d})")
+                               f"of {len(files)} files checked on S3 (first: member {m}, f{f:03d})")
         return explicit, files, ""
 
     now = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -171,11 +180,11 @@ def pick_run(explicit):
     note = ""
     for k in range(4):  # the newest cycle and the three before it
         run = latest - timedelta(hours=6 * k)
-        files, missing = find_files(run)
+        files, missing = probe(run)
         if not missing:
             print(f"  using run {run:%Y-%m-%d %H}Z (all {len(files)} files present)")
             return run, files, note
-        print(f"  run {run:%Y-%m-%d %H}Z: {len(missing)} of {len(files)} files not on S3 yet")
+        print(f"  run {run:%Y-%m-%d %H}Z: {len(missing)} of {len(files)} files checked not on S3 yet")
         note += f"{run:%Y-%m-%d %H}Z was incomplete at {now:%H:%M} UTC. "
     raise RuntimeError("no complete GEFS run in the last 24 hours")
 

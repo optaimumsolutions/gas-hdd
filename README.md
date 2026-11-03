@@ -34,8 +34,10 @@ Appalachia, DJ and Bakken). The label next to each triangle is that percentage.
    `main`, folder `/docs`, then Save. The page will be at
    https://optaimumsolutions.github.io/gas-hdd/ within a minute or two of the first commit.
 2. **Actions → "GEFS HDD dashboard" → Run workflow → Run workflow**. The job takes about
-   8–12 minutes. Green check = the page has been updated. Red X = open the job and read the
-   last lines of the "Build the dashboard" step; the error names the step that failed.
+   10–20 minutes depending on how busy NOAA's S3 bucket is. Green check = the page has
+   been updated. Red X = open the job and read the last lines of the "Build the dashboard"
+   step; the error names the step that failed. A one-off red run is not a disaster: the
+   next scheduled run six hours later starts fresh.
 
 After that it runs itself at 05:30, 11:30, 17:30 and 23:30 UTC (about 5.5 hours after each
 GEFS cycle starts, which is when the full 31-member run is normally on S3). If the newest
