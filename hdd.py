@@ -42,7 +42,6 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import requests
 from herbie import Herbie
 
 sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Windows too
@@ -177,7 +176,7 @@ def download_all(files):
         for attempt in range(5):
             try:
                 return H.download(SEARCH)
-            except requests.RequestException:
+            except Exception:  # herbie wraps the HTTP error in a RuntimeError
                 if attempt == 4:
                     raise
                 time.sleep(2 ** attempt + random.random())
