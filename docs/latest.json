@@ -1,8 +1,8 @@
 {
  "run": "2026-11-03 06Z",
  "run_id": "20261103_06z",
- "generated_utc": "2026-11-03 15:36 UTC",
- "note": "2026-11-03 12Z was incomplete at 15:28 UTC.",
+ "generated_utc": "2026-11-03 16:18 UTC",
+ "note": "2026-11-03 12Z was incomplete at 15:57 UTC.",
  "days": [
   {
    "day": 1,
@@ -115,8 +115,18 @@
   "median": 121.1,
   "p90": 141.7
  },
- "vs_prev": null,
- "vs_24h": null,
+ "vs_prev": {
+  "run": "2026-11-03 00Z",
+  "delta": -1.5,
+  "shared_days": 14,
+  "other_total": 114.0
+ },
+ "vs_24h": {
+  "run": "2026-11-02 06Z",
+  "delta": -9.4,
+  "shared_days": 14,
+  "other_total": 122.0
+ },
  "basin_freeze_risk": {
   "d1-5": {
    "Permian / Midland TX": 0.0,
