@@ -9,8 +9,13 @@ storage report. Phase 1 defines the Midwest only.
 Each region:
   cities  (city, state, lat, lon, weight); weights sum to 1.0 within the region.
           Coordinates are approximate airport (ASOS) locations.
-  demand  Bcf/d = max(floor, intercept + slope * weighted_HDD)
+  demand  Bcf/d = max(floor, intercept + slope * W + slope * kink_frac * max(0, W - kink))
+
+Model source for every slope/intercept/ratio below: EIA, "STEO Supplement:
+Weather Sensitivity in Natural Gas Markets" (Oct 2014).
 """
+
+from datetime import timedelta
 
 import numpy as np
 
@@ -39,12 +44,12 @@ Z90 = 1.2816  # standard-normal quantile for p90 (p10 = -Z90)
 # The MI and MO 60/40 splits are by metro population, not utility customer
 # counts: a judgment call, flagged for refinement.
 #
-# Slope: EIA STEO Supplement "Weather Sensitivity in Natural Gas Markets"
-# (Oct 2014), res+comm Bcf/d per HDD/d by census division: East North Central
-# 0.33, West North Central 0.12, East South Central 0.09. Scaled to the storage
-# Midwest: ENC minus Ohio (0.33 x 0.80 = 0.26) + WNC's IA/MN/MO (0.12 x 0.65 =
-# 0.08) + KY/TN (0.09 x 0.70 = 0.06) = 0.38-0.40. Plausible range 0.33-0.45.
-# A 2010-14 fit, not fitted to this index: placeholder until the Phase 3 re-fit.
+# Slope: EIA STEO Supplement Table 2, res+comm Bcf/d per HDD/d by census
+# division: East North Central 0.33, West North Central 0.12, East South
+# Central 0.09. Scaled to the storage Midwest by each division's share inside
+# it: ENC minus Ohio (0.33 x 0.80) + WNC's IA/MN/MO (0.12 x 0.70) + KY/TN
+# (0.09 x 0.60) = 0.40. A 2010-14 fit, not fitted to this index: placeholder
+# until the Phase 3 re-fit.
 MIDWEST = {
     "name": "Midwest",
     "key": "midwest",
@@ -63,10 +68,13 @@ MIDWEST = {
         ("Des Moines",   "IA", 41.53, -93.66, 0.04872),
         ("Louisville",   "KY", 38.17, -85.73, 0.03687),
     ],
-    "slope_bcfd_per_hdd": 0.38,     # see above; RE-FIT in Phase 3
-    "intercept_bcfd": 0.0,          # hinge model: the floor carries the baseload
+    "slope_bcfd_per_hdd": 0.40,     # EIA Table 2: ENC 0.33x0.80 + WNC 0.12x0.70 + ESC 0.09x0.60
+    "intercept_bcfd": 0.0,          # EIA national res (-2.05) + comm (+2.28) intercepts net to ~0
     "floor_bcfd": 1.9,              # summer res/comm baseload, scaled from the 13-state 2.3
+    "cold_kink_hdd": 45,            # daily mean below 20 F: demand steepens (EIA extreme-cold note)
+    "cold_kink_extra_frac": 0.15,   # +15% slope above the kink; placeholder until re-fit
     "slope_sigma_frac": 0.10,       # 10% until re-fit, then 5%
+    "storage_ratio": (1.12, 1.26),  # EIA storage slope 1.78-2.00 vs res+comm 1.59 Bcf/d per HDD
     # GEFS 2 m temperature is under-dispersive, worse at longer leads (NOAA
     # GEFSv12 docs). Deviation-from-median multipliers for days 1-15; a guess
     # until Phase 3 fits spread-skill = 1 per lead day.
@@ -77,15 +85,49 @@ MIDWEST = {
 
 REGIONS = [MIDWEST]   # Phase 2 appends EAST, SOUTH_CENTRAL, MOUNTAIN, PACIFIC
 
+# Res+comm slopes (Bcf/d per HDD/d) per EIA storage region, from the same EIA
+# Table 2 census-division slopes regrouped into storage regions. They sum to the
+# EIA national res+comm slope of 1.59. Not used yet: Phase 2 copies each one
+# into its region dict.
+PHASE2_SLOPES = {"east": 0.62, "midwest": 0.40, "south_central": 0.23, "mountain": 0.14, "pacific": 0.20}
+
 for _r in REGIONS:
     assert abs(sum(c[4] for c in _r["cities"]) - 1) < 1e-4, f"{_r['key']} weights do not sum to 1"
     assert len(_r["spread_inflation"]) == 15, f"{_r['key']} needs 15 inflation factors"
 
 
 def demand_bcfd(region, W):
-    """Weighted HDD -> res/comm gas demand in Bcf/d. Works on any array shape."""
-    return np.maximum(region["floor_bcfd"],
-                      region["intercept_bcfd"] + region["slope_bcfd_per_hdd"] * W)
+    """Weighted HDD -> res/comm gas demand in Bcf/d. Works on any array shape.
+    Linear above the floor, with the slope 15% steeper beyond the cold kink.
+    Nonlinear, so percentiles must be taken AFTER converting each member."""
+    slope = region["slope_bcfd_per_hdd"]
+    extra = slope * region["cold_kink_extra_frac"] * np.maximum(0.0, W - region["cold_kink_hdd"])
+    return np.maximum(region["floor_bcfd"], region["intercept_bcfd"] + slope * W + extra)
+
+
+def scenario_10pct(region, W_median_path):
+    """Bcf change over the window if every day were 10% colder / warmer (in HDD)
+    than the median path. Linear in the slope, as EIA quotes it."""
+    delta = 0.10 * region["slope_bcfd_per_hdd"] * float(np.sum(W_median_path))
+    return {"colder_bcf": round(delta, 1), "warmer_bcf": round(-delta, 1)}
+
+
+def implied_withdrawal(region, D, days):
+    """Implied storage withdrawal per EIA storage week (Saturday-Friday) that
+    overlaps the forecast. For each week: each member's demand summed over the
+    week's days inside the forecast, the median of those member sums, times the
+    storage_ratio low and high. D[member, day] in Bcf/d; days = list of dates."""
+    weeks = {}
+    for i, d in enumerate(days):
+        week_ending = d + timedelta(days=(4 - d.weekday()) % 7)   # the Friday
+        weeks.setdefault(week_ending, []).append(i)
+    lo, hi = region["storage_ratio"]
+    rows = []
+    for week_ending, idx in sorted(weeks.items()):
+        median = float(np.median(D[:, idx].sum(axis=1)))
+        rows.append({"week_ending": week_ending.isoformat(), "days_in_forecast": len(idx),
+                     "low_bcf": round(lo * median, 1), "high_bcf": round(hi * median, 1)})
+    return rows
 
 
 def calibrated_band(region, D):

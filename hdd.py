@@ -5,12 +5,12 @@ hdd.py - US gas-weighted heating degree days (HDD) from NOAA's GEFS ensemble.
 What this script does, in order:
   1. Pick the newest GEFS run that is COMPLETE on NOAA's public S3 bucket
      (all 31 members x all 65 lead times), or the run given with --run.
-  2. Download 2-metre temperature for every member and lead time. herbie
-     pulls just that one field out of each GRIB file (a byte-range request),
-     not the whole file.
-  3. Cut each field down to the Lower 48 and stack everything into one array
-     T[member, lead_time, lat, lon] in Kelvin.
-  4. Turn the temperatures at 16 big cities into daily HDDs, weight them by
+  2. Download 2-metre temperature (6-hourly value, 6-h max and 6-h min) for
+     every member and lead time. herbie pulls just those three fields out of
+     each GRIB file (byte-range requests), not the whole file.
+  3. Cut each field down to the Lower 48 and stack everything into arrays
+     T, TX, TN [member, lead_time, lat, lon] in Kelvin.
+  4. Turn the daily (Tmax + Tmin) / 2 at 16 big cities into HDDs, weight them by
      population, and summarise across the 31 members (median, p10, p90).
      Then, for each region in regions.py, weight that region's cities by gas
      consumption and convert HDD to Bcf/d of res/comm demand, member by member.
@@ -46,7 +46,7 @@ import numpy as np
 import pandas as pd
 from herbie import Herbie
 
-from regions import REGIONS, calibrated_band, demand_bcfd
+from regions import REGIONS, calibrated_band, demand_bcfd, implied_withdrawal, scenario_10pct
 
 sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Windows too
 
@@ -93,7 +93,11 @@ BASINS = [
 # ---------------------------------------------------------------- GEFS setup
 MEMBERS = list(range(31))          # 0 = control run, 1..30 = perturbed members
 FXX = list(range(0, 385, 6))       # lead times in hours: 0, 6, ..., 384 (65 of them)
-SEARCH = ":TMP:2 m above ground:"  # the one GRIB field we want (2 m temperature)
+# The GRIB fields we want: 2 m temperature at the valid time, and its max and
+# min over the 6 hours ending at the valid time (absent at f000). One regex, so
+# each file is still one byte-range download.
+FIELDS = [":TMP:2 m above ground:", ":TMAX:2 m above ground:", ":TMIN:2 m above ground:"]
+SEARCH = ":(?:TMP|TMAX|TMIN):2 m above ground:"
 LAT_MIN, LAT_MAX = 24.0, 50.0      # Lower-48 bounding box
 LON_MIN, LON_MAX = -125.0, -66.0
 THREADS = 8                        # parallel HTTP requests to S3 (more = more "Slow Down" errors)
@@ -195,15 +199,19 @@ def pick_run(explicit):
 
 # ------------------------------------------------------------- 2. download
 def download_all(files):
-    """Fetch the 2 m temperature field for every file, THREADS at a time."""
+    """Fetch the three 2 m temperature fields for every file, THREADS at a time."""
+    t0 = time.time()
     with ThreadPoolExecutor(THREADS) as pool:
         list(pool.map(lambda H: retry(lambda: H.download(SEARCH)), files.values()))
+    print(f"  downloaded {len(files)} files x {len(FIELDS)} fields in {time.time() - t0:.0f}s")
 
 
 # ------------------------------------------------------ 3. build the array
 def load_cube(files):
-    """Open every downloaded field and stack them into T[member, lead, lat, lon]
-    (Kelvin), keeping only grid cells inside the Lower-48 box."""
+    """Open every downloaded file and stack the fields into T, TX, TN
+    [member, lead, lat, lon] (Kelvin), keeping only grid cells inside the
+    Lower-48 box. TX/TN are the 6-h max/min ending at each lead; where a file
+    has no TMAX/TMIN (always at f000) the 6-hourly TMP stands in for both."""
     T = None
     for mi, m in enumerate(MEMBERS):
         for fi, f in enumerate(FXX):
@@ -215,18 +223,31 @@ def load_cube(files):
                 ilon = np.where((lon_all >= LON_MIN) & (lon_all <= LON_MAX))[0]
                 lat, lon = lat_all[ilat], lon_all[ilon]
                 T = np.full((len(MEMBERS), len(FXX), len(ilat), len(ilon)), np.nan, np.float32)
+                TX, TN = T.copy(), T.copy()
             # Guard against a mixed-up file: the GRIB header must say this member and lead.
             if int(ds.number) != m or int(ds.step.values / np.timedelta64(1, "h")) != f:
                 raise RuntimeError(f"file for member {m} f{f:03d} holds member "
                                    f"{int(ds.number)} step {ds.step.values}")
             T[mi, fi] = ds.t2m.values[np.ix_(ilat, ilon)]
+            if "tmax" in ds and "tmin" in ds:
+                TX[mi, fi] = ds.tmax.values[np.ix_(ilat, ilon)]
+                TN[mi, fi] = ds.tmin.values[np.ix_(ilat, ilon)]
             ds.close()
         print(f"  member {m:2d} loaded", flush=True)
     if np.isnan(T).any():
         raise RuntimeError("temperature array has gaps")
-    if T.min() < 180 or T.max() > 340:  # Kelvin sanity check
-        raise RuntimeError(f"temperatures out of range: {T.min():.0f}..{T.max():.0f} K")
-    return T, lat, lon
+    for A in (T, TX, TN):
+        if np.nanmin(A) < 180 or np.nanmax(A) > 340:  # Kelvin sanity check
+            raise RuntimeError(f"temperatures out of range: {np.nanmin(A):.0f}..{np.nanmax(A):.0f} K")
+    missing = np.isnan(TX[:, :, 0, 0]) | np.isnan(TN[:, :, 0, 0])   # [member, lead]
+    for fi in np.where(missing.any(axis=0))[0]:
+        if FXX[fi] == 0:
+            continue  # f000 never has TMAX/TMIN, and no HDD day uses it
+        members = [MEMBERS[mi] for mi in np.where(missing[:, fi])[0]]
+        print(f"  WARNING: no TMAX/TMIN at f{FXX[fi]:03d} for members {members}; using 6-h TMP")
+    TX = np.where(np.isnan(TX), T, TX)
+    TN = np.where(np.isnan(TN), T, TN)
+    return T, TX, TN, lat, lon
 
 
 # ------------------------------------------------------------ 4. the maths
@@ -250,20 +271,26 @@ def full_days(run):
     days = [d for d in sorted(groups) if len(groups[d]) == 4][:15]
     if len(days) != 15:
         raise RuntimeError(f"expected 15 full days, found {len(days)}")
+    if groups[days[-1]][-1] + 1 >= len(FXX):   # city_hdd needs the next day's 00Z TMAX/TMIN
+        raise RuntimeError("day 15 has no 24Z lead for TMAX/TMIN")
     return days, [groups[d] for d in days]
 
 
-def city_hdd(T, lat, lon, day_steps, cities):
+def city_hdd(TX, TN, lat, lon, day_steps, cities):
     """hdd[member, day] = sum over cities of weight x max(0, 65 - daily mean F).
     cities = list of (latitude, longitude, weight).
-    Daily mean = average of the four 6-hourly values in that UTC day."""
+    Daily mean = (Tmax + Tmin) / 2, the EIA/NOAA definition. TMAX/TMIN cover
+    the 6 hours ENDING at their lead, so a UTC day 00-24Z is the four leads
+    valid 06, 12, 18 and 24Z: the day's own leads shifted by one."""
     weights = np.array([c[2] for c in cities])
     weights = weights / weights.sum()                       # normalise to 1
     rows, cols = zip(*[nearest_index(lat, lon, c[0], c[1]) for c in cities])
-    temp_f = k_to_f(T[:, :, list(rows), list(cols)])        # [member, lead, city]
+    tmax_f = k_to_f(TX[:, :, list(rows), list(cols)])       # [member, lead, city]
+    tmin_f = k_to_f(TN[:, :, list(rows), list(cols)])
     hdd = np.zeros((len(MEMBERS), len(day_steps)))
     for di, steps in enumerate(day_steps):
-        daily_mean = temp_f[:, steps, :].mean(axis=1)       # [member, city]
+        window = [s + 1 for s in steps]                     # leads valid 06, 12, 18, 24Z
+        daily_mean = (tmax_f[:, window].max(axis=1) + tmin_f[:, window].min(axis=1)) / 2  # [member, city]
         per_city = np.maximum(0.0, HDD_BASE_F - daily_mean)  # [member, city]
         hdd[:, di] = per_city @ weights                     # weighted sum
     return hdd
@@ -288,14 +315,14 @@ def period_fields(T, lat, lon, day_steps, first, last):
     return mean_f, uncertain, risk
 
 
-def region_series(region, T, lat, lon, day_steps):
+def region_series(region, TX, TN, lat, lon, day_steps):
     """One region's per-member numbers. Everything is converted member by member
     and only then summarised, never on the percentiles:
       hdd[m, d]    consumption-weighted HDD
       bcfd[m, d]   res/comm demand, Bcf/d
       total_bcf[m] 15-day sum of bcfd, Bcf
       cal          calibrated band (see regions.calibrated_band)"""
-    hdd = city_hdd(T, lat, lon, day_steps, [(c[2], c[3], c[4]) for c in region["cities"]])
+    hdd = city_hdd(TX, TN, lat, lon, day_steps, [(c[2], c[3], c[4]) for c in region["cities"]])
     bcfd = demand_bcfd(region, hdd)
     return {"hdd": hdd, "bcfd": bcfd, "total_bcf": bcfd.sum(axis=1), "cal": calibrated_band(region, bcfd)}
 
@@ -354,16 +381,19 @@ def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted H
     return png_bytes(fig)
 
 
-def make_bcf_chart(region, run, days, bcfd, cal, total):
+def make_bcf_chart(region, run, days, bcfd, cal, total, hdd_median):
     """Daily res/comm demand: members in grey, median line, raw p10-p90 shaded,
-    calibrated p10-p90 as a dashed outline."""
+    calibrated p10-p90 as a dashed outline, +/-10% weather as dotted lines."""
     p10, median, p90 = np.percentile(bcfd, [10, 50, 90], axis=0)
+    ten_pct = 0.10 * region["slope_bcfd_per_hdd"] * hdd_median
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     for m in range(bcfd.shape[0]):
         ax.plot(days, bcfd[m], color="gray", alpha=0.25, lw=0.7)
     ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="Raw p10-p90 (GEFS spread)")
     ax.plot(days, cal["daily_lo"], color="tab:red", lw=1.3, ls="--", label="Calibrated p10-p90")
     ax.plot(days, cal["daily_hi"], color="tab:red", lw=1.3, ls="--")
+    ax.plot(days, median + ten_pct, color="black", lw=0.8, ls=":", label="Median +/-10% HDD")
+    ax.plot(days, median - ten_pct, color="black", lw=0.8, ls=":")
     ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median")
     ax.set_ylabel("Res/comm gas demand (Bcf/d)")
     ax.set_ylim(bottom=0)
@@ -427,18 +457,18 @@ def main():
         download_all(files)
 
     with step("3/7 read the GRIB files into one array"):
-        T, lat, lon = load_cube(files)
+        T, TX, TN, lat, lon = load_cube(files)
         print(f"  array shape {T.shape} (member, lead, lat, lon)")
 
     with step("4/7 compute HDDs and map fields"):
         days, day_steps = full_days(run)
-        hdd = city_hdd(T, lat, lon, day_steps, [(c[1], c[2], c[3]) for c in CITIES])  # [member, day]
+        hdd = city_hdd(TX, TN, lat, lon, day_steps, [(c[1], c[2], c[3]) for c in CITIES])  # [member, day]
         p10, median, p90 = np.percentile(hdd, [10, 50, 90], axis=0)
         member_totals = hdd.sum(axis=1)
         total = {k: round(float(v), 1) for k, v in
                  zip(["p10", "median", "p90"], np.percentile(member_totals, [10, 50, 90]))}
         maps = {label: period_fields(T, lat, lon, day_steps, a, b) for label, a, b in PERIODS}
-        regional = {r["key"]: region_series(r, T, lat, lon, day_steps) for r in REGIONS}
+        regional = {r["key"]: region_series(r, TX, TN, lat, lon, day_steps) for r in REGIONS}
         for r in REGIONS:
             s = regional[r["key"]]
             raw = np.percentile(s["total_bcf"], [10, 50, 90])
@@ -449,6 +479,9 @@ def main():
             h = np.percentile(s["hdd"].sum(axis=1), [10, 50, 90])
             s["total_hdd"] = {"median": round(float(h[1]), 1), "p10": round(float(h[0]), 1),
                               "p90": round(float(h[2]), 1)}
+            s["hdd_median"] = np.median(s["hdd"], axis=0)
+            s["scenario_10pct"] = scenario_10pct(r, s["hdd_median"])
+            s["implied_withdrawal"] = implied_withdrawal(r, s["bcfd"], days)
 
     with step("5/7 compare with earlier runs"):
         runs = history_runs()
@@ -477,7 +510,7 @@ def main():
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
             pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
                                               title=f"{r['name']} gas-consumption-weighted HDD")
-            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], s["cal"], s["total"])
+            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], s["cal"], s["total"], s["hdd_median"])
             basins = [b for b in BASINS if b[0] in r["basins"]]
             points = [(c[2], c[3]) for c in r["cities"]]
             for label, a, b in PERIODS:
@@ -504,6 +537,11 @@ def main():
               f"(calibrated {t['cal_p10']}-{t['cal_p90']}, raw {t['raw_p10']}-{t['raw_p90']}); "
               f"HDD {s['total_hdd']['median']}; "
               f"sum of daily medians {np.median(s['bcfd'], axis=0).sum():.1f} Bcf")
+        sc = s["scenario_10pct"]
+        print(f"  10% colder: {sc['colder_bcf']:+.1f} Bcf, 10% warmer: {sc['warmer_bcf']:+.1f} Bcf")
+        for w in s["implied_withdrawal"]:
+            print(f"  implied withdrawal, week ending {w['week_ending']} ({w['days_in_forecast']}/7 days): "
+                  f"{w['low_bcf']}-{w['high_bcf']} Bcf")
         for name, key in [("previous run", "vs_prev"), ("run 24h earlier", "vs_24h")]:
             cmp = s[key]
             print(f"  vs {name}: " + ("no prior run" if cmp is None else
@@ -546,9 +584,15 @@ def main():
                 "total_hdd": s["total_hdd"],
                 "vs_prev": s["vs_prev"],
                 "vs_24h": s["vs_24h"],
+                "scenario_10pct": s["scenario_10pct"],
+                "implied_withdrawal": s["implied_withdrawal"],
                 "model": {"slope": r["slope_bcfd_per_hdd"], "intercept": r["intercept_bcfd"],
-                          "floor": r["floor_bcfd"], "slope_sigma_frac": r["slope_sigma_frac"],
-                          "spread_inflation": r["spread_inflation"], "refit": r["refit"]},
+                          "floor": r["floor_bcfd"], "cold_kink_hdd": r["cold_kink_hdd"],
+                          "cold_kink_extra_frac": r["cold_kink_extra_frac"],
+                          "storage_ratio": list(r["storage_ratio"]),
+                          "slope_sigma_frac": r["slope_sigma_frac"],
+                          "spread_inflation": r["spread_inflation"], "refit": r["refit"],
+                          "source": "EIA STEO Supplement, Weather Sensitivity in Natural Gas Markets, Oct 2014"},
                 "basin_freeze_risk": {label: {b: round(maps[label][2][b], 2) for b in r["basins"]}
                                       for label, _, _ in PERIODS},
                 "images": {"hdd_chart": f"{k}_hdd.png", "bcf_chart": f"{k}_bcf.png",

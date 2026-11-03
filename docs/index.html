@@ -29,6 +29,7 @@
   .headline { font-size: 1.1rem; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
   .stack > img { margin: 12px 0; }
   .wide { max-width: 900px; }
+  .weeks div.partial { color: #aaa; }
 </style>
 </head>
 <body>
@@ -54,7 +55,7 @@
   <tfoot></tfoot>
 </table>
 
-<p class="muted">HDD = max(0, 65&deg;F &minus; daily mean temperature), population-weighted over 16 cities, UTC days.
+<p class="muted">HDD = max(0, 65&deg;F &minus; (Tmax + Tmin)/2), population-weighted over 16 cities, UTC days.
 Changes are measured over the days both runs forecast. Data: NOAA GEFS 0.5&deg;, public domain.
 Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimumsolutions/gas-hdd</a></p>
 </div>
@@ -112,7 +113,11 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   const regions = d.regions || {};
   for (const [key, r] of Object.entries(regions)) {
     document.getElementById("tabs").insertAdjacentHTML("beforeend", `<button data-tab="${key}">${r.name}</button>`);
-    const t = r.total_bcf, m = r.model;
+    const t = r.total_bcf, m = r.model, sc = r.scenario_10pct;
+    const weeks = (r.implied_withdrawal || []).map(w =>
+      `<div class="${w.days_in_forecast < 4 ? "partial" : ""}">Implied ${r.name} withdrawal, week ending ${w.week_ending}: ` +
+      `<b>${w.low_bcf.toFixed(0)}&ndash;${w.high_bcf.toFixed(0)} Bcf</b> (EIA reports Thursday)` +
+      `${w.days_in_forecast < 7 ? ` <span class="muted">&middot; ${w.days_in_forecast} of 7 days in forecast</span>` : ""}</div>`).join("");
     const rows = r.days.map(x => `<tr><td>${x.day}</td><td>${x.date}</td><td>${x.hdd_median.toFixed(1)}</td>` +
       `<td>${x.hdd_p10.toFixed(1)}</td><td>${x.hdd_p90.toFixed(1)}</td><td>${x.bcfd_median.toFixed(2)}</td>` +
       `<td>${x.bcfd_p10.toFixed(2)}</td><td>${x.bcfd_p90.toFixed(2)}</td></tr>`).join("");
@@ -121,7 +126,9 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <p class="muted">EIA storage region: ${r.eia_storage_region} (${r.states.join(", ")}). Cities weighted by residential + commercial gas consumption.</p>
   <div class="headline">15-day ${r.name} res/comm gas demand: <b>${t.median.toFixed(0)} Bcf</b>
     (calibrated range ${t.cal_p10.toFixed(0)}&ndash;${t.cal_p90.toFixed(0)}; raw ${t.raw_p10.toFixed(0)}&ndash;${t.raw_p90.toFixed(0)})
-    <div>Previous run: ${bcfArrow(r.vs_prev)}</div><div>24 h earlier: ${bcfArrow(r.vs_24h)}</div></div>
+    <div class="muted">10% colder: +${sc.colder_bcf.toFixed(0)} Bcf &middot; 10% warmer: &minus;${Math.abs(sc.warmer_bcf).toFixed(0)} Bcf</div>
+    <div>Previous run: ${bcfArrow(r.vs_prev)}</div><div>24 h earlier: ${bcfArrow(r.vs_24h)}</div>
+    <div class="weeks" style="margin-top:6px">${weeks}</div></div>
   <div class="stack">
     <img src="${r.images.bcf_chart + bust}" alt="${r.name} daily gas demand, Bcf/d">
     <img src="${r.images.hdd_chart + bust}" alt="${r.name} weighted HDD">
@@ -133,8 +140,9 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     <tfoot><tr><td colspan="2">15-day total</td><td>${r.total_hdd.median.toFixed(1)}</td><td>${r.total_hdd.p10.toFixed(1)}</td>` +
     `<td>${r.total_hdd.p90.toFixed(1)}</td><td>${t.median.toFixed(1)}</td><td>${t.raw_p10.toFixed(1)}</td><td>${t.raw_p90.toFixed(1)}</td></tr></tfoot>
   </table>
-  <p class="muted">Model: Bcf/d = max(${m.floor}, ${m.intercept} + ${m.slope} &times; HDD); slope uncertainty ${(m.slope_sigma_frac * 100).toFixed(0)}%;
-    GEFS spread inflation ${[...new Set(m.spread_inflation)].join(" / ")} by lead.${m.refit ? "" : " <b>Placeholder until re-fit against EIA storage.</b>"}
+  <p class="muted">Model: Bcf/d = max(${m.floor}, ${m.intercept} + ${m.slope} &times; HDD), slope +${(m.cold_kink_extra_frac * 100).toFixed(0)}% above ${m.cold_kink_hdd} HDD/day;
+    slope uncertainty ${(m.slope_sigma_frac * 100).toFixed(0)}%; GEFS spread inflation ${[...new Set(m.spread_inflation)].join(" / ")} by lead;
+    storage withdrawal = res/comm &times; ${m.storage_ratio[0]}&ndash;${m.storage_ratio[1]}. Source: ${m.source}.${m.refit ? "" : " <b>Placeholders &mdash; not yet re-fit.</b>"}
     Daily p10/p90 in the table are raw; the totals row uses the member sums.</p>
 </div>`);
   }

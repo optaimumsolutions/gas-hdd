@@ -7,6 +7,19 @@ downloads NOAA's GEFS ensemble forecast, turns it into US gas-weighted heating d
 (HDD), draws a chart and three maps, and commits the results back to this repo. GitHub Pages
 serves the `docs/` folder as the dashboard. No servers, no accounts, no paid data.
 
+## Changelog
+
+- **2026-11-03 — HDD definition changed (step change, not weather).** Daily mean temperature
+  is now (Tmax + Tmin) / 2 from GEFS's 6-hour max/min fields, the EIA/NOAA definition, instead
+  of the average of the four 6-hourly values at 00, 06, 12 and 18Z. Those four snapshots fall
+  near 7 pm, 1 am, 7 am and 1 pm Eastern: they catch the overnight low but miss the afternoon
+  high, so the old mean ran cool. The new mean is 0.5–1.1°F warmer per city, which on the
+  11-03 06Z run cut the US 15-day total from 121.1 to 110.3 HDD (−8.9%) and the Midwest
+  from 212.9 to 198.6 HDD (−6.7%). The percentage is large in November because HDDs are
+  small; the same ~0.7°F shift is about 2% in January. All runs in `history/` were rebuilt on
+  the new definition, so run-to-run changes compare like with like. Same day: Midwest demand
+  model moved to PRD v2 (slope 0.40, cold kink, implied storage withdrawal).
+
 ## What the dashboard shows and how to read it
 
 The chart is the next 15 days of US gas-weighted heating demand. Each of the 31 GEFS
@@ -38,11 +51,24 @@ with **Midwest**, works differently:
   is South Central).
 - **Cities are weighted by residential + commercial gas consumption** (EIA, 2024 + 2025), not
   population. The weights, their sources and the state table are in `regions.py`.
-- **HDD is converted to gas demand**: `Bcf/d = max(floor, intercept + slope × weighted HDD)`.
-  Midwest: slope 0.38 Bcf/d per HDD, floor 1.9 Bcf/d (summer baseload).
+- **HDD is converted to gas demand**:
+  `Bcf/d = max(floor, slope × HDD + slope × 0.15 × max(0, HDD − 45))`.
+  Midwest: slope 0.40 Bcf/d per HDD, floor 1.9 Bcf/d (summer baseload), and the slope gets
+  15% steeper on days colder than 45 HDD (daily mean below 20°F). Every number comes from
+  EIA's *STEO Supplement: Weather Sensitivity in Natural Gas Markets* (Oct 2014); the source
+  line for each sits next to it in `regions.py`.
 - **Member by member**: each of the 31 members is converted to Bcf/d per day and summed over
   15 days *before* percentiles are taken. That is why the 15-day median is not exactly the
-  sum of the daily medians.
+  sum of the daily medians. With the cold kink the conversion is nonlinear, so converting an
+  HDD percentile to Bcf would give the wrong answer; `tests/test_regions.py` checks this.
+- **±10% weather**: the line under the headline (and the dotted lines on the Bcf chart) is
+  how many Bcf the 15 days would move if every day were 10% colder or warmer in HDD than the
+  median path: 0.10 × slope × the 15-day median HDD.
+- **Implied storage withdrawal**: for each EIA storage week (Saturday–Friday) that overlaps
+  the forecast, each member's demand is summed over the week's forecast days, the median
+  member sum is taken, and it is multiplied by 1.12–1.26. That ratio is EIA's storage slope
+  (1.78–2.00 Bcf/d per HDD) over its res+comm slope (1.59): storage also feeds power burn and
+  industrial load when it is cold. Weeks with fewer than 4 forecast days are greyed out.
 - **Two ranges.** *Raw* p10–p90 is the spread of the 31 members. *Calibrated* p10–p90 widens
   that for GEFS's known under-dispersion (deviations from the median stretched ×1.0 days 1–5,
   ×1.15 days 6–7, ×1.3 days 8–15) and adds 10% slope uncertainty, then takes median ±
@@ -51,7 +77,7 @@ with **Midwest**, works differently:
   the US tab.
 
 **Sanity check on the slope.** A cold January in the Midwest runs about 40 weighted HDD/day
-→ 0.38 × 40 ≈ 15 Bcf/d. EIA monthly data for IL + MI alone in Jan 2025 averaged 7.3 Bcf/d,
+→ 0.40 × 40 = 16 Bcf/d. EIA monthly data for IL + MI alone in Jan 2025 averaged 7.3 Bcf/d,
 and IL + MI is about 47% of the 9-state region → ≈ 15.5 Bcf/d. The slope is in the right
 place.
 
@@ -66,10 +92,18 @@ its tabs from `latest.json`, so `index.html` does not change.
    about 10% of the consumption-weighted average of CPC's East North Central and West North
    Central values for the same date. Different cities and weights: shape and level should
    match, not the exact number. Do this for three days running before trusting the tab.
-2. **Bcf vs EIA storage.** Each Thursday, sum last week's forecast median Midwest demand over
-   the EIA storage week (Saturday–Friday) and compare with the reported Midwest implied
-   withdrawal. Expect the withdrawal to run 10–20% *above* res/comm demand (storage also feeds
-   power burn and industrial). Keep a log of both numbers in `history/validation.csv`.
+2. **Implied withdrawal vs EIA storage (the Thursday number).** Each Thursday, EIA reports
+   the Midwest net change for the storage week that ended the Friday before. Compare it with
+   the implied-withdrawal range that the run from the Saturday the week started showed for
+   that week. Log it:
+
+   ```
+   python validate_log.py --week-ending 2026-11-06 --eia-midwest -42
+   ```
+
+   Type EIA's number as printed (negative = withdrawal). The script picks the stored run
+   nearest Saturday 00Z, recomputes that week's range, and appends a row to
+   `history/validation.csv` with `inside_range` true or false. No network needed.
 3. **Chart vs Pivotal Weather.** Same check as the US tab, but expect the Midwest HDD to run
    *higher* than the national number, since the warm cities are gone.
 
@@ -77,13 +111,15 @@ its tabs from `latest.json`, so `index.html` does not change.
 
 The page says so until `refit` is set to `True` in `regions.py`.
 
-- Slope 0.38 is scaled from a 2010–14 EIA fit (STEO supplement, Oct 2014), not fitted to this
-  index. Plausible range 0.33–0.45.
+- Slope 0.40 is EIA's 2010–14 census-division fit regrouped into the storage Midwest by
+  consumption share, not fitted to this index.
+- Intercept 0: EIA's national residential (−2.05) and commercial (+2.28) intercepts roughly
+  cancel; the Midwest's own intercept is unknown until re-fit.
+- Cold kink at 45 HDD with +15% slope is a placeholder for EIA's extreme-cold behaviour.
+- Storage ratio 1.12–1.26 is a national ratio applied to the Midwest.
 - Spread-inflation factors (1.0 / 1.15 / 1.3) are a guess at GEFS under-dispersion by lead.
 - MI 60/40 (Detroit / Grand Rapids) and MO 60/40 (St. Louis / Kansas City) splits are by
   metro population, not utility customer counts.
-- Daily mean is the average of four 6-hourly values, not (Tmax + Tmin)/2. Switch when the
-  Phase 3 re-fit uses observed data, so forecast and observed HDD share one definition.
 
 Phase 3 (`validate.py`, not built yet) re-fits the slope against weekly EIA Midwest
 withdrawals and the inflation factors against this repo's own forecast archive.
@@ -128,10 +164,14 @@ websites. Open an issue or fix `hdd.py`.
 Everything lives in `hdd.py`, with comments at each step.
 
 - **Source**: GEFS 0.5° "atmos.5" files on the NOAA open-data S3 bucket, every member
-  (control + 30 perturbed), lead times 0–384 h every 6 h. Only the `TMP:2 m above ground`
-  field is downloaded from each file, using the `herbie` library.
-- **Daily mean temperature** per city per member = average of the four 6-hourly values in
-  that UTC calendar day, at the nearest 0.5° grid cell, converted Kelvin → °F.
+  (control + 30 perturbed), lead times 0–384 h every 6 h. Only the `TMP`, `TMAX` and `TMIN`
+  2 m fields are downloaded from each file, using the `herbie` library. The maps and the
+  freeze-off flags use the 6-hourly `TMP`; the HDDs use `TMAX`/`TMIN`.
+- **Daily mean temperature** per city per member = (Tmax + Tmin) / 2 for the UTC calendar
+  day, the EIA/NOAA definition, at the nearest 0.5° grid cell, converted Kelvin → °F. GEFS
+  gives the max and min over the 6 hours *ending* at each lead time, so the day 00–24Z uses
+  the leads valid at 06, 12, 18 and 24Z. If a file has no TMAX/TMIN, the 6-hourly
+  temperature stands in and the log prints a warning naming the member and lead.
 - **HDD** = max(0, 65 − daily mean °F).
 - **US HDD** per day per member = Σ over cities of (weight × city HDD), weights normalised to
   sum to 1. The cities and weights are the table at the top of `hdd.py`.
@@ -150,6 +190,8 @@ Everything lives in `hdd.py`, with comments at each step.
 ```
 hdd.py                      the whole pipeline
 regions.py                  region definitions, city weights, HDD -> Bcf model (pure data)
+validate_log.py             logs the Thursday EIA storage check to history/validation.csv
+tests/test_regions.py       python -m pytest
 requirements.txt            python packages
 .github/workflows/run.yml   the schedule
 docs/index.html             the page (GitHub Pages serves this folder)
