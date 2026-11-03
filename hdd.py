@@ -12,9 +12,11 @@ What this script does, in order:
      T[member, lead_time, lat, lon] in Kelvin.
   4. Turn the temperatures at 16 big cities into daily HDDs, weight them by
      population, and summarise across the 31 members (median, p10, p90).
-  5. Compare the 15-day total with the previous run and the run 24 h earlier.
-  6. Draw the chart and the three maps.
-  7. Write docs/latest.json, the PNGs, and the per-member CSV in history/.
+     Then, for each region in regions.py, weight that region's cities by gas
+     consumption and convert HDD to Bcf/d of res/comm demand, member by member.
+  5. Compare the 15-day totals with the previous run and the run 24 h earlier.
+  6. Draw the charts and maps (national, then per region).
+  7. Write docs/latest.json, the PNGs, and the per-member CSVs in history/.
 
 Nothing touches disk (other than the GRIB cache) until every number and
 picture has been computed, so a failure part-way through never leaves a
@@ -43,6 +45,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from herbie import Herbie
+
+from regions import REGIONS, calibrated_band, demand_bcfd
 
 sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Windows too
 
@@ -249,12 +253,13 @@ def full_days(run):
     return days, [groups[d] for d in days]
 
 
-def city_hdd(T, lat, lon, day_steps):
+def city_hdd(T, lat, lon, day_steps, cities):
     """hdd[member, day] = sum over cities of weight x max(0, 65 - daily mean F).
+    cities = list of (latitude, longitude, weight).
     Daily mean = average of the four 6-hourly values in that UTC day."""
-    weights = np.array([c[3] for c in CITIES])
+    weights = np.array([c[2] for c in cities])
     weights = weights / weights.sum()                       # normalise to 1
-    rows, cols = zip(*[nearest_index(lat, lon, c[1], c[2]) for c in CITIES])
+    rows, cols = zip(*[nearest_index(lat, lon, c[0], c[1]) for c in cities])
     temp_f = k_to_f(T[:, :, list(rows), list(cols)])        # [member, lead, city]
     hdd = np.zeros((len(MEMBERS), len(day_steps)))
     for di, steps in enumerate(day_steps):
@@ -283,21 +288,42 @@ def period_fields(T, lat, lon, day_steps, first, last):
     return mean_f, uncertain, risk
 
 
+def region_series(region, T, lat, lon, day_steps):
+    """One region's per-member numbers. Everything is converted member by member
+    and only then summarised, never on the percentiles:
+      hdd[m, d]    consumption-weighted HDD
+      bcfd[m, d]   res/comm demand, Bcf/d
+      total_bcf[m] 15-day sum of bcfd, Bcf
+      cal          calibrated band (see regions.calibrated_band)"""
+    hdd = city_hdd(T, lat, lon, day_steps, [(c[2], c[3], c[4]) for c in region["cities"]])
+    bcfd = demand_bcfd(region, hdd)
+    return {"hdd": hdd, "bcfd": bcfd, "total_bcf": bcfd.sum(axis=1), "cal": calibrated_band(region, bcfd)}
+
+
+def region_extent(region):
+    """Map box [lon_min, lon_max, lat_min, lat_max]: the region's cities and
+    basins plus 3 degrees on every side."""
+    pts = [(c[2], c[3]) for c in region["cities"]] + [(b[2], b[3]) for b in BASINS if b[0] in region["basins"]]
+    lats, lons = zip(*pts)
+    return [min(lons) - 3, max(lons) + 3, min(lats) - 3, max(lats) + 3]
+
+
 # ------------------------------------------------- 5. compare with history
-def history_runs():
-    """Map run datetime -> CSV path for every file in history/."""
-    return {datetime.strptime(p.stem, "hdd_%Y%m%d_%Hz"): p for p in HISTORY.glob("hdd_*.csv")}
+def history_runs(prefix="hdd"):
+    """Map run datetime -> CSV path for every history/<prefix>_YYYYMMDD_HHz.csv."""
+    return {datetime.strptime(p.stem, f"{prefix}_%Y%m%d_%Hz"): p for p in HISTORY.glob(f"{prefix}_*.csv")}
 
 
-def compare(hdd, days, other_run, csv_path):
+def compare(values, days, other_run, csv_path):
     """Change in 15-day total versus another run, measured over the days both
     runs forecast (so a day dropping off the front of the window does not
-    count as a 'change'). Totals are the median of each member's sum."""
+    count as a 'change'). Totals are the median of each member's sum.
+    values[member, day] is HDD for the national index, Bcf/d for a region."""
     other = pd.read_csv(csv_path, index_col="date")
     shared = [d for d in days if d.isoformat() in other.index]
     if not shared:
         return None
-    now_total = np.median(hdd[:, [days.index(d) for d in shared]].sum(axis=1))
+    now_total = np.median(values[:, [days.index(d) for d in shared]].sum(axis=1))
     other_total = np.median(other.loc[[d.isoformat() for d in shared]].to_numpy().sum(axis=0))
     return {"run": f"{other_run:%Y-%m-%d %H}Z", "delta": round(float(now_total - other_total), 1),
             "shared_days": len(shared), "other_total": round(float(other_total), 1)}
@@ -311,7 +337,7 @@ def png_bytes(fig):
     return buf.getvalue()
 
 
-def make_chart(run, days, hdd, p10, median, p90, total):
+def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD"):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     for m in range(hdd.shape[0]):
         ax.plot(days, hdd[m], color="gray", alpha=0.25, lw=0.7)
@@ -322,13 +348,38 @@ def make_chart(run, days, hdd, p10, median, p90, total):
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
     ax.grid(alpha=0.3)
     ax.legend(loc="upper left")
-    ax.set_title(f"US gas-weighted HDD - GEFS {run:%Y-%m-%d %H}Z, 31 members\n"
+    ax.set_title(f"{title} - GEFS {run:%Y-%m-%d %H}Z, 31 members\n"
                  f"15-day total: median {total['median']:.0f}  "
                  f"(p10 {total['p10']:.0f} / p90 {total['p90']:.0f})")
     return png_bytes(fig)
 
 
-def make_map(run, first, last, days, mean_f, uncertain, risk, lat, lon):
+def make_bcf_chart(region, run, days, bcfd, cal, total):
+    """Daily res/comm demand: members in grey, median line, raw p10-p90 shaded,
+    calibrated p10-p90 as a dashed outline."""
+    p10, median, p90 = np.percentile(bcfd, [10, 50, 90], axis=0)
+    fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
+    for m in range(bcfd.shape[0]):
+        ax.plot(days, bcfd[m], color="gray", alpha=0.25, lw=0.7)
+    ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="Raw p10-p90 (GEFS spread)")
+    ax.plot(days, cal["daily_lo"], color="tab:red", lw=1.3, ls="--", label="Calibrated p10-p90")
+    ax.plot(days, cal["daily_hi"], color="tab:red", lw=1.3, ls="--")
+    ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median")
+    ax.set_ylabel("Res/comm gas demand (Bcf/d)")
+    ax.set_ylim(bottom=0)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    ax.grid(alpha=0.3)
+    ax.legend(loc="upper left")
+    ax.set_title(f"{region['name']} res/comm gas demand - GEFS {run:%Y-%m-%d %H}Z, 31 members\n"
+                 f"15-day total: median {total['median']:.0f} Bcf  "
+                 f"(calibrated {total['cal_p10']:.0f}-{total['cal_p90']:.0f}; "
+                 f"raw {total['raw_p10']:.0f}-{total['raw_p90']:.0f})")
+    return png_bytes(fig)
+
+
+def make_map(run, first, last, days, mean_f, uncertain, risk, lat, lon,
+             extent=(LON_MIN, LON_MAX, LAT_MIN, LAT_MAX), points=None, basins=BASINS, name=""):
+    """points = city (lat, lon) dots; defaults to the national CITIES."""
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
 
@@ -337,7 +388,7 @@ def make_map(run, first, last, days, mean_f, uncertain, risk, lat, lon):
     pc = ccrs.PlateCarree()
     fig = plt.figure(figsize=(9, 5.8), dpi=130)
     ax = plt.axes(projection=pc)
-    ax.set_extent([LON_MIN, LON_MAX, LAT_MIN, LAT_MAX], crs=pc)
+    ax.set_extent(list(extent), crs=pc)
     levels = np.arange(-30, 101, 5)
     filled = ax.contourf(lon, lat, mean_f, levels=levels, cmap="RdYlBu_r", extend="both", transform=pc)
     ax.contour(lon, lat, mean_f, levels=[FREEZE_F], colors="black", linewidths=2, transform=pc)
@@ -345,17 +396,17 @@ def make_map(run, first, last, days, mean_f, uncertain, risk, lat, lon):
     ax.add_feature(cfeature.STATES.with_scale("50m"), linewidth=0.4, edgecolor="#555555")
     ax.add_feature(cfeature.BORDERS.with_scale("50m"), linewidth=0.6, edgecolor="#333333")
     ax.add_feature(cfeature.COASTLINE.with_scale("50m"), linewidth=0.6, edgecolor="#333333")
-    for name, clat, clon, _ in CITIES:
+    for clat, clon in points or [(c[1], c[2]) for c in CITIES]:
         ax.plot(clon, clat, "o", ms=4, color="black", transform=pc)
-    for name, short, blat, blon, threshold in BASINS:
-        flagged = risk[name] >= 0.3
+    for bname, short, blat, blon, threshold in basins:
+        flagged = risk[bname] >= 0.3
         ax.plot(blon, blat, "^", ms=12, color="red" if flagged else "limegreen",
                 markeredgecolor="black", transform=pc, zorder=5)
-        ax.text(blon + 0.5, blat + 0.5, f"{short} {risk[name]:.0%}", fontsize=7.5, weight="bold",
+        ax.text(blon + 0.5, blat + 0.5, f"{short} {risk[bname]:.0%}", fontsize=7.5, weight="bold",
                 transform=pc, zorder=6, bbox=dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.8))
     fig.colorbar(filled, ax=ax, orientation="horizontal", pad=0.03, shrink=0.8,
                  label="Ensemble-mean 2 m temperature (°F)")
-    ax.set_title(f"GEFS {run:%Y-%m-%d %H}Z - days {first + 1}-{last} "
+    ax.set_title(f"{name}GEFS {run:%Y-%m-%d %H}Z - days {first + 1}-{last} "
                  f"({days[first]:%b %d} to {days[last - 1]:%b %d})\n"
                  "black line = 32°F; hatched = <70% of members agree on below/above 32°F; "
                  "triangle red = freeze-off risk (% of members below basin threshold)", fontsize=9)
@@ -381,12 +432,23 @@ def main():
 
     with step("4/7 compute HDDs and map fields"):
         days, day_steps = full_days(run)
-        hdd = city_hdd(T, lat, lon, day_steps)                      # [member, day]
+        hdd = city_hdd(T, lat, lon, day_steps, [(c[1], c[2], c[3]) for c in CITIES])  # [member, day]
         p10, median, p90 = np.percentile(hdd, [10, 50, 90], axis=0)
         member_totals = hdd.sum(axis=1)
         total = {k: round(float(v), 1) for k, v in
                  zip(["p10", "median", "p90"], np.percentile(member_totals, [10, 50, 90]))}
         maps = {label: period_fields(T, lat, lon, day_steps, a, b) for label, a, b in PERIODS}
+        regional = {r["key"]: region_series(r, T, lat, lon, day_steps) for r in REGIONS}
+        for r in REGIONS:
+            s = regional[r["key"]]
+            raw = np.percentile(s["total_bcf"], [10, 50, 90])
+            s["total"] = {"median": round(float(raw[1]), 1), "raw_p10": round(float(raw[0]), 1),
+                          "raw_p90": round(float(raw[2]), 1),
+                          "cal_p10": round(float(s["cal"]["total_lo"]), 1),
+                          "cal_p90": round(float(s["cal"]["total_hi"]), 1)}
+            h = np.percentile(s["hdd"].sum(axis=1), [10, 50, 90])
+            s["total_hdd"] = {"median": round(float(h[1]), 1), "p10": round(float(h[0]), 1),
+                              "p90": round(float(h[2]), 1)}
 
     with step("5/7 compare with earlier runs"):
         runs = history_runs()
@@ -395,12 +457,34 @@ def main():
         ago_run = run - timedelta(hours=24) if (run - timedelta(hours=24)) in runs else None
         vs_prev = compare(hdd, days, prev_run, runs[prev_run]) if prev_run else None
         vs_24h = compare(hdd, days, ago_run, runs[ago_run]) if ago_run else None
+        for r in REGIONS:  # same comparison, in median 15-day Bcf
+            s, rruns = regional[r["key"]], history_runs(f"{r['key']}_bcf")
+            rprev = max([x for x in rruns if x < run], default=None)
+            rago = run - timedelta(hours=24) if (run - timedelta(hours=24)) in rruns else None
+            for key, other in [("vs_prev", rprev), ("vs_24h", rago)]:
+                cmp = compare(s["bcfd"], days, other, rruns[other]) if other else None
+                if cmp:
+                    cmp["delta_bcf"] = cmp.pop("delta")
+                s[key] = cmp
 
     with step("6/7 draw chart and maps"):
         pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total)}
         for label, a, b in PERIODS:
             mean_f, uncertain, risk = maps[label]
             pngs[f"map_{label}.png"] = make_map(run, a, b, days, mean_f, uncertain, risk, lat, lon)
+        for r in REGIONS:
+            k, s = r["key"], regional[r["key"]]
+            hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
+            pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
+                                              title=f"{r['name']} gas-consumption-weighted HDD")
+            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], s["cal"], s["total"])
+            basins = [b for b in BASINS if b[0] in r["basins"]]
+            points = [(c[2], c[3]) for c in r["cities"]]
+            for label, a, b in PERIODS:
+                mean_f, uncertain, risk = maps[label]
+                pngs[f"{k}_map_{label}.png"] = make_map(run, a, b, days, mean_f, uncertain, risk, lat, lon,
+                                                        extent=region_extent(r), points=points,
+                                                        basins=basins, name=f"{r['name']} - ")
 
     # ---- summary table to stdout (shows up in the Actions log)
     table = pd.DataFrame({"date": [d.isoformat() for d in days], "median": median, "p10": p10, "p90": p90})
@@ -414,6 +498,16 @@ def main():
             print(f"vs {name}: no prior run")
         else:
             print(f"vs {name} ({cmp['run']}): {cmp['delta']:+.1f} over {cmp['shared_days']} shared days")
+    for r in REGIONS:
+        s, t = regional[r["key"]], regional[r["key"]]["total"]
+        print(f"\n{r['name']}: 15-day res/comm demand {t['median']} Bcf "
+              f"(calibrated {t['cal_p10']}-{t['cal_p90']}, raw {t['raw_p10']}-{t['raw_p90']}); "
+              f"HDD {s['total_hdd']['median']}; "
+              f"sum of daily medians {np.median(s['bcfd'], axis=0).sum():.1f} Bcf")
+        for name, key in [("previous run", "vs_prev"), ("run 24h earlier", "vs_24h")]:
+            cmp = s[key]
+            print(f"  vs {name}: " + ("no prior run" if cmp is None else
+                  f"{cmp['delta_bcf']:+.1f} Bcf over {cmp['shared_days']} shared days ({cmp['run']})"))
 
     with step("7/7 write outputs"):
         DOCS.mkdir(exist_ok=True)
@@ -433,14 +527,43 @@ def main():
             "basin_freeze_risk": {label: {k: round(v, 2) for k, v in maps[label][2].items()}
                                   for label, _, _ in PERIODS},
             "images": {"chart": "hdd_forecast.png", "maps": [f"map_{label}.png" for label, _, _ in PERIODS]},
+            "regions": {},
         }
+        csvs = {f"hdd_{run_id}.csv": hdd}
+        for r in REGIONS:
+            k, s = r["key"], regional[r["key"]]
+            hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
+            bp10, bmed, bp90 = np.percentile(s["bcfd"], [10, 50, 90], axis=0)
+            latest["regions"][k] = {
+                "name": r["name"], "states": r["states"], "eia_storage_region": r["eia_storage_region"],
+                "days": [{"day": i + 1, "date": d.isoformat(),
+                          "hdd_median": round(float(hmed[i]), 1), "hdd_p10": round(float(hp10[i]), 1),
+                          "hdd_p90": round(float(hp90[i]), 1),
+                          "bcfd_median": round(float(bmed[i]), 2), "bcfd_p10": round(float(bp10[i]), 2),
+                          "bcfd_p90": round(float(bp90[i]), 2)}
+                         for i, d in enumerate(days)],
+                "total_bcf": s["total"],
+                "total_hdd": s["total_hdd"],
+                "vs_prev": s["vs_prev"],
+                "vs_24h": s["vs_24h"],
+                "model": {"slope": r["slope_bcfd_per_hdd"], "intercept": r["intercept_bcfd"],
+                          "floor": r["floor_bcfd"], "slope_sigma_frac": r["slope_sigma_frac"],
+                          "spread_inflation": r["spread_inflation"], "refit": r["refit"]},
+                "basin_freeze_risk": {label: {b: round(maps[label][2][b], 2) for b in r["basins"]}
+                                      for label, _, _ in PERIODS},
+                "images": {"hdd_chart": f"{k}_hdd.png", "bcf_chart": f"{k}_bcf.png",
+                           "maps": [f"{k}_map_{label}.png" for label, _, _ in PERIODS]},
+            }
+            csvs[f"{k}_hdd_{run_id}.csv"] = s["hdd"]
+            csvs[f"{k}_bcf_{run_id}.csv"] = s["bcfd"]
         for name, data in pngs.items():
             (DOCS / name).write_bytes(data)
-        csv = pd.DataFrame(hdd.T, index=[d.isoformat() for d in days],
-                           columns=[f"m{m:02d}" for m in MEMBERS]).rename_axis("date")
-        csv.to_csv(HISTORY / f"hdd_{run_id}.csv", float_format="%.3f")
+        for name, values in csvs.items():
+            csv = pd.DataFrame(values.T, index=[d.isoformat() for d in days],
+                               columns=[f"m{m:02d}" for m in MEMBERS]).rename_axis("date")
+            csv.to_csv(HISTORY / name, float_format="%.3f")
         (DOCS / "latest.json").write_text(json.dumps(latest, indent=1), encoding="utf-8")
-        print(f"  wrote docs/latest.json, {len(pngs)} PNGs, history/hdd_{run_id}.csv")
+        print(f"  wrote docs/latest.json, {len(pngs)} PNGs, {len(csvs)} CSVs in history/")
 
 
 if __name__ == "__main__":

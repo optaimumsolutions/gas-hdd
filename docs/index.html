@@ -22,13 +22,23 @@
   th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #eee; }
   th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
   tfoot td { font-weight: 600; border-top: 2px solid #ccc; }
+  .tabs { display: flex; gap: 4px; margin: 10px 0 4px; border-bottom: 2px solid #ddd; }
+  .tabs button { font: inherit; padding: 6px 14px; border: 1px solid #ddd; border-bottom: none;
+                 border-radius: 6px 6px 0 0; background: #eee; cursor: pointer; }
+  .tabs button.active { background: #fff; font-weight: 600; }
+  .headline { font-size: 1.1rem; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+  .stack > img { margin: 12px 0; }
+  .wide { max-width: 900px; }
 </style>
 </head>
 <body>
 <h1>US gas-weighted heating degree days &mdash; GEFS 31-member ensemble</h1>
 <div id="run" class="muted">Loading latest.json&hellip;</div>
 <div id="note" class="note" hidden></div>
+<div class="tabs" id="tabs"><button data-tab="us">US</button></div>
 
+<div id="tab-us" class="tab">
+<p class="muted">US (population-weighted, legacy)</p>
 <div class="cards" id="cards"></div>
 <img id="chart" alt="15-day gas-weighted HDD forecast">
 
@@ -47,6 +57,8 @@
 <p class="muted">HDD = max(0, 65&deg;F &minus; daily mean temperature), population-weighted over 16 cities, UTC days.
 Changes are measured over the days both runs forecast. Data: NOAA GEFS 0.5&deg;, public domain.
 Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimumsolutions/gas-hdd</a></p>
+</div>
+<div id="regions"></div>
 
 <script>
 (async function () {
@@ -89,6 +101,54 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   ).join("");
   document.querySelector("#table tfoot").innerHTML =
     `<tr><td colspan="2">15-day total</td><td>${d.total.median.toFixed(1)}</td><td>${d.total.p10.toFixed(1)}</td><td>${d.total.p90.toFixed(1)}</td></tr>`;
+
+  // ---- one tab per region in latest.json (nothing here names a region)
+  function bcfArrow(c) {
+    if (!c) return '<span class="flat">no prior run</span>';
+    const x = c.delta_bcf, cls = x > 0 ? "up" : x < 0 ? "down" : "flat";
+    const sym = x > 0 ? "▲" : x < 0 ? "▼" : "•";
+    return `<span class="${cls}">${sym} ${x > 0 ? "+" : ""}${x.toFixed(1)} Bcf</span> <span class="muted">vs ${c.run}, ${c.shared_days} shared days</span>`;
+  }
+  const regions = d.regions || {};
+  for (const [key, r] of Object.entries(regions)) {
+    document.getElementById("tabs").insertAdjacentHTML("beforeend", `<button data-tab="${key}">${r.name}</button>`);
+    const t = r.total_bcf, m = r.model;
+    const rows = r.days.map(x => `<tr><td>${x.day}</td><td>${x.date}</td><td>${x.hdd_median.toFixed(1)}</td>` +
+      `<td>${x.hdd_p10.toFixed(1)}</td><td>${x.hdd_p90.toFixed(1)}</td><td>${x.bcfd_median.toFixed(2)}</td>` +
+      `<td>${x.bcfd_p10.toFixed(2)}</td><td>${x.bcfd_p90.toFixed(2)}</td></tr>`).join("");
+    document.getElementById("regions").insertAdjacentHTML("beforeend", `
+<div id="tab-${key}" class="tab" hidden>
+  <p class="muted">EIA storage region: ${r.eia_storage_region} (${r.states.join(", ")}). Cities weighted by residential + commercial gas consumption.</p>
+  <div class="headline">15-day ${r.name} res/comm gas demand: <b>${t.median.toFixed(0)} Bcf</b>
+    (calibrated range ${t.cal_p10.toFixed(0)}&ndash;${t.cal_p90.toFixed(0)}; raw ${t.raw_p10.toFixed(0)}&ndash;${t.raw_p90.toFixed(0)})
+    <div>Previous run: ${bcfArrow(r.vs_prev)}</div><div>24 h earlier: ${bcfArrow(r.vs_24h)}</div></div>
+  <div class="stack">
+    <img src="${r.images.bcf_chart + bust}" alt="${r.name} daily gas demand, Bcf/d">
+    <img src="${r.images.hdd_chart + bust}" alt="${r.name} weighted HDD">
+  </div>
+  <div class="maps">${r.images.maps.map(n => `<img src="${n + bust}" alt="${r.name} temperature map">`).join("")}</div>
+  <table class="wide">
+    <thead><tr><th>Day</th><th>Date (UTC)</th><th>HDD median</th><th>p10</th><th>p90</th><th>Bcf/d median</th><th>p10</th><th>p90</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr><td colspan="2">15-day total</td><td>${r.total_hdd.median.toFixed(1)}</td><td>${r.total_hdd.p10.toFixed(1)}</td>` +
+    `<td>${r.total_hdd.p90.toFixed(1)}</td><td>${t.median.toFixed(1)}</td><td>${t.raw_p10.toFixed(1)}</td><td>${t.raw_p90.toFixed(1)}</td></tr></tfoot>
+  </table>
+  <p class="muted">Model: Bcf/d = max(${m.floor}, ${m.intercept} + ${m.slope} &times; HDD); slope uncertainty ${(m.slope_sigma_frac * 100).toFixed(0)}%;
+    GEFS spread inflation ${[...new Set(m.spread_inflation)].join(" / ")} by lead.${m.refit ? "" : " <b>Placeholder until re-fit against EIA storage.</b>"}
+    Daily p10/p90 in the table are raw; the totals row uses the member sums.</p>
+</div>`);
+  }
+
+  function show(tab) {
+    if (!document.getElementById("tab-" + tab)) tab = "us";
+    document.querySelectorAll(".tab").forEach(el => { el.hidden = el.id !== "tab-" + tab; });
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    try { localStorage.setItem("gas-hdd-tab", tab); } catch (e) {}
+  }
+  document.getElementById("tabs").addEventListener("click", e => { if (e.target.dataset.tab) show(e.target.dataset.tab); });
+  let saved = "us";
+  try { saved = localStorage.getItem("gas-hdd-tab") || "us"; } catch (e) {}
+  show(saved);
 })().catch(err => {
   document.getElementById("run").textContent = "Could not load latest.json: " + err;
 });

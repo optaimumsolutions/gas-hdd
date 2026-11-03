@@ -28,6 +28,66 @@ dots are the 16 HDD cities. Triangles are the gas-producing basins: a triangle t
 freeze-off threshold (20°F for Permian, Haynesville, Anadarko and Eagle Ford; 0°F for
 Appalachia, DJ and Bakken). The label next to each triangle is that percentage.
 
+## Regional tabs (Midwest, in Bcf)
+
+The **US** tab is the original population-weighted index (legacy). Each regional tab, starting
+with **Midwest**, works differently:
+
+- **Region = EIA weekly-storage region**, not a Census region, so it can be checked against the
+  Thursday storage report. Midwest = IL, IN, IA, KY, MI, MN, MO, TN, WI (Ohio is East, Kansas
+  is South Central).
+- **Cities are weighted by residential + commercial gas consumption** (EIA, 2024 + 2025), not
+  population. The weights, their sources and the state table are in `regions.py`.
+- **HDD is converted to gas demand**: `Bcf/d = max(floor, intercept + slope × weighted HDD)`.
+  Midwest: slope 0.38 Bcf/d per HDD, floor 1.9 Bcf/d (summer baseload).
+- **Member by member**: each of the 31 members is converted to Bcf/d per day and summed over
+  15 days *before* percentiles are taken. That is why the 15-day median is not exactly the
+  sum of the daily medians.
+- **Two ranges.** *Raw* p10–p90 is the spread of the 31 members. *Calibrated* p10–p90 widens
+  that for GEFS's known under-dispersion (deviations from the median stretched ×1.0 days 1–5,
+  ×1.15 days 6–7, ×1.3 days 8–15) and adds 10% slope uncertainty, then takes median ±
+  1.2816 σ. The calibrated range is the honest one.
+- Regional deltas are in **median 15-day Bcf**, over the days both runs share, same rule as
+  the US tab.
+
+**Sanity check on the slope.** A cold January in the Midwest runs about 40 weighted HDD/day
+→ 0.38 × 40 ≈ 15 Bcf/d. EIA monthly data for IL + MI alone in Jan 2025 averaged 7.3 Bcf/d,
+and IL + MI is about 47% of the 9-state region → ≈ 15.5 Bcf/d. The slope is in the right
+place.
+
+**Adding a region** = one more dict in `regions.py` appended to `REGIONS`. The page builds
+its tabs from `latest.json`, so `index.html` does not change.
+
+### Verifying the regional numbers
+
+1. **HDD vs NOAA CPC.** CPC publishes free daily *gas-weighted* HDD by census division at
+   `ftp.cpc.ncep.noaa.gov/htdocs/degree_days/weighted/daily_data/<year>/UtilityGas.Heating.txt`
+   (observed, so check a day after it has happened). Day-1 Midwest HDD here should be within
+   about 10% of the consumption-weighted average of CPC's East North Central and West North
+   Central values for the same date. Different cities and weights: shape and level should
+   match, not the exact number. Do this for three days running before trusting the tab.
+2. **Bcf vs EIA storage.** Each Thursday, sum last week's forecast median Midwest demand over
+   the EIA storage week (Saturday–Friday) and compare with the reported Midwest implied
+   withdrawal. Expect the withdrawal to run 10–20% *above* res/comm demand (storage also feeds
+   power burn and industrial). Keep a log of both numbers in `history/validation.csv`.
+3. **Chart vs Pivotal Weather.** Same check as the US tab, but expect the Midwest HDD to run
+   *higher* than the national number, since the warm cities are gone.
+
+### What is still a placeholder
+
+The page says so until `refit` is set to `True` in `regions.py`.
+
+- Slope 0.38 is scaled from a 2010–14 EIA fit (STEO supplement, Oct 2014), not fitted to this
+  index. Plausible range 0.33–0.45.
+- Spread-inflation factors (1.0 / 1.15 / 1.3) are a guess at GEFS under-dispersion by lead.
+- MI 60/40 (Detroit / Grand Rapids) and MO 60/40 (St. Louis / Kansas City) splits are by
+  metro population, not utility customer counts.
+- Daily mean is the average of four 6-hourly values, not (Tmax + Tmin)/2. Switch when the
+  Phase 3 re-fit uses observed data, so forecast and observed HDD share one definition.
+
+Phase 3 (`validate.py`, not built yet) re-fits the slope against weekly EIA Midwest
+withdrawals and the inflation factors against this repo's own forecast archive.
+
 ## One-time setup (all in the browser)
 
 1. **Settings → Pages**: under "Build and deployment" choose *Deploy from a branch*, branch
@@ -89,6 +149,7 @@ Everything lives in `hdd.py`, with comments at each step.
 
 ```
 hdd.py                      the whole pipeline
+regions.py                  region definitions, city weights, HDD -> Bcf model (pure data)
 requirements.txt            python packages
 .github/workflows/run.yml   the schedule
 docs/index.html             the page (GitHub Pages serves this folder)
@@ -96,6 +157,8 @@ docs/latest.json            run time, table numbers, deltas (the page reads this
 docs/hdd_forecast.png       the chart, overwritten each run
 docs/map_d1-5.png, map_d6-10.png, map_d11-15.png
 history/hdd_YYYYMMDD_HHz.csv   per-member daily HDDs, one file per run, never deleted
+docs/midwest_hdd.png, midwest_bcf.png, midwest_map_d1-5.png, ...   the Midwest tab
+history/midwest_hdd_YYYYMMDD_HHz.csv, midwest_bcf_...csv   per-member daily HDD and Bcf/d
 ```
 
 ## Known limitations
@@ -103,7 +166,7 @@ history/hdd_YYYYMMDD_HHz.csv   per-member daily HDDs, one file per run, never de
 - **GEFS only.** No ECMWF ensemble yet, so you cannot see when the two big models disagree.
 - **0.5° resolution** (about 35 miles). City temperatures come from the nearest grid cell,
   which is fine for a national demand number but not for any one city.
-- **Population weights are rough** and cover 16 cities. Real gas-weighted HDD uses state
+- **Population weights are rough** (US tab only) and cover 16 cities. Real gas-weighted HDD uses state
   gas-consumption weights; expect a steady offset versus commercial products.
 - **UTC days, not local days.** A "day" runs 00Z–00Z (7 pm–7 pm Eastern), so a cold front
   that arrives in the evening can land on a different day than in US-local products.
