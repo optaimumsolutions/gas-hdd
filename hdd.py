@@ -28,6 +28,7 @@ Usage:
 import argparse
 import io
 import json
+import random
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -41,6 +42,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import requests
 from herbie import Herbie
 
 sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Windows too
@@ -130,6 +132,13 @@ def find_files(run):
     with ThreadPoolExecutor(THREADS) as pool:
         files = dict(pool.map(make, pairs))
     missing = [mf for mf, H in files.items() if H.grib is None or H.idx is None]
+    if missing:
+        # S3 sometimes answers "503 Slow Down", and herbie then reports the file
+        # as absent. Wait a moment and look again before believing it is missing.
+        time.sleep(10)
+        with ThreadPoolExecutor(THREADS) as pool:
+            files.update(dict(pool.map(make, missing)))
+        missing = [mf for mf in missing if files[mf].grib is None or files[mf].idx is None]
     return files, missing
 
 
@@ -161,9 +170,20 @@ def pick_run(explicit):
 
 # ------------------------------------------------------------- 2. download
 def download_all(files):
-    """Fetch the 2 m temperature field for every file, 16 at a time."""
+    """Fetch the 2 m temperature field for every file, 16 at a time. S3 sometimes
+    answers "503 Slow Down"; back off and retry up to 5 times before giving up."""
+
+    def fetch(H):
+        for attempt in range(5):
+            try:
+                return H.download(SEARCH)
+            except requests.RequestException:
+                if attempt == 4:
+                    raise
+                time.sleep(2 ** attempt + random.random())
+
     with ThreadPoolExecutor(THREADS) as pool:
-        list(pool.map(lambda H: H.download(SEARCH), files.values()))
+        list(pool.map(fetch, files.values()))
 
 
 # ------------------------------------------------------ 3. build the array
