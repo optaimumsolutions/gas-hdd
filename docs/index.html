@@ -161,6 +161,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     const v = "?v=" + encodeURIComponent(a.generated_utc);
     const NA = `<span class="muted">insufficient data</span>`;
     const f = (x, d = 1) => (x === null || x === undefined) ? NA : x.toFixed(d);
+    const g = (x, d = 1) => (x === null || x === undefined) ? `<span class="muted">&ndash;</span>` : x.toFixed(d);  // no forecast for that day
     const pct = x => (x === null || x === undefined) ? NA : (100 * x).toFixed(0) + "%";
     const label = { us_hdd: "US HDD", midwest_hdd: "Midwest HDD", midwest_bcf: "Midwest Bcf/d" };
     const name = k => label[k] || k;
@@ -169,7 +170,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     const d5 = a.by_lead.us_hdd[4], all = a.overall.us_hdd;
     const headline = (d5.mae === null ? `Day-5 forecasts: insufficient data (${d5.n} scored, need ${a.min_n}).`
         : `Day-5 forecasts have been off by <b>${d5.mae.toFixed(1)} HDD</b> on average (${d5.n} days scored);`) +
-      (all.coverage === null ? ` the p10&ndash;p90 band: insufficient data (${all.n} scored, need ${a.min_n}).`
+      (all.coverage === null ? ` The p10&ndash;p90 band: insufficient data (${all.n} scored, need ${a.min_n}).`
         : ` the p10&ndash;p90 band has contained the observed value <b>${(100 * all.coverage).toFixed(0)}%</b> of the time (target ${(100 * a.target_coverage).toFixed(0)}%, ${all.n} forecast-days).`);
 
     const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>MAE</th><th>Bias</th><th>RMSE</th><th>Coverage</th></tr></thead><tbody>` +
@@ -178,7 +179,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     const monthRows = a.indexes.flatMap(k => a.by_month[k].map(r =>
       `<tr><td>${name(k)}</td><td>${r.month}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td></tr>`)).join("");
     const lastRows = a.last_14_days.map(r => `<tr><td>${r.date}</td>` +
-      hddIdx.map(k => `<td>${f(r.observed[k])}</td><td>${f(r.day1[k])}</td><td>${f(r.day5[k])}</td><td>${f(r.day10[k])}</td>`).join("") + `</tr>`).join("");
+      hddIdx.map(k => `<td>${f(r.observed[k])}</td><td>${g(r.day1[k])}</td><td>${g(r.day5[k])}</td><td>${g(r.day10[k])}</td>`).join("") + `</tr>`).join("");
     const storeRows = a.storage.rows.map(r => `<tr><td>${r.week_ending}</td><td>${r.run_used}</td><td>${f(r.implied_low, 0)}&ndash;${f(r.implied_high, 0)}</td>` +
       `<td>${f(r.eia_reported, 0)}</td><td class="${r.inside_range ? "up" : "down"}">${r.inside_range ? "hit" : "miss"}</td></tr>`).join("");
 
