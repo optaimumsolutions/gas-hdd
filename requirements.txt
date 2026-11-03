@@ -1,0 +1,9 @@
+herbie-data>=2025.1
+xarray>=2024.1
+numpy>=1.26
+pandas>=2.2
+matplotlib>=3.8
+cartopy>=0.23
+cfgrib>=0.9.14
+eccodes>=2.37
+pyproj>=3.6

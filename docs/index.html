@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="1800">
+<title>US gas-weighted HDD (GEFS)</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0 auto; padding: 12px;
+         max-width: 1400px; color: #222; background: #fafafa; }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .muted { color: #666; font-size: 0.9rem; }
+  .note { background: #fff3cd; border: 1px solid #ffe69c; border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
+  img { display: block; width: 100%; height: auto; background: #fff; border: 1px solid #ddd; border-radius: 6px; }
+  .cards { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+  .card { flex: 1 1 160px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; }
+  .card .label { font-size: 0.8rem; color: #666; }
+  .card .big { font-size: 1.5rem; font-weight: 600; }
+  .up { color: #1a7f37; } .down { color: #cf222e; } .flat { color: #666; }
+  .maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 10px; margin: 12px 0; }
+  table { border-collapse: collapse; background: #fff; border: 1px solid #ddd; width: 100%; max-width: 560px; }
+  th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #eee; }
+  th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
+  tfoot td { font-weight: 600; border-top: 2px solid #ccc; }
+</style>
+</head>
+<body>
+<h1>US gas-weighted heating degree days &mdash; GEFS 31-member ensemble</h1>
+<div id="run" class="muted">Loading latest.json&hellip;</div>
+<div id="note" class="note" hidden></div>
+
+<div class="cards" id="cards"></div>
+<img id="chart" alt="15-day gas-weighted HDD forecast">
+
+<div class="maps">
+  <img id="map0" alt="Days 1-5: ensemble-mean 2 m temperature">
+  <img id="map1" alt="Days 6-10: ensemble-mean 2 m temperature">
+  <img id="map2" alt="Days 11-15: ensemble-mean 2 m temperature">
+</div>
+
+<table id="table">
+  <thead><tr><th>Day</th><th>Date (UTC)</th><th>Median</th><th>p10</th><th>p90</th></tr></thead>
+  <tbody></tbody>
+  <tfoot></tfoot>
+</table>
+
+<p class="muted">HDD = max(0, 65&deg;F &minus; daily mean temperature), population-weighted over 16 cities, UTC days.
+Changes are measured over the days both runs forecast. Data: NOAA GEFS 0.5&deg;, public domain.
+Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimumsolutions/gas-hdd</a></p>
+
+<script>
+(async function () {
+  // latest.json is rewritten by hdd.py on every run; never let the browser cache it.
+  const response = await fetch("latest.json?t=" + Date.now(), { cache: "no-store" });
+  const d = await response.json();
+  const bust = "?v=" + d.run_id;   // image URLs change with the run, so old charts never show
+
+  document.getElementById("run").textContent =
+    "Model run: " + d.run + "  ·  page built " + d.generated_utc;
+  if (d.note) {
+    const n = document.getElementById("note");
+    n.textContent = d.note;
+    n.hidden = false;
+  }
+
+  document.getElementById("chart").src = d.images.chart + bust;
+  d.images.maps.forEach((name, i) => { document.getElementById("map" + i).src = name + bust; });
+
+  function arrow(x) {
+    if (x === null || x === undefined) return '<span class="flat">no prior run</span>';
+    const cls = x > 0 ? "up" : x < 0 ? "down" : "flat";
+    const sym = x > 0 ? "▲" : x < 0 ? "▼" : "•";
+    const word = x > 0 ? "colder" : x < 0 ? "warmer" : "unchanged";
+    return `<span class="${cls}">${sym} ${x > 0 ? "+" : ""}${x.toFixed(1)}</span> <span class="muted">${word}</span>`;
+  }
+  function deltaCard(label, c) {
+    const sub = c ? `vs ${c.run}, ${c.shared_days} shared days` : "";
+    return `<div class="card"><div class="label">${label}</div><div class="big">${arrow(c ? c.delta : null)}</div><div class="label">${sub}</div></div>`;
+  }
+  document.getElementById("cards").innerHTML =
+    `<div class="card"><div class="label">15-day total (median of members)</div>` +
+    `<div class="big">${d.total.median.toFixed(1)}</div>` +
+    `<div class="label">p10 ${d.total.p10.toFixed(1)} · p90 ${d.total.p90.toFixed(1)}</div></div>` +
+    deltaCard("Change vs previous run", d.vs_prev) +
+    deltaCard("Change vs 24 h earlier", d.vs_24h);
+
+  document.querySelector("#table tbody").innerHTML = d.days.map(x =>
+    `<tr><td>${x.day}</td><td>${x.date}</td><td>${x.median.toFixed(1)}</td><td>${x.p10.toFixed(1)}</td><td>${x.p90.toFixed(1)}</td></tr>`
+  ).join("");
+  document.querySelector("#table tfoot").innerHTML =
+    `<tr><td colspan="2">15-day total</td><td>${d.total.median.toFixed(1)}</td><td>${d.total.p10.toFixed(1)}</td><td>${d.total.p90.toFixed(1)}</td></tr>`;
+})().catch(err => {
+  document.getElementById("run").textContent = "Could not load latest.json: " + err;
+});
+</script>
+</body>
+</html>

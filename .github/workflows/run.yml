@@ -1,0 +1,40 @@
+name: GEFS HDD dashboard
+
+on:
+  schedule:
+    - cron: "30 5,11,17,23 * * *"   # UTC, about 5.5 h after each GEFS cycle starts
+  workflow_dispatch:                 # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: write                    # needed to commit docs/ and history/
+
+concurrency:
+  group: gefs-hdd                    # never run two updates at the same time
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build the dashboard (fails the job on any error)
+        run: python hdd.py
+
+      - name: Read which run was processed, for the commit message
+        run: echo "RUN_ID=$(jq -r .run docs/latest.json)" >> "$GITHUB_ENV"
+
+      - name: Commit and push docs/ and history/
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "data: GEFS ${{ env.RUN_ID }}"
+          file_pattern: "docs/* history/*"

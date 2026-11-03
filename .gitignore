@@ -1,0 +1,10 @@
+# downloaded GRIB pieces and any index/cache files
+data/
+*.grib2
+*.grb2
+*.idx
+
+# local python environment
+.venv/
+__pycache__/
+*.pyc
