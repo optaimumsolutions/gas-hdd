@@ -1,0 +1,752 @@
+{
+ "generated_utc": "2026-11-03 20:57 UTC",
+ "min_n": 5,
+ "target_coverage": 0.8,
+ "runs_scored": 0,
+ "dates_observed": 20,
+ "observed_through": "2026-11-02",
+ "indexes": [
+  "us_hdd",
+  "midwest_hdd",
+  "midwest_bcf"
+ ],
+ "overall": {
+  "us_hdd": {
+   "n": 0,
+   "mae": null,
+   "bias": null,
+   "rmse": null,
+   "coverage": null
+  },
+  "midwest_hdd": {
+   "n": 0,
+   "mae": null,
+   "bias": null,
+   "rmse": null,
+   "coverage": null
+  },
+  "midwest_bcf": {
+   "n": 0,
+   "mae": null,
+   "bias": null,
+   "rmse": null,
+   "coverage": null
+  }
+ },
+ "by_lead": {
+  "us_hdd": [
+   {
+    "lead_day": 1,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 2,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 3,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 4,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 5,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 6,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 7,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 8,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 9,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 10,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 11,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 12,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 13,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 14,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 15,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   }
+  ],
+  "midwest_hdd": [
+   {
+    "lead_day": 1,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 2,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 3,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 4,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 5,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 6,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 7,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 8,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 9,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 10,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 11,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 12,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 13,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 14,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 15,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   }
+  ],
+  "midwest_bcf": [
+   {
+    "lead_day": 1,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 2,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 3,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 4,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 5,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 6,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 7,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 8,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 9,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 10,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 11,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 12,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 13,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 14,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   },
+   {
+    "lead_day": 15,
+    "n": 0,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   }
+  ]
+ },
+ "by_month": {
+  "us_hdd": [],
+  "midwest_hdd": [],
+  "midwest_bcf": []
+ },
+ "last_14_days": [
+  {
+   "date": "2026-10-20",
+   "observed": {
+    "us_hdd": 4.09,
+    "midwest_hdd": 8.24,
+    "midwest_bcf": 3.29
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-21",
+   "observed": {
+    "us_hdd": 5.41,
+    "midwest_hdd": 6.56,
+    "midwest_bcf": 2.62
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-22",
+   "observed": {
+    "us_hdd": 4.12,
+    "midwest_hdd": 5.16,
+    "midwest_bcf": 2.06
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-23",
+   "observed": {
+    "us_hdd": 5.18,
+    "midwest_hdd": 5.2,
+    "midwest_bcf": 2.08
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-24",
+   "observed": {
+    "us_hdd": 6.46,
+    "midwest_hdd": 5.49,
+    "midwest_bcf": 2.19
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-25",
+   "observed": {
+    "us_hdd": 5.43,
+    "midwest_hdd": 4.91,
+    "midwest_bcf": 1.96
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-26",
+   "observed": {
+    "us_hdd": 3.65,
+    "midwest_hdd": 7.55,
+    "midwest_bcf": 3.02
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-27",
+   "observed": {
+    "us_hdd": 3.59,
+    "midwest_hdd": 7.07,
+    "midwest_bcf": 2.83
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-28",
+   "observed": {
+    "us_hdd": 5.03,
+    "midwest_hdd": 1.59,
+    "midwest_bcf": 1.9
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-29",
+   "observed": {
+    "us_hdd": 2.76,
+    "midwest_hdd": 2.33,
+    "midwest_bcf": 1.9
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-30",
+   "observed": {
+    "us_hdd": 3.16,
+    "midwest_hdd": 10.86,
+    "midwest_bcf": 4.35
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-10-31",
+   "observed": {
+    "us_hdd": 6.98,
+    "midwest_hdd": 8.37,
+    "midwest_bcf": 3.35
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-11-01",
+   "observed": {
+    "us_hdd": 6.81,
+    "midwest_hdd": 5.64,
+    "midwest_bcf": 2.25
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-11-02",
+   "observed": {
+    "us_hdd": 5.01,
+    "midwest_hdd": 5.98,
+    "midwest_bcf": 2.39
+   },
+   "day1": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  }
+ ],
+ "cpc": {
+  "n": 19,
+  "mae": 2.71,
+  "bias": -2.67
+ },
+ "storage": {
+  "n": 0,
+  "hit_rate": null,
+  "rows": []
+ },
+ "images": {
+  "lead": "accuracy_lead.png",
+  "bands": "accuracy_bands.png"
+ },
+ "sources": {
+  "observations": "Iowa Environmental Mesonet ASOS hourly temperatures, max/min per UTC day at each city's airport; daily mean = (Tmax + Tmin) / 2",
+  "cpc": "NOAA CPC daily gas-weighted HDD, East + West North Central, consumption-weighted average",
+  "storage": "history/validation.csv, logged by validate_log.py from the Thursday EIA report"
+ }
+}

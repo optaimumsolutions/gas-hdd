@@ -56,25 +56,26 @@ HISTORY = ROOT / "history"
 CACHE = ROOT / "data"  # downloaded GRIB pieces land here (git-ignored)
 
 # ----------------------------------------------------------------- locations
-# HDD cities: name, latitude, longitude, rough population weight (millions).
-# The weights are normalised to sum to 1 in city_hdd().
+# HDD cities: name, latitude, longitude, rough population weight (millions),
+# and the airport ASOS station (ICAO) that observe.py scores the forecast
+# against. The weights are normalised to sum to 1 in weighted_hdd().
 CITIES = [
-    ("New York",      40.71,  -74.01, 8.3),
-    ("Los Angeles",   34.05, -118.24, 3.9),
-    ("Chicago",       41.88,  -87.63, 2.7),
-    ("Houston",       29.76,  -95.37, 2.3),
-    ("Philadelphia",  39.95,  -75.17, 1.6),
-    ("Dallas",        32.78,  -96.80, 1.3),
-    ("Columbus",      39.96,  -83.00, 0.9),
-    ("Boston",        42.36,  -71.06, 0.7),
-    ("Detroit",       42.33,  -83.05, 0.6),
-    ("Denver",        39.74, -104.99, 0.7),
-    ("Washington DC", 38.91,  -77.04, 0.7),
-    ("Minneapolis",   44.98,  -93.27, 0.4),
-    ("Pittsburgh",    40.44,  -79.99, 0.3),
-    ("Kansas City",   39.10,  -94.58, 0.5),
-    ("St. Louis",     38.63,  -90.20, 0.3),
-    ("Atlanta",       33.75,  -84.39, 0.5),
+    ("New York",      40.71,  -74.01, 8.3, "LGA"),
+    ("Los Angeles",   34.05, -118.24, 3.9, "LAX"),
+    ("Chicago",       41.88,  -87.63, 2.7, "ORD"),
+    ("Houston",       29.76,  -95.37, 2.3, "IAH"),
+    ("Philadelphia",  39.95,  -75.17, 1.6, "PHL"),
+    ("Dallas",        32.78,  -96.80, 1.3, "DFW"),
+    ("Columbus",      39.96,  -83.00, 0.9, "CMH"),
+    ("Boston",        42.36,  -71.06, 0.7, "BOS"),
+    ("Detroit",       42.33,  -83.05, 0.6, "DTW"),
+    ("Denver",        39.74, -104.99, 0.7, "DEN"),
+    ("Washington DC", 38.91,  -77.04, 0.7, "DCA"),
+    ("Minneapolis",   44.98,  -93.27, 0.4, "MSP"),
+    ("Pittsburgh",    40.44,  -79.99, 0.3, "PIT"),
+    ("Kansas City",   39.10,  -94.58, 0.5, "MCI"),
+    ("St. Louis",     38.63,  -90.20, 0.3, "STL"),
+    ("Atlanta",       33.75,  -84.39, 0.5, "ATL"),
 ]
 
 # Gas-producing basins: name, map label, latitude, longitude, freeze-off
@@ -276,14 +277,27 @@ def full_days(run):
     return days, [groups[d] for d in days]
 
 
+def hdd_from_mean(daily_mean_f):
+    """HDD = max(0, 65 - daily mean F). Shared by the forecast and observe.py,
+    so forecast and observed HDDs can never drift apart in definition."""
+    return np.maximum(0.0, HDD_BASE_F - daily_mean_f)
+
+
+def weighted_hdd(daily_mean_f, weights):
+    """City HDDs combined into one index: sum over cities of weight x HDD, with
+    the weights normalised to sum to 1. daily_mean_f[..., city] in F.
+    Shared by the forecast (city_hdd) and observe.py."""
+    weights = np.asarray(weights, dtype=float)
+    return hdd_from_mean(daily_mean_f) @ (weights / weights.sum())
+
+
 def city_hdd(TX, TN, lat, lon, day_steps, cities):
     """hdd[member, day] = sum over cities of weight x max(0, 65 - daily mean F).
     cities = list of (latitude, longitude, weight).
     Daily mean = (Tmax + Tmin) / 2, the EIA/NOAA definition. TMAX/TMIN cover
     the 6 hours ENDING at their lead, so a UTC day 00-24Z is the four leads
     valid 06, 12, 18 and 24Z: the day's own leads shifted by one."""
-    weights = np.array([c[2] for c in cities])
-    weights = weights / weights.sum()                       # normalise to 1
+    weights = [c[2] for c in cities]
     rows, cols = zip(*[nearest_index(lat, lon, c[0], c[1]) for c in cities])
     tmax_f = k_to_f(TX[:, :, list(rows), list(cols)])       # [member, lead, city]
     tmin_f = k_to_f(TN[:, :, list(rows), list(cols)])
@@ -291,8 +305,7 @@ def city_hdd(TX, TN, lat, lon, day_steps, cities):
     for di, steps in enumerate(day_steps):
         window = [s + 1 for s in steps]                     # leads valid 06, 12, 18, 24Z
         daily_mean = (tmax_f[:, window].max(axis=1) + tmin_f[:, window].min(axis=1)) / 2  # [member, city]
-        per_city = np.maximum(0.0, HDD_BASE_F - daily_mean)  # [member, city]
-        hdd[:, di] = per_city @ weights                     # weighted sum
+        hdd[:, di] = weighted_hdd(daily_mean, weights)      # [member]
     return hdd
 
 

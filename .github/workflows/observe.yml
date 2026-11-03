@@ -1,0 +1,40 @@
+name: Observed weather and scores
+
+on:
+  schedule:
+    - cron: "0 9 * * *"              # UTC, daily: yesterday's UTC day is complete and on IEM
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gefs-hdd                    # shares the forecast workflow's lock: never two commits at once
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch observed weather (IEM + CPC)
+        run: python observe.py
+
+      - name: Score the forecast archive
+        run: python score.py
+
+      - name: Commit and push history/ and docs/
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "data: observations and scores"
+          file_pattern: "docs/* history/*"

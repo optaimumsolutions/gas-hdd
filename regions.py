@@ -7,8 +7,9 @@ only regional cut of the gas market with a free weekly observation: the Thursday
 storage report. Phase 1 defines the Midwest only.
 
 Each region:
-  cities  (city, state, lat, lon, weight); weights sum to 1.0 within the region.
-          Coordinates are approximate airport (ASOS) locations.
+  cities  (city, state, lat, lon, weight, station); weights sum to 1.0 within
+          the region. Coordinates are approximate airport (ASOS) locations and
+          station is that airport's ICAO code, which observe.py scores against.
   demand  Bcf/d = max(floor, intercept + slope * W + slope * kink_frac * max(0, W - kink))
 
 Model source for every slope/intercept/ratio below: EIA, "STEO Supplement:
@@ -56,17 +57,17 @@ MIDWEST = {
     "states": ["IL", "IN", "IA", "KY", "MI", "MN", "MO", "TN", "WI"],
     "eia_storage_region": "Midwest",
     "cities": [
-        ("Chicago",      "IL", 41.98, -87.90, 0.26375),
-        ("Detroit",      "MI", 42.21, -83.35, 0.12558),   # MI 60% (DTE territory)
-        ("Grand Rapids", "MI", 42.88, -85.52, 0.08372),   # MI 40% (Consumers territory)
-        ("Milwaukee",    "WI", 42.95, -87.90, 0.10877),
-        ("Minneapolis",  "MN", 44.88, -93.22, 0.10315),
-        ("Indianapolis", "IN", 39.72, -86.29, 0.10093),
-        ("St. Louis",    "MO", 38.75, -90.37, 0.04228),   # MO 60%
-        ("Kansas City",  "MO", 39.30, -94.71, 0.02818),   # MO 40%
-        ("Nashville",    "TN", 36.12, -86.68, 0.05805),
-        ("Des Moines",   "IA", 41.53, -93.66, 0.04872),
-        ("Louisville",   "KY", 38.17, -85.73, 0.03687),
+        ("Chicago",      "IL", 41.98, -87.90, 0.26375, "ORD"),
+        ("Detroit",      "MI", 42.21, -83.35, 0.12558, "DTW"),   # MI 60% (DTE territory)
+        ("Grand Rapids", "MI", 42.88, -85.52, 0.08372, "GRR"),   # MI 40% (Consumers territory)
+        ("Milwaukee",    "WI", 42.95, -87.90, 0.10877, "MKE"),
+        ("Minneapolis",  "MN", 44.88, -93.22, 0.10315, "MSP"),
+        ("Indianapolis", "IN", 39.72, -86.29, 0.10093, "IND"),
+        ("St. Louis",    "MO", 38.75, -90.37, 0.04228, "STL"),   # MO 60%
+        ("Kansas City",  "MO", 39.30, -94.71, 0.02818, "MCI"),   # MO 40%
+        ("Nashville",    "TN", 36.12, -86.68, 0.05805, "BNA"),
+        ("Des Moines",   "IA", 41.53, -93.66, 0.04872, "DSM"),
+        ("Louisville",   "KY", 38.17, -85.73, 0.03687, "SDF"),
     ],
     "slope_bcfd_per_hdd": 0.40,     # EIA Table 2: ENC 0.33x0.80 + WNC 0.12x0.70 + ESC 0.09x0.60
     "intercept_bcfd": 0.0,          # EIA national res (-2.05) + comm (+2.28) intercepts net to ~0

@@ -61,6 +61,10 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
 </div>
 <div id="regions"></div>
 
+<div id="tab-accuracy" class="tab" hidden>
+  <p class="muted">Loading accuracy.json&hellip;</p>
+</div>
+
 <script>
 (async function () {
   // latest.json is rewritten by hdd.py on every run; never let the browser cache it.
@@ -146,6 +150,59 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     Daily p10/p90 in the table are raw; the totals row uses the member sums.</p>
 </div>`);
   }
+
+  // ---- Accuracy tab: scores of past forecasts against observed weather (accuracy.json, written by score.py)
+  document.getElementById("tabs").insertAdjacentHTML("beforeend", `<button data-tab="accuracy">Accuracy</button>`);
+  (async function () {
+    const box = document.getElementById("tab-accuracy");
+    const r = await fetch("accuracy.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) { box.innerHTML = '<p class="muted">No scores yet: observe.py and score.py have not run.</p>'; return; }
+    const a = await r.json();
+    const v = "?v=" + encodeURIComponent(a.generated_utc);
+    const NA = `<span class="muted">insufficient data</span>`;
+    const f = (x, d = 1) => (x === null || x === undefined) ? NA : x.toFixed(d);
+    const pct = x => (x === null || x === undefined) ? NA : (100 * x).toFixed(0) + "%";
+    const label = { us_hdd: "US HDD", midwest_hdd: "Midwest HDD", midwest_bcf: "Midwest Bcf/d" };
+    const name = k => label[k] || k;
+    const hddIdx = a.indexes.filter(k => k.endsWith("_hdd"));
+
+    const d5 = a.by_lead.us_hdd[4], all = a.overall.us_hdd;
+    const headline = (d5.mae === null ? `Day-5 forecasts: insufficient data (${d5.n} scored, need ${a.min_n}).`
+        : `Day-5 forecasts have been off by <b>${d5.mae.toFixed(1)} HDD</b> on average (${d5.n} days scored);`) +
+      (all.coverage === null ? ` the p10&ndash;p90 band: insufficient data (${all.n} scored, need ${a.min_n}).`
+        : ` the p10&ndash;p90 band has contained the observed value <b>${(100 * all.coverage).toFixed(0)}%</b> of the time (target ${(100 * a.target_coverage).toFixed(0)}%, ${all.n} forecast-days).`);
+
+    const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>MAE</th><th>Bias</th><th>RMSE</th><th>Coverage</th></tr></thead><tbody>` +
+      a.by_lead[k].map(r => `<tr><td>${r.lead_day}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td></tr>`).join("") +
+      `</tbody></table></div>`;
+    const monthRows = a.indexes.flatMap(k => a.by_month[k].map(r =>
+      `<tr><td>${name(k)}</td><td>${r.month}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td></tr>`)).join("");
+    const lastRows = a.last_14_days.map(r => `<tr><td>${r.date}</td>` +
+      hddIdx.map(k => `<td>${f(r.observed[k])}</td><td>${f(r.day1[k])}</td><td>${f(r.day5[k])}</td><td>${f(r.day10[k])}</td>`).join("") + `</tr>`).join("");
+    const storeRows = a.storage.rows.map(r => `<tr><td>${r.week_ending}</td><td>${r.run_used}</td><td>${f(r.implied_low, 0)}&ndash;${f(r.implied_high, 0)}</td>` +
+      `<td>${f(r.eia_reported, 0)}</td><td class="${r.inside_range ? "up" : "down"}">${r.inside_range ? "hit" : "miss"}</td></tr>`).join("");
+
+    box.innerHTML = `
+  <div class="headline">${headline}</div>
+  <img src="${a.images.lead + v}" alt="MAE and band coverage by lead day">
+  <img src="${a.images.bands + v}" alt="Observed HDD against the day-1, day-7 and day-14 forecast bands" style="margin-top:12px">
+  <h3>By lead day</h3>
+  <div class="cards" style="align-items:flex-start">${a.indexes.map(leadTable).join("")}</div>
+  <h3>By month</h3>
+  <table class="wide"><thead><tr><th>Index</th><th>Month</th><th>n</th><th>MAE</th><th>Bias</th><th>RMSE</th><th>Coverage</th></tr></thead>
+    <tbody>${monthRows || `<tr><td colspan="7">${NA}</td></tr>`}</tbody></table>
+  <h3>Last 14 days: observed vs what the day-1 / day-5 / day-10 forecasts said (median)</h3>
+  <table class="wide"><thead><tr><th>Date</th>${hddIdx.map(k => `<th>${name(k)} obs</th><th>day 1</th><th>day 5</th><th>day 10</th>`).join("")}</tr></thead>
+    <tbody>${lastRows || `<tr><td colspan="${1 + 4 * hddIdx.length}">no observed days yet</td></tr>`}</tbody></table>
+  <h3>Thursday storage check (Midwest implied withdrawal vs EIA)</h3>
+  <p class="muted">Hit rate: ${pct(a.storage.hit_rate)} (${a.storage.n} weeks logged)</p>
+  <table class="wide"><thead><tr><th>Week ending</th><th>Run used</th><th>Implied range, Bcf</th><th>EIA print</th><th>Result</th></tr></thead>
+    <tbody>${storeRows || `<tr><td colspan="5">no weeks logged yet (python validate_log.py)</td></tr>`}</tbody></table>
+  <p class="muted">Observations: ${a.sources.observations}. CPC reference: ${a.sources.cpc}; our Midwest HDD vs CPC:
+    MAE ${f(a.cpc.mae, 2)}, bias ${f(a.cpc.bias, 2)} (${a.cpc.n} days). ${a.runs_scored} runs scored against
+    ${a.dates_observed} observed days${a.observed_through ? " through " + a.observed_through : ""}; scores rebuilt ${a.generated_utc}.
+    A statistic needs at least ${a.min_n} scores. Full detail: <code>history/scores.csv</code>.</p>`;
+  })().catch(err => { document.getElementById("tab-accuracy").innerHTML = '<p class="muted">Could not load accuracy.json: ' + err + "</p>"; });
 
   function show(tab) {
     if (!document.getElementById("tab-" + tab)) tab = "us";

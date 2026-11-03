@@ -30,6 +30,11 @@ jobs:
       - name: Build the dashboard (fails the job on any error)
         run: python hdd.py
 
+      - name: Observed weather and forecast scores (a failure here only warns)
+        run: |
+          python observe.py || echo "::warning::observe.py failed; the forecast output is still committed"
+          python score.py   || echo "::warning::score.py failed; the forecast output is still committed"
+
       - name: Read which run was processed, for the commit message
         run: echo "RUN_ID=$(jq -r .run docs/latest.json)" >> "$GITHUB_ENV"
 

@@ -124,6 +124,44 @@ The page says so until `refit` is set to `True` in `regions.py`.
 Phase 3 (`validate.py`, not built yet) re-fits the slope against weekly EIA Midwest
 withdrawals and the inflation factors against this repo's own forecast archive.
 
+## Accuracy (the forecast is scored against what actually happened)
+
+Every forecast in `history/` is graded once its dates have been observed, and the results are
+on the **Accuracy** tab. Two scripts do it, both free of keys and servers:
+
+- `observe.py` pulls hourly airport temperatures from the Iowa Environmental Mesonet for every
+  HDD city (the station codes sit in the city tables in `hdd.py` and `regions.py`), takes the max
+  and min of each **UTC** day, and runs (Tmax + Tmin) / 2 through the *same* HDD and Bcf functions
+  the forecast uses (`tests/test_accuracy.py` checks that). Rows go to `history/observed.csv`;
+  a row is never overwritten (a refetch that differs by more than 0.5 HDD is logged instead).
+  It also stores CPC's observed gas-weighted HDD for East + West North Central as
+  `cpc_midwest_hdd`, a reference for the city weights rather than truth.
+- `score.py` rebuilds `history/scores.csv` (one row per run × date × index) and
+  `docs/accuracy.json` from scratch every run, plus the two accuracy charts.
+
+What each statistic means:
+
+- **n** – how many forecast-days went into the number. Fewer than 5 shows as "insufficient data".
+- **MAE** – mean absolute error of the ensemble median, in HDD (or Bcf/d). Lower is better.
+- **Bias** – mean of (forecast median − observed). Positive = the model runs too cold.
+- **RMSE** – like MAE but punishes big misses more; the gap between RMSE and MAE is a busts measure.
+- **Coverage** – share of days the observed value fell inside the p10–p90 band.
+- **Lead day** – day 1 is the first forecast day of a run, day 15 the last.
+- **CPC comparison** – MAE and bias of our observed Midwest HDD against CPC's; tests the weights.
+- **Storage hit rate** – share of Thursday checks where EIA's Midwest number fell inside the
+  implied-withdrawal range (`history/validation.csv`, logged with `validate_log.py`).
+
+What good looks like: coverage near 80% at every lead (far above means the band is too wide,
+far below means it is too narrow); bias near 0; MAE rising smoothly with lead day, small at
+day 1 and roughly flat by day 12–15 where the forecast has no more skill than climatology.
+
+After ~30 days of scores, use `history/scores.csv` to re-fit `spread_inflation` per lead day
+(Phase 3).
+
+The daily `observe.yml` workflow (09:00 UTC) fetches yesterday's truth and rescores even on a
+day when no forecast run happens; the forecast workflow also runs both scripts after each run,
+and their failure only warns, never blocks the forecast commit.
+
 ## One-time setup (all in the browser)
 
 1. **Settings → Pages**: under "Build and deployment" choose *Deploy from a branch*, branch
@@ -201,7 +239,16 @@ docs/map_d1-5.png, map_d6-10.png, map_d11-15.png
 history/hdd_YYYYMMDD_HHz.csv   per-member daily HDDs, one file per run, never deleted
 docs/midwest_hdd.png, midwest_bcf.png, midwest_map_d1-5.png, ...   the Midwest tab
 history/midwest_hdd_YYYYMMDD_HHz.csv, midwest_bcf_...csv   per-member daily HDD and Bcf/d
+observe.py                  observed daily weather -> history/observed.csv (IEM hourly ASOS, UTC days)
+score.py                    grades history/ against observed.csv -> history/scores.csv, docs/accuracy.json
+tests/test_accuracy.py      python -m pytest
+.github/workflows/observe.yml   daily 09:00 UTC: observe + score only
+docs/accuracy.json, accuracy_lead.png, accuracy_bands.png   the Accuracy tab
+history/observed.csv, scores.csv, validation.csv
 ```
+
+`history/` grows by about four small CSVs a day (three per forecast run plus the observed and
+score files being rewritten); a year is a few tens of MB. Nothing in it is ever deleted.
 
 ## Known limitations
 
