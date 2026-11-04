@@ -1,0 +1,74 @@
+name: Backfill GEFS archive
+
+# Archive past 00Z runs in Neon (PRD-calibration.md, M2). Commits nothing.
+# Run it from the Actions tab: "Run workflow", give a date range. Runs already
+# in Neon are skipped, so re-dispatching the same range only does the leftovers.
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "First day (YYYY-MM-DD, 00Z run)"
+        required: true
+      to:
+        description: "Last day (YYYY-MM-DD, inclusive)"
+        required: true
+      shards:
+        description: "Parallel jobs (each does ~8 min per run)"
+        default: "20"
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "psycopg[binary]>=3.1"
+      - id: plan
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: echo "shards=$(python backfill.py plan --from ${{ inputs.from }} --to ${{ inputs.to }} --shards ${{ inputs.shards }})" >> "$GITHUB_OUTPUT"
+
+  archive:
+    needs: plan
+    if: ${{ needs.plan.outputs.shards != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Archive runs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          THREADS: "4"                    # 20 jobs share NOAA's bucket; be gentle
+        run: python backfill.py run ${{ matrix.shard }}
+
+  report:
+    needs: [plan, archive]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "psycopg[binary]>=3.1"
+      - name: Runs still missing (re-dispatch the same range to retry them)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python backfill.py missing --from ${{ inputs.from }} --to ${{ inputs.to }}

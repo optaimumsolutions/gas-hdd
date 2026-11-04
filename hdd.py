@@ -33,6 +33,7 @@ Usage:
 import argparse
 import io
 import json
+import os
 import random
 import sys
 import time
@@ -113,7 +114,7 @@ FIELDS = [":TMP:2 m above ground:", ":TMAX:2 m above ground:", ":TMIN:2 m above 
 SEARCH = ":(?:TMP|TMAX|TMIN):2 m above ground:"
 LAT_MIN, LAT_MAX = 24.0, 50.0      # Lower-48 bounding box
 LON_MIN, LON_MAX = -125.0, -66.0
-THREADS = 8                        # parallel HTTP requests to S3 (more = more "Slow Down" errors)
+THREADS = int(os.environ.get("THREADS", 8))   # parallel S3 requests (more = more "Slow Down"); backfill sets 4
 FREEZE_F = 32.0                    # the map's freeze line
 HDD_BASE_F = 65.0                  # HDD = max(0, 65 - daily mean temperature)
 PERIODS = [("d1-5", 0, 5), ("d6-10", 5, 10), ("d11-15", 10, 15)]  # map panels
