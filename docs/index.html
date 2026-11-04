@@ -173,8 +173,8 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
       (all.coverage === null ? ` The p10&ndash;p90 band: insufficient data (${all.n} scored, need ${a.min_n}).`
         : ` the p10&ndash;p90 band has contained the observed value <b>${(100 * all.coverage).toFixed(0)}%</b> of the time (target ${(100 * a.target_coverage).toFixed(0)}%, ${all.n} forecast-days).`);
 
-    const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>MAE</th><th>Bias</th><th>RMSE</th><th>Coverage</th></tr></thead><tbody>` +
-      a.by_lead[k].map(r => `<tr><td>${r.lead_day}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td></tr>`).join("") +
+    const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>MAE</th><th>Bias</th><th>RMSE</th><th>Coverage</th><th>Clim MAE</th><th>Skill</th></tr></thead><tbody>` +
+      a.by_lead[k].map(r => `<tr><td>${r.lead_day}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td><td>${f(r.clim_mae, 2)}</td><td>${pct(r.skill)}</td></tr>`).join("") +
       `</tbody></table></div>`;
     const monthRows = a.indexes.flatMap(k => a.by_month[k].map(r =>
       `<tr><td>${name(k)}</td><td>${r.month}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td></tr>`)).join("");
@@ -202,7 +202,9 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <p class="muted">Observations: ${a.sources.observations}. CPC reference: ${a.sources.cpc}; our Midwest HDD vs CPC:
     MAE ${f(a.cpc.mae, 2)}, bias ${f(a.cpc.bias, 2)} (${a.cpc.n} days). ${a.runs_scored} runs scored against
     ${a.dates_observed} observed days${a.observed_through ? " through " + a.observed_through : ""}; scores rebuilt ${a.generated_utc}.
-    A statistic needs at least ${a.min_n} scores. Full detail: <code>history/scores.csv</code>.</p>`;
+    A statistic needs at least ${a.min_n} scores. Skill = 1 &minus; MAE / climatology MAE (${a.sources.climatology});
+    0% means no better than normals. ${a.excluded_at_floor || 0} Bcf/d scores excluded because observed demand sat at the summer floor.
+    Full detail: table <code>gefs.scores</code> in Neon.</p>`;
   })().catch(err => { document.getElementById("tab-accuracy").innerHTML = '<p class="muted">Could not load accuracy.json: ' + err + "</p>"; });
 
   function show(tab) {

@@ -8,9 +8,9 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 |---|-----------|-------|-------------|
 | M0 | `DATABASE_URL` secret in the gas-hdd repo | DONE 2026-11-04 15:23 UTC | `gh secret list -R optaimumsolutions/gas-hdd` shows it; `select 1` from this machine OK |
 | M1 | `gefs` schema in Neon + `hdd.py` writes per-airport members to it | DONE 2026-11-04 | 2026-11-03 00Z run: 330 rows in `gefs.forecast_station`; Midwest member CSV rebuilt from Neon to 0.0005 |
-| M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | next | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
-| M3 | `observe.py` writes to Neon; truth backfilled for the same dates; 10-year climatology per airport | open | `gefs.observed` covers every backfilled forecast date |
-| M4 | `score.py` reads from Neon; adds skill vs climatology; Bcf rows at the floor excluded | open | Accuracy tab shows per-lead n ≥ 200 |
+| M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | RUNNING 2026-11-04 (3 windows dispatched 16:24 UTC) | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
+| M3 | `observe.py` writes to Neon; truth backfilled for the same dates; 10-year climatology per airport | DONE 2026-11-04 (3177091) | `gefs.observed` covers every backfilled forecast date |
+| M4 | `score.py` reads from Neon; adds skill vs climatology; Bcf rows at the floor excluded | DONE 2026-11-04 | first Neon scoring: 236 runs, 10,060 forecast-days, n ≥ 221 per lead |
 | M5 | `calibrate.py`: EMOS per airport per lead, trained 2024-25, validated 2025-26 | open | holdout coverage 0.75–0.85 at every lead, MAE below raw |
 | M6 | `hdd.py` applies the fit; chart shows corrected band + raw median grey line | open | page shows "calibrated" badge; `refit: true` in latest.json |
 | M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | open | fit timestamp on page advances daily |
@@ -157,11 +157,18 @@ data → daily (Tmax+Tmin)/2 → mean and sd per day of year (Feb 29 folded into
 2024-11-01..2025-04-14, 2025-11-01..2026-04-14, 2026-10-01..2026-11-03. Test: every
 date in `forecast_station` has a row in `observed` for all 22 stations.
 
-**M4 — Scoring from Neon (half a day).** `score.py` reads `forecast_station` +
-`observed`, computes indexes with the current weights, writes `gefs.scores` and
-`docs/accuracy.json`. Adds `climatology_mae` and `skill = 1 − MAE/MAE_clim` per lead.
-Applies D14. Deletes `history/*.csv` from the repo. Test: `tests/test_accuracy.py`
-rewritten against a temporary schema; Accuracy tab shows n ≥ 200 per lead.
+**M4 — Scoring from Neon (built 2026-11-04).** `hdd.index_members(data, cities)` is now
+the one definition of every index: the live forecast, `score.py` and `validate_log.py`
+all call it on airport-grain data (live arrays or `db.load_forecasts`). Side effect: the
+US index now samples the grid at the airports (O'Hare, not downtown Chicago) like the
+Midwest index always did; a small step change, logged in the README. `score.py` reads
+`forecast_station` + `observed` + `climatology`, writes `gefs.scores` and
+`docs/accuracy.json` with `clim_mae` and `skill = 1 − MAE/clim_mae` per lead and month;
+D14 applied (`excluded_at_floor` reported). Run-to-run deltas in `hdd.py` come from Neon.
+`history/` keeps only `observed.csv` (home of the CPC reference) and `validation.csv`.
+First result, two winters: US HDD skill 0.77 at day 1 falling to 0.04 at day 15, so the
+forecast carries no information beyond climatology after day 13; raw p10–p90 coverage
+0.26 at day 1 rising to ~0.70, never reaching 0.80.
 
 **M5 — EMOS fit (one day).** `calibrate.py`: for each (station, lead_day), fit
 `obs ~ N(a + b·ens_mean, c + d·ens_var)` on daily-mean temperature by minimising CRPS

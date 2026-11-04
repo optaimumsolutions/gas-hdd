@@ -8,8 +8,10 @@ schema-qualified; search_path is never set (Neon's pooler would leak it).
 """
 
 import os
+from datetime import timezone
 from pathlib import Path
 
+import numpy as np
 import psycopg
 
 ROOT = Path(__file__).resolve().parent
@@ -94,5 +96,79 @@ def write_climatology(conn, rows):
             "tmean_normal = EXCLUDED.tmean_normal, tmean_sd = EXCLUDED.tmean_sd, "
             "years = EXCLUDED.years, built_at = now()",
             rows)
+    conn.commit()
+    return len(rows)
+
+
+# ------------------------------------------------------------------ readers
+def _naive_utc(ts):
+    return ts.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def list_runs(conn, model="gefs"):
+    """Archived runs as naive UTC datetimes, oldest first."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT DISTINCT run FROM gefs.forecast_station WHERE model = %s ORDER BY run", (model,))
+        return [_naive_utc(r[0]) for r in cur.fetchall()]
+
+
+def _assemble(rows):
+    """rows (run, station, date, tmax, tmin) sorted by run, date -> {run:
+    {"dates": [date...], "stations": {code: (tmax[day, member], tmin[day, member])}}}."""
+    out = {}
+    for run, station, day, tmax, tmin in rows:
+        r = out.setdefault(_naive_utc(run), {"dates": [], "stations": {}})
+        if not r["dates"] or r["dates"][-1] != day:
+            r["dates"].append(day)
+        s = r["stations"].setdefault(station, ([], []))
+        s[0].append(tmax)
+        s[1].append(tmin)
+    for r in out.values():
+        r["stations"] = {code: (np.array(tx, dtype=float), np.array(tn, dtype=float))
+                         for code, (tx, tn) in r["stations"].items()}
+    return out
+
+
+def load_forecasts(conn, model="gefs", run=None):
+    """Every archived run (or one run) at airport grain; see _assemble."""
+    sql = "SELECT run, station, date, tmax, tmin FROM gefs.forecast_station WHERE model = %s"
+    params = [model]
+    if run is not None:
+        sql += " AND run = %s"
+        params.append(run.replace(tzinfo=timezone.utc))
+    with conn.cursor() as cur:
+        cur.execute(sql + " ORDER BY run, date, station", params)
+        return _assemble(cur.fetchall())
+
+
+def load_observed_means(conn):
+    """{date: {station: daily mean F}} for every observed station-day."""
+    out = {}
+    with conn.cursor() as cur:
+        cur.execute("SELECT station, date, tmax, tmin FROM gefs.observed")
+        for station, day, tmax, tmin in cur.fetchall():
+            out.setdefault(day, {})[station] = (tmax + tmin) / 2
+    return out
+
+
+def load_climatology(conn):
+    """{station: array[365] of normal daily mean F, index 0 = day of year 1}."""
+    out = {}
+    with conn.cursor() as cur:
+        cur.execute("SELECT station, doy, tmean_normal FROM gefs.climatology ORDER BY station, doy")
+        for station, doy, normal in cur.fetchall():
+            out.setdefault(station, np.full(365, np.nan))[doy - 1] = normal
+    return out
+
+
+def write_scores(conn, rows, model="gefs"):
+    """Replace every score row for the model; rows = (run, date, lead_day,
+    index, median, p10, p90, observed, clim)."""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM gefs.scores WHERE model = %s", (model,))
+        cur.executemany(
+            "INSERT INTO gefs.scores (model, run, date, lead_day, index, median, p10, p90, observed, clim) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            [(model, r[0].replace(tzinfo=timezone.utc), *r[1:]) for r in rows])
     conn.commit()
     return len(rows)

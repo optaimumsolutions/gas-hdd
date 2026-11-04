@@ -10,15 +10,19 @@ What this script does, in order:
      each GRIB file (byte-range requests), not the whole file.
   3. Cut each field down to the Lower 48 and stack everything into arrays
      T, TX, TN [member, lead_time, lat, lon] in Kelvin.
-  4. Turn the daily (Tmax + Tmin) / 2 at 16 big cities into HDDs, weight them by
-     population, and summarise across the 31 members (median, p10, p90).
-     Then, for each region in regions.py, weight that region's cities by gas
-     consumption and convert HDD to Bcf/d of res/comm demand, member by member.
-  5. Compare the 15-day totals with the previous run and the run 24 h earlier.
+  4. Take the daily Tmax and Tmin at the 22 HDD airports, turn (Tmax + Tmin) / 2
+     into HDDs, weight the 16 national cities by population and summarise
+     across the 31 members (median, p10, p90). Then, for each region in
+     regions.py, weight that region's cities by gas consumption and convert
+     HDD to Bcf/d of res/comm demand, member by member. The same function
+     (index_members) scores past runs in score.py, so forecast and scoring
+     can never disagree on the definition.
+  5. Compare the 15-day totals with the previous run and the run 24 h earlier
+     (both read back from Neon).
   6. Archive each airport's daily Tmax/Tmin for all 31 members in Neon
      (gefs.forecast_station; see PRD-calibration.md). With --no-docs, stop here.
   7. Draw the charts and maps (national, then per region).
-  8. Write docs/latest.json, the PNGs, and the per-member CSVs in history/.
+  8. Write docs/latest.json and the PNGs.
 
 Nothing touches disk (other than the GRIB cache) until every number and
 picture has been computed, so a failure part-way through never leaves a
@@ -57,7 +61,6 @@ sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Window
 
 ROOT = Path(__file__).resolve().parent
 DOCS = ROOT / "docs"
-HISTORY = ROOT / "history"
 CACHE = ROOT / "data"  # downloaded GRIB pieces land here (git-ignored)
 
 # ----------------------------------------------------------------- locations
@@ -285,7 +288,7 @@ def full_days(run):
     days = [d for d in sorted(groups) if len(groups[d]) == 4][:15]
     if len(days) != 15:
         raise RuntimeError(f"expected 15 full days, found {len(days)}")
-    if groups[days[-1]][-1] + 1 >= len(FXX):   # city_hdd needs the next day's 00Z TMAX/TMIN
+    if groups[days[-1]][-1] + 1 >= len(FXX):   # daily_extremes needs the next day's 00Z TMAX/TMIN
         raise RuntimeError("day 15 has no 24Z lead for TMAX/TMIN")
     return days, [groups[d] for d in days]
 
@@ -299,7 +302,7 @@ def hdd_from_mean(daily_mean_f):
 def weighted_hdd(daily_mean_f, weights):
     """City HDDs combined into one index: sum over cities of weight x HDD, with
     the weights normalised to sum to 1. daily_mean_f[..., city] in F.
-    Shared by the forecast (city_hdd) and observe.py."""
+    Shared by the forecast (index_members) and observe.py."""
     weights = np.asarray(weights, dtype=float)
     return hdd_from_mean(daily_mean_f) @ (weights / weights.sum())
 
@@ -321,15 +324,28 @@ def daily_extremes(TX, TN, lat, lon, day_steps, points):
     return tmax, tmin
 
 
-def city_hdd(TX, TN, lat, lon, day_steps, cities):
+def station_data(tmax, tmin):
+    """{station: (tmax[day, member], tmin[day, member])} from the arrays
+    daily_extremes() returns for list(STATIONS.values()). The same layout
+    db.load_forecasts() returns for an archived run."""
+    return {code: (tmax[:, :, i].T, tmin[:, :, i].T) for i, code in enumerate(STATIONS)}
+
+
+def index_members(data, cities):
     """hdd[member, day] = sum over cities of weight x max(0, 65 - daily mean F).
-    cities = list of (latitude, longitude, weight).
-    Daily mean = (Tmax + Tmin) / 2, the EIA/NOAA definition."""
-    tmax, tmin = daily_extremes(TX, TN, lat, lon, day_steps, [(c[0], c[1]) for c in cities])
-    hdd = np.zeros((len(MEMBERS), len(day_steps)))
-    for di in range(len(day_steps)):
-        hdd[:, di] = weighted_hdd((tmax[:, di] + tmin[:, di]) / 2, [c[2] for c in cities])
-    return hdd
+    data = station_data() or one run from db.load_forecasts();
+    cities = list of (station, weight). Daily mean = (Tmax + Tmin) / 2, the
+    EIA/NOAA definition. Used by the live forecast, score.py and validate_log.py."""
+    mean = np.stack([(data[st][0] + data[st][1]) / 2 for st, _ in cities], axis=-1)   # [day, member, city]
+    return weighted_hdd(mean, [w for _, w in cities]).T                                 # [member, day]
+
+
+def national_cities():
+    return [(c[4], c[3]) for c in CITIES]
+
+
+def region_cities(region):
+    return [(c[5], c[4]) for c in region["cities"]]
 
 
 def period_fields(T, lat, lon, day_steps, first, last):
@@ -351,14 +367,14 @@ def period_fields(T, lat, lon, day_steps, first, last):
     return mean_f, uncertain, risk
 
 
-def region_series(region, TX, TN, lat, lon, day_steps):
+def region_series(region, data):
     """One region's per-member numbers. Everything is converted member by member
     and only then summarised, never on the percentiles:
       hdd[m, d]    consumption-weighted HDD
       bcfd[m, d]   res/comm demand, Bcf/d
       total_bcf[m] 15-day sum of bcfd, Bcf
       cal          calibrated band (see regions.calibrated_band)"""
-    hdd = city_hdd(TX, TN, lat, lon, day_steps, [(c[2], c[3], c[4]) for c in region["cities"]])
+    hdd = index_members(data, region_cities(region))
     bcfd = demand_bcfd(region, hdd)
     return {"hdd": hdd, "bcfd": bcfd, "total_bcf": bcfd.sum(axis=1), "cal": calibrated_band(region, bcfd)}
 
@@ -372,22 +388,36 @@ def region_extent(region):
 
 
 # ------------------------------------------------- 5. compare with history
-def history_runs(prefix="hdd"):
-    """Map run datetime -> CSV path for every history/<prefix>_YYYYMMDD_HHz.csv."""
-    return {datetime.strptime(p.stem, f"{prefix}_%Y%m%d_%Hz"): p for p in HISTORY.glob(f"{prefix}_*.csv")}
+def earlier_runs(conn, run):
+    """The archived run just before this one and the one 24 h earlier, each as
+    (run datetime, dates, station data) or None."""
+    runs = db.list_runs(conn)
+    prev = max([r for r in runs if r < run], default=None)
+    ago = run - timedelta(hours=24)
+    out = []
+    for other in (prev, ago if ago in runs else None):
+        if other is None:
+            out.append(None)
+        else:
+            loaded = db.load_forecasts(conn, run=other)[other]
+            out.append((other, loaded["dates"], loaded["stations"]))
+    return out
 
 
-def compare(values, days, other_run, csv_path):
+def compare(values, days, other, other_values):
     """Change in 15-day total versus another run, measured over the days both
     runs forecast (so a day dropping off the front of the window does not
     count as a 'change'). Totals are the median of each member's sum.
-    values[member, day] is HDD for the national index, Bcf/d for a region."""
-    other = pd.read_csv(csv_path, index_col="date")
-    shared = [d for d in days if d.isoformat() in other.index]
+    values[member, day]; other = (run, dates, stations) from earlier_runs;
+    other_values[member, day] is the same index computed from other's data."""
+    if other is None:
+        return None
+    other_run, other_days, _ = other
+    shared = [d for d in days if d in other_days]
     if not shared:
         return None
     now_total = np.median(values[:, [days.index(d) for d in shared]].sum(axis=1))
-    other_total = np.median(other.loc[[d.isoformat() for d in shared]].to_numpy().sum(axis=0))
+    other_total = np.median(other_values[:, [other_days.index(d) for d in shared]].sum(axis=1))
     return {"run": f"{other_run:%Y-%m-%d %H}Z", "delta": round(float(now_total - other_total), 1),
             "shared_days": len(shared), "other_total": round(float(other_total), 1)}
 
@@ -493,14 +523,15 @@ def main():
 
     with step("4/8 compute HDDs and map fields"):
         days, day_steps = full_days(run)
-        hdd = city_hdd(TX, TN, lat, lon, day_steps, [(c[1], c[2], c[3]) for c in CITIES])  # [member, day]
+        st_tmax, st_tmin = daily_extremes(TX, TN, lat, lon, day_steps, list(STATIONS.values()))
+        data = station_data(st_tmax, st_tmin)
+        hdd = index_members(data, national_cities())                 # [member, day]
         p10, median, p90 = np.percentile(hdd, [10, 50, 90], axis=0)
         member_totals = hdd.sum(axis=1)
         total = {k: round(float(v), 1) for k, v in
                  zip(["p10", "median", "p90"], np.percentile(member_totals, [10, 50, 90]))}
-        st_tmax, st_tmin = daily_extremes(TX, TN, lat, lon, day_steps, list(STATIONS.values()))
         maps = {label: period_fields(T, lat, lon, day_steps, a, b) for label, a, b in PERIODS}
-        regional = {r["key"]: region_series(r, TX, TN, lat, lon, day_steps) for r in REGIONS}
+        regional = {r["key"]: region_series(r, data) for r in REGIONS}
         for r in REGIONS:
             s = regional[r["key"]]
             raw = np.percentile(s["total_bcf"], [10, 50, 90])
@@ -516,21 +547,29 @@ def main():
             s["implied_withdrawal"] = implied_withdrawal(r, s["bcfd"], days)
 
     with step("5/8 compare with earlier runs"):
-        runs = history_runs()
-        earlier = [r for r in runs if r < run]
-        prev_run = max(earlier) if earlier else None
-        ago_run = run - timedelta(hours=24) if (run - timedelta(hours=24)) in runs else None
-        vs_prev = compare(hdd, days, prev_run, runs[prev_run]) if prev_run else None
-        vs_24h = compare(hdd, days, ago_run, runs[ago_run]) if ago_run else None
-        for r in REGIONS:  # same comparison, in median 15-day Bcf
-            s, rruns = regional[r["key"]], history_runs(f"{r['key']}_bcf")
-            rprev = max([x for x in rruns if x < run], default=None)
-            rago = run - timedelta(hours=24) if (run - timedelta(hours=24)) in rruns else None
-            for key, other in [("vs_prev", rprev), ("vs_24h", rago)]:
-                cmp = compare(s["bcfd"], days, other, rruns[other]) if other else None
-                if cmp:
-                    cmp["delta_bcf"] = cmp.pop("delta")
-                s[key] = cmp
+        try:
+            with retry(db.connect) as conn:
+                prev, ago = earlier_runs(conn, run)
+        except Exception as err:
+            print(f"  WARNING: Neon unreachable, no run-to-run deltas: {err}")
+            prev = ago = None
+        vs_prev, vs_24h = None, None
+        for r in REGIONS:
+            regional[r["key"]]["vs_prev"] = regional[r["key"]]["vs_24h"] = None
+        for key, other in [("vs_prev", prev), ("vs_24h", ago)]:
+            if other is None:
+                continue
+            cmp = compare(hdd, days, other, index_members(other[2], national_cities()))
+            if key == "vs_prev":
+                vs_prev = cmp
+            else:
+                vs_24h = cmp
+            for r in REGIONS:  # same comparison, in median 15-day Bcf
+                s = regional[r["key"]]
+                rcmp = compare(s["bcfd"], days, other, demand_bcfd(r, index_members(other[2], region_cities(r))))
+                if rcmp:
+                    rcmp["delta_bcf"] = rcmp.pop("delta")
+                s[key] = rcmp
 
     with step("6/8 archive per-airport Tmax/Tmin in Neon"):
         # A failure here never blocks the published forecast (the next run
@@ -597,7 +636,6 @@ def main():
 
     with step("8/8 write outputs"):
         DOCS.mkdir(exist_ok=True)
-        HISTORY.mkdir(exist_ok=True)
         run_id = f"{run:%Y%m%d_%H}z"
         latest = {
             "run": f"{run:%Y-%m-%d %H}Z",
@@ -615,7 +653,6 @@ def main():
             "images": {"chart": "hdd_forecast.png", "maps": [f"map_{label}.png" for label, _, _ in PERIODS]},
             "regions": {},
         }
-        csvs = {f"hdd_{run_id}.csv": hdd}
         for r in REGIONS:
             k, s = r["key"], regional[r["key"]]
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
@@ -646,16 +683,10 @@ def main():
                 "images": {"hdd_chart": f"{k}_hdd.png", "bcf_chart": f"{k}_bcf.png",
                            "maps": [f"{k}_map_{label}.png" for label, _, _ in PERIODS]},
             }
-            csvs[f"{k}_hdd_{run_id}.csv"] = s["hdd"]
-            csvs[f"{k}_bcf_{run_id}.csv"] = s["bcfd"]
-        for name, data in pngs.items():
-            (DOCS / name).write_bytes(data)
-        for name, values in csvs.items():
-            csv = pd.DataFrame(values.T, index=[d.isoformat() for d in days],
-                               columns=[f"m{m:02d}" for m in MEMBERS]).rename_axis("date")
-            csv.to_csv(HISTORY / name, float_format="%.3f")
+        for name, png in pngs.items():
+            (DOCS / name).write_bytes(png)
         (DOCS / "latest.json").write_text(json.dumps(latest, indent=1), encoding="utf-8")
-        print(f"  wrote docs/latest.json, {len(pngs)} PNGs, {len(csvs)} CSVs in history/")
+        print(f"  wrote docs/latest.json and {len(pngs)} PNGs")
 
 
 if __name__ == "__main__":

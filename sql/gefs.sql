@@ -53,3 +53,19 @@ CREATE TABLE IF NOT EXISTS gefs.climatology (
     built_at     timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (station, doy)
 );
+
+-- One row per run x forecast date x index, rebuilt from scratch by score.py
+-- (observed, clim = the climatology baseline's value for that date).
+CREATE TABLE IF NOT EXISTS gefs.scores (
+    model     text    NOT NULL,
+    run       timestamptz NOT NULL,
+    date      date    NOT NULL,
+    lead_day  smallint NOT NULL,
+    index     text    NOT NULL,
+    median    real    NOT NULL,
+    p10       real    NOT NULL,
+    p90       real    NOT NULL,
+    observed  real    NOT NULL,
+    clim      real,
+    PRIMARY KEY (model, run, date, index)
+);

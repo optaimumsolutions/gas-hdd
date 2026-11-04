@@ -9,6 +9,16 @@ serves the `docs/` folder as the dashboard. No servers, no accounts, no paid dat
 
 ## Changelog
 
+- **2026-11-04 — Neon archive, two-winter backfill, scoring from the airports.** Every run
+  now stores each of the 22 HDD airports' daily Tmax/Tmin for all 31 members in a Neon
+  database (`gefs.forecast_station`), and ~340 past 00Z runs (Nov 2024–Mar 2025, Nov 2025–
+  Mar 2026, Oct 2026 on) were backfilled. Observed airport temperatures and a 10-year
+  climatology live there too; `score.py` scores every archived run from that layer and the
+  Accuracy tab gained *climatology MAE* and *skill*. The per-run CSVs in `history/` are gone.
+  Small step change: the US index now samples the model grid at each city's airport (where
+  the thermometer it is scored against sits), as the Midwest index already did; O'Hare,
+  Lambert and MCI move one 0.5° cell from the downtown point. Plan and decisions:
+  `PRD-calibration.md`.
 - **2026-11-03 — HDD definition changed (step change, not weather).** Daily mean temperature
   is now (Tmax + Tmin) / 2 from GEFS's 6-hour max/min fields, the EIA/NOAA definition, instead
   of the average of the four 6-hourly values at 00, 06, 12 and 18Z. Those four snapshots fall

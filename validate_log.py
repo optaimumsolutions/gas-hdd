@@ -4,8 +4,8 @@
   python validate_log.py --week-ending 2026-11-06 --eia-midwest -42
 
 --eia-midwest is EIA's reported Midwest net change in Bcf, typed in by hand from
-the Thursday storage report (negative = withdrawal). The forecast is the stored
-run nearest to 00Z on the Saturday the storage week starts. No network.
+the Thursday storage report (negative = withdrawal). The forecast is the archived
+run (Neon) nearest to 00Z on the Saturday the storage week starts.
 """
 
 import argparse
@@ -13,9 +13,9 @@ import csv
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import pandas as pd
-
-from regions import MIDWEST, implied_withdrawal
+import db
+from hdd import index_members, region_cities
+from regions import MIDWEST, demand_bcfd, implied_withdrawal
 
 HISTORY = Path(__file__).resolve().parent / "history"
 
@@ -25,11 +25,11 @@ parser.add_argument("--eia-midwest", required=True, type=float, help="EIA net ch
 args = parser.parse_args()
 
 saturday = args.week_ending - timedelta(days=6)
-runs = {datetime.strptime(p.stem, "midwest_bcf_%Y%m%d_%Hz"): p for p in HISTORY.glob("midwest_bcf_*.csv")}
-run = min(runs, key=lambda r: abs(r - saturday))
-D = pd.read_csv(runs[run], index_col="date")
-days = [datetime.strptime(d, "%Y-%m-%d").date() for d in D.index]
-week = [w for w in implied_withdrawal(MIDWEST, D.to_numpy().T, days)
+with db.connect() as conn:
+    run = min(db.list_runs(conn), key=lambda r: abs(r - saturday))
+    loaded = db.load_forecasts(conn, run=run)[run]
+D = demand_bcfd(MIDWEST, index_members(loaded["stations"], region_cities(MIDWEST)))   # [member, day]
+week = [w for w in implied_withdrawal(MIDWEST, D, loaded["dates"])
         if w["week_ending"] == f"{args.week_ending:%Y-%m-%d}"]
 if not week:
     raise SystemExit(f"run {run:%Y-%m-%d %H}Z does not cover the week ending {args.week_ending:%Y-%m-%d}")
