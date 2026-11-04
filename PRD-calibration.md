@@ -138,12 +138,14 @@ runs is NOT possible at airport grain (the CSVs hold only indexes): those six ru
 re-ingested from S3 by the backfill instead. Test: run `hdd.py --run 2026-11-04T00`
 locally against Neon, then `SELECT count(*)` = 22 × 15 = 330.
 
-**M2 — Backfill (half a day to build, ~1.5 h to run).** `backfill.yml` with
-`workflow_dispatch` inputs `from`, `to`; a first job lists the 00Z runs in range and
-splits them into 20 shards; the matrix runs `hdd.py --run <r> --no-docs` per run with
-`continue-on-error` so one throttled run never kills a shard. A final job prints which
-runs are missing from Neon so the founder can re-dispatch just those. Observed truth
-must not be fetched here (IEM rate limits): that is M3.
+**M2 — Backfill (built 2026-11-04).** `backfill.yml` with `workflow_dispatch` inputs
+`from`, `to`, `shards`; the `plan` job asks Neon which 00Z runs in the range are missing
+and splits them into shards; the matrix runs `backfill.py run <runs>` (each run =
+`hdd.py --run <r> --no-docs`, GRIB cache deleted after each, THREADS=4, failures
+collected, `fail-fast: false`); the `report` job lists what is still missing, so
+re-dispatching the same range retries only the leftovers. Dispatch windows (summer
+skipped: no HDD signal): 2024-11-01..2025-03-31, 2025-11-01..2026-03-31,
+2026-10-01..today. Observed truth is not fetched here (IEM rate limits): that is M3.
 
 **M3 — Truth and climatology (half a day).** `observe.py --from --to` writes
 `gefs.observed` in chunks of 30 days with a pause (IEM asks for that). Climatology:
