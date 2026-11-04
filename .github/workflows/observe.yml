@@ -35,6 +35,11 @@ jobs:
       - name: Score the forecast archive
         run: python score.py
 
+      - name: Nightly calibration refit on every archived day (a failure here only warns)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python calibrate.py --nightly || echo "::warning::calibrate.py failed; the previous fit stays in use"
+
       - name: Catch up with commits pushed while this job ran (the push fails otherwise)
         run: git pull --rebase --autostash origin main
 

@@ -30,14 +30,20 @@ of raw or better.
 Writes gefs.emos_fit and gefs.spread_fit (Neon), docs/calibration.json and
 docs/calibration.png.
 
+Nightly mode (--nightly, M7): refit on every archived day through yesterday.
+No out-of-sample data exists then, so the per-pair verdicts (which airport-lead
+pairs earn a correction) are inherited from the last full holdout run stored in
+Neon, and docs/calibration.json keeps that run's holdout table and gate; only a
+"live_fit" block is updated.
+
 Usage:
-  python calibrate.py                                   # train 2024-25, hold out 2025-26
-  python calibrate.py --train-to 2026-11-01             # M7: train on everything, holdout still reported
+  python calibrate.py                                   # full: train 2024-25, hold out 2025-26
+  python calibrate.py --nightly                         # refit on everything through yesterday
 """
 
 import argparse
 import json
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import matplotlib
@@ -101,18 +107,20 @@ def sample_table(forecasts, observed_means):
     return pd.DataFrame(rows, columns=["run", "date", "lead_day", "station", "m", "s", "y"])
 
 
-def fit_all(table, train_from, train_to, holdout):
-    """Fit every (airport, lead); gate each on the holdout CRPS. Returns
-    ({(station, lead): fit}, rows for gefs.emos_fit, list of identity keys)."""
+def fit_all(table, train_from, train_to, holdout, forced_identity=None):
+    """Fit every (airport, lead); gate each on the holdout CRPS, or, when
+    forced_identity is given (nightly mode), keep exactly those pairs at
+    identity and correct the rest. Returns ({(station, lead): fit}, rows for
+    gefs.emos_fit, list of identity keys)."""
     train = table[(table["date"] >= train_from) & (table["date"] <= train_to)]
     fits, rows, identity = {}, [], []
     for (st, lead), g in train.groupby(["station", "lead_day"]):
         h = holdout[(holdout["station"] == st) & (holdout["lead_day"] == lead)]
         fit, n = IDENTITY, len(g)
-        if n >= MIN_SAMPLES:
+        if n >= MIN_SAMPLES and not (forced_identity is not None and f"{st} d{lead}" in forced_identity):
             cand = fit_emos(g["m"].to_numpy(), g["s"].to_numpy(), g["y"].to_numpy())
-            if len(h) < MIN_SAMPLES:
-                fit = cand                                           # nothing to gate on
+            if forced_identity is not None or len(h) < MIN_SAMPLES:
+                fit = cand                                           # verdict inherited, or nothing to gate on
             else:
                 hm, hs, hy = h["m"].to_numpy(), h["s"].to_numpy(), h["y"].to_numpy()
                 raw = crps_gaussian(hm, np.maximum(hs, 1e-3), hy).mean()
@@ -255,36 +263,58 @@ def main():
     parser.add_argument("--train-to", type=date.fromisoformat, default=date(2025, 3, 31))
     parser.add_argument("--holdout-from", type=date.fromisoformat, default=date(2025, 11, 1))
     parser.add_argument("--holdout-to", type=date.fromisoformat, default=date(2026, 3, 31))
+    parser.add_argument("--nightly", action="store_true", help="refit on everything through yesterday (see above)")
     args = parser.parse_args()
+    now = datetime.now(timezone.utc)
+    if args.nightly:
+        args.train_to = now.date() - timedelta(days=1)
 
     with db.connect() as conn:
         forecasts = db.load_forecasts(conn)
         observed_means = db.load_observed_means(conn)
         table = sample_table(forecasts, observed_means)
         holdout = table[(table["date"] >= args.holdout_from) & (table["date"] <= args.holdout_to)]
-        print(f"{len(table)} samples from {len(forecasts)} runs; training {args.train_from}..{args.train_to}, "
-              f"holdout {args.holdout_from}..{args.holdout_to}")
-        fits, rows, identity = fit_all(table, args.train_from, args.train_to, holdout)
+        forced = None
+        if args.nightly:
+            _, meta = db.load_emos(conn)
+            if meta is None:
+                raise SystemExit("nightly mode needs a full run first (no fit in gefs.emos_fit)")
+            forced = set(meta["identity"])
+        print(f"{len(table)} samples from {len(forecasts)} runs; training {args.train_from}..{args.train_to}"
+              + (f", identity verdicts inherited for {len(forced)} pairs" if args.nightly
+                 else f", holdout {args.holdout_from}..{args.holdout_to}"))
+        fits, rows, identity = fit_all(table, args.train_from, args.train_to, holdout, forced)
         print(f"fitted {len(rows)} (airport, lead) pairs; {len(identity)} kept as identity")
         observed = score.observed_indexes(observed_means, {})
         stretches, srows = fit_stretch(forecasts, observed, fits, args.train_from, args.train_to)
         print("spread multipliers k by lead: " + "; ".join(
             f"{index} " + " ".join(f"{stretches[(index, k)]:.2f}" for k in range(1, 16)) for index in score.HDD_INDEXES))
-        result = index_holdout(forecasts, observed, fits, stretches, args.holdout_from, args.holdout_to)
-        verdict = gate(result)
+        result = verdict = None
+        if not args.nightly:
+            result = index_holdout(forecasts, observed, fits, stretches, args.holdout_from, args.holdout_to)
+            verdict = gate(result)
         db.write_emos(conn, rows)
         db.write_spread(conn, srows)
 
-    now = datetime.now(timezone.utc)
-    summary = {"fitted_at": now.strftime("%Y-%m-%d %H:%M UTC"), "method": "EMOS / NGR per airport per lead, CRPS-minimised, "
-               "applied to members as shift-and-scale (ECC)",
+    DOCS.mkdir(exist_ok=True)
+    live = {"fitted_at": now.strftime("%Y-%m-%d %H:%M UTC"), "train_from": args.train_from.isoformat(),
+            "train_to": args.train_to.isoformat(), "fits": len(rows), "identity": len(identity),
+            "stretch": {index: [stretches[(index, k)] for k in range(1, 16)] for index in score.HDD_INDEXES}}
+    path = DOCS / "calibration.json"
+    if args.nightly:
+        summary = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        summary["live_fit"] = live
+        path.write_text(json.dumps(summary, indent=1), encoding="utf-8")
+        print(f"nightly refit done: {len(rows)} fits through {args.train_to}; holdout block in calibration.json unchanged")
+        print("wrote gefs.emos_fit, gefs.spread_fit, docs/calibration.json (live_fit)")
+        return
+    summary = {"fitted_at": live["fitted_at"], "method": "EMOS / NGR per airport per lead, CRPS-minimised, "
+               "applied to members as shift-and-scale (ECC); then one spread multiplier per index per lead",
                "train_from": args.train_from.isoformat(), "train_to": args.train_to.isoformat(),
                "holdout_from": args.holdout_from.isoformat(), "holdout_to": args.holdout_to.isoformat(),
-               "fits": len(rows), "identity": identity,
-               "stretch": {index: [stretches[(index, k)] for k in range(1, 16)] for index in score.HDD_INDEXES},
-               "holdout": result, "gate": verdict, "image": "calibration.png"}
-    DOCS.mkdir(exist_ok=True)
-    (DOCS / "calibration.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
+               "fits": len(rows), "identity": identity, "stretch": live["stretch"],
+               "holdout": result, "gate": verdict, "image": "calibration.png", "live_fit": live}
+    path.write_text(json.dumps(summary, indent=1), encoding="utf-8")
     draw(result, DOCS / "calibration.png")
     for index, leads in result.items():
         print(f"\n{index}: lead  n   raw MAE  cal MAE  raw cov  cal cov")

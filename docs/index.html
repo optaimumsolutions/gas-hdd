@@ -221,7 +221,8 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <h3>Calibration (EMOS per airport per lead day): holdout test</h3>
   <p class="muted">Fitted ${c.fitted_at} on ${c.train_from} to ${c.train_to}; tested on ${c.holdout_from} to ${c.holdout_to}, which the fit never saw.
     Gate (coverage 75&ndash;85% and MAE not worse at every lead): <b class="${c.gate.passed ? "up" : "down"}">${c.gate.passed ? "passed" : "not yet"}</b>.
-    ${c.identity.length} of ${c.fits} airport-lead pairs left uncorrected (fit did not help on the holdout).</p>
+    ${c.identity.length} of ${c.fits} airport-lead pairs left uncorrected (fit did not help on the holdout).
+    ${c.live_fit ? `Fit in use: refit nightly on every archived day, currently ${c.live_fit.train_from} to ${c.live_fit.train_to} (${c.live_fit.fitted_at}); the holdout verdicts above decide which pairs get corrected.` : ""}</p>
   <img src="${c.image}?v=${encodeURIComponent(c.fitted_at)}" alt="Holdout MAE and coverage, raw vs corrected">
   <table class="wide"><thead><tr><th>Index</th><th>Lead day</th><th>n</th><th>Raw MAE</th><th>Corrected MAE</th><th>Raw coverage</th><th>Corrected coverage</th></tr></thead><tbody>${rows}</tbody></table>`;
       }

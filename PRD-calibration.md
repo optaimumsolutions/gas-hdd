@@ -13,8 +13,8 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 | M4 | `score.py` reads from Neon; adds skill vs climatology; Bcf rows at the floor excluded | DONE 2026-11-04 | first Neon scoring: 236 runs, 10,060 forecast-days, n ≥ 221 per lead |
 | M5 | `calibrate.py`: EMOS per airport per lead + index spread stage, trained 2024-25, validated 2025-26 | BUILT 2026-11-04; holdout: 20 of 30 lead checks inside 75–85%, 7 over by ≤0.02, US days 1–3 at 71–75% (see M5 notes); founder decision on shipping | holdout coverage 0.75–0.85 at every lead, MAE below raw |
 | M6 | `hdd.py` applies the fit; chart shows corrected band + raw median grey line | DONE 2026-11-04 (founder: "ship") | local run 2026-11-03 00Z: 330 fits + 30 multipliers applied, raw grey line, `calibration` block in latest.json, `refit: true` |
-| M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | next | fit timestamp on page advances daily |
-| M8 | ECMWF ENS second line (gated: after M6 and a few days of Pivotal checks) | open | second score column on Accuracy tab |
+| M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | DONE 2026-11-04 (`calibrate.py --nightly` in observe.yml 09:00 UTC; identity verdicts inherited from the holdout run) | fit timestamp on page advances daily |
+| M8 | ECMWF ENS second line (gated: after M6 and a few days of Pivotal checks) | next, gated on the founder's Pivotal check | second score column on Accuracy tab |
 
 ## 1. Goal
 
