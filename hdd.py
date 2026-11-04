@@ -15,8 +15,10 @@ What this script does, in order:
      Then, for each region in regions.py, weight that region's cities by gas
      consumption and convert HDD to Bcf/d of res/comm demand, member by member.
   5. Compare the 15-day totals with the previous run and the run 24 h earlier.
-  6. Draw the charts and maps (national, then per region).
-  7. Write docs/latest.json, the PNGs, and the per-member CSVs in history/.
+  6. Archive each airport's daily Tmax/Tmin for all 31 members in Neon
+     (gefs.forecast_station; see PRD-calibration.md). With --no-docs, stop here.
+  7. Draw the charts and maps (national, then per region).
+  8. Write docs/latest.json, the PNGs, and the per-member CSVs in history/.
 
 Nothing touches disk (other than the GRIB cache) until every number and
 picture has been computed, so a failure part-way through never leaves a
@@ -25,6 +27,7 @@ half-updated dashboard.
 Usage:
   python hdd.py                      # newest complete run
   python hdd.py --run 2026-11-03T00  # a specific run (UTC cycle hour)
+  python hdd.py --run 2025-01-15T00 --no-docs   # backfill: archive only
 """
 
 import argparse
@@ -46,6 +49,7 @@ import numpy as np
 import pandas as pd
 from herbie import Herbie
 
+import db
 from regions import REGIONS, calibrated_band, demand_bcfd, implied_withdrawal, scenario_10pct
 
 sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Windows too
@@ -77,6 +81,14 @@ CITIES = [
     ("St. Louis",     38.63,  -90.20, 0.3, "STL"),
     ("Atlanta",       33.75,  -84.39, 0.5, "ATL"),
 ]
+
+# Every airport the forecast is archived at: ICAO -> (lat, lon). The regional
+# tables carry the airport's own coordinates, the national table the city
+# centre; the airport wins because that is where the thermometer is.
+STATIONS = {c[5]: (c[2], c[3]) for r in REGIONS for c in r["cities"]}
+for _c in CITIES:
+    STATIONS.setdefault(_c[4], (_c[1], _c[2]))
+STATIONS = dict(sorted(STATIONS.items()))
 
 # Gas-producing basins: name, map label, latitude, longitude, freeze-off
 # threshold in F. A basin is flagged when >= 30% of members take the period's
@@ -291,21 +303,31 @@ def weighted_hdd(daily_mean_f, weights):
     return hdd_from_mean(daily_mean_f) @ (weights / weights.sum())
 
 
+def daily_extremes(TX, TN, lat, lon, day_steps, points):
+    """Daily Tmax and Tmin in F at each point: arrays [member, day, point].
+    points = list of (latitude, longitude). TMAX/TMIN cover the 6 hours ENDING
+    at their lead, so a UTC day 00-24Z is the four leads valid 06, 12, 18 and
+    24Z: the day's own leads shifted by one."""
+    rows, cols = zip(*[nearest_index(lat, lon, p[0], p[1]) for p in points])
+    tmax_f = k_to_f(TX[:, :, list(rows), list(cols)])       # [member, lead, point]
+    tmin_f = k_to_f(TN[:, :, list(rows), list(cols)])
+    tmax = np.zeros((len(MEMBERS), len(day_steps), len(points)))
+    tmin = tmax.copy()
+    for di, steps in enumerate(day_steps):
+        window = [s + 1 for s in steps]                     # leads valid 06, 12, 18, 24Z
+        tmax[:, di] = tmax_f[:, window].max(axis=1)
+        tmin[:, di] = tmin_f[:, window].min(axis=1)
+    return tmax, tmin
+
+
 def city_hdd(TX, TN, lat, lon, day_steps, cities):
     """hdd[member, day] = sum over cities of weight x max(0, 65 - daily mean F).
     cities = list of (latitude, longitude, weight).
-    Daily mean = (Tmax + Tmin) / 2, the EIA/NOAA definition. TMAX/TMIN cover
-    the 6 hours ENDING at their lead, so a UTC day 00-24Z is the four leads
-    valid 06, 12, 18 and 24Z: the day's own leads shifted by one."""
-    weights = [c[2] for c in cities]
-    rows, cols = zip(*[nearest_index(lat, lon, c[0], c[1]) for c in cities])
-    tmax_f = k_to_f(TX[:, :, list(rows), list(cols)])       # [member, lead, city]
-    tmin_f = k_to_f(TN[:, :, list(rows), list(cols)])
+    Daily mean = (Tmax + Tmin) / 2, the EIA/NOAA definition."""
+    tmax, tmin = daily_extremes(TX, TN, lat, lon, day_steps, [(c[0], c[1]) for c in cities])
     hdd = np.zeros((len(MEMBERS), len(day_steps)))
-    for di, steps in enumerate(day_steps):
-        window = [s + 1 for s in steps]                     # leads valid 06, 12, 18, 24Z
-        daily_mean = (tmax_f[:, window].max(axis=1) + tmin_f[:, window].min(axis=1)) / 2  # [member, city]
-        hdd[:, di] = weighted_hdd(daily_mean, weights)      # [member]
+    for di in range(len(day_steps)):
+        hdd[:, di] = weighted_hdd((tmax[:, di] + tmin[:, di]) / 2, [c[2] for c in cities])
     return hdd
 
 
@@ -454,25 +476,28 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--run", type=lambda s: datetime.strptime(s, "%Y-%m-%dT%H"),
                         help="GEFS run to process, e.g. 2026-11-03T00 (UTC)")
+    parser.add_argument("--no-docs", action="store_true",
+                        help="archive the run in Neon only: no charts, no docs/, no history/ (backfill)")
     args = parser.parse_args()
 
-    with step("1/7 find a complete GEFS run"):
+    with step("1/8 find a complete GEFS run"):
         run, files, note = pick_run(args.run)
 
-    with step("2/7 download 2 m temperature (31 members x 65 lead times)"):
+    with step("2/8 download 2 m temperature (31 members x 65 lead times)"):
         download_all(files)
 
-    with step("3/7 read the GRIB files into one array"):
+    with step("3/8 read the GRIB files into one array"):
         T, TX, TN, lat, lon = load_cube(files)
         print(f"  array shape {T.shape} (member, lead, lat, lon)")
 
-    with step("4/7 compute HDDs and map fields"):
+    with step("4/8 compute HDDs and map fields"):
         days, day_steps = full_days(run)
         hdd = city_hdd(TX, TN, lat, lon, day_steps, [(c[1], c[2], c[3]) for c in CITIES])  # [member, day]
         p10, median, p90 = np.percentile(hdd, [10, 50, 90], axis=0)
         member_totals = hdd.sum(axis=1)
         total = {k: round(float(v), 1) for k, v in
                  zip(["p10", "median", "p90"], np.percentile(member_totals, [10, 50, 90]))}
+        st_tmax, st_tmin = daily_extremes(TX, TN, lat, lon, day_steps, list(STATIONS.values()))
         maps = {label: period_fields(T, lat, lon, day_steps, a, b) for label, a, b in PERIODS}
         regional = {r["key"]: region_series(r, TX, TN, lat, lon, day_steps) for r in REGIONS}
         for r in REGIONS:
@@ -489,7 +514,7 @@ def main():
             s["scenario_10pct"] = scenario_10pct(r, s["hdd_median"])
             s["implied_withdrawal"] = implied_withdrawal(r, s["bcfd"], days)
 
-    with step("5/7 compare with earlier runs"):
+    with step("5/8 compare with earlier runs"):
         runs = history_runs()
         earlier = [r for r in runs if r < run]
         prev_run = max(earlier) if earlier else None
@@ -506,7 +531,23 @@ def main():
                     cmp["delta_bcf"] = cmp.pop("delta")
                 s[key] = cmp
 
-    with step("6/7 draw chart and maps"):
+    with step("6/8 archive per-airport Tmax/Tmin in Neon"):
+        # A failure here never blocks the published forecast (the next run
+        # re-ingests this one), except in backfill mode where the archive is the
+        # only output.
+        try:
+            with retry(db.connect) as conn:
+                n = db.write_forecast(conn, run.replace(tzinfo=timezone.utc), days, STATIONS, st_tmax, st_tmin)
+            print(f"  wrote {n} rows ({len(STATIONS)} airports x {len(days)} days) to gefs.forecast_station")
+        except Exception as err:
+            if args.no_docs:
+                raise
+            print(f"  WARNING: Neon archive skipped: {err}")
+        if args.no_docs:
+            print("  --no-docs: done")
+            return
+
+    with step("7/8 draw chart and maps"):
         pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total)}
         for label, a, b in PERIODS:
             mean_f, uncertain, risk = maps[label]
@@ -553,7 +594,7 @@ def main():
             print(f"  vs {name}: " + ("no prior run" if cmp is None else
                   f"{cmp['delta_bcf']:+.1f} Bcf over {cmp['shared_days']} shared days ({cmp['run']})"))
 
-    with step("7/7 write outputs"):
+    with step("8/8 write outputs"):
         DOCS.mkdir(exist_ok=True)
         HISTORY.mkdir(exist_ok=True)
         run_id = f"{run:%Y%m%d_%H}z"

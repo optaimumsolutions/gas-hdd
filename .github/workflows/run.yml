@@ -28,6 +28,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build the dashboard (fails the job on any error)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python hdd.py
 
       - name: Observed weather and forecast scores (a failure here only warns)

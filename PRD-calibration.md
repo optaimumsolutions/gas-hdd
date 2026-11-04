@@ -7,8 +7,8 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 | # | Milestone | State | Verified by |
 |---|-----------|-------|-------------|
 | M0 | `DATABASE_URL` secret in the gas-hdd repo | DONE 2026-11-04 15:23 UTC | `gh secret list -R optaimumsolutions/gas-hdd` shows it; `select 1` from this machine OK |
-| M1 | `gefs` schema in Neon + `hdd.py` writes per-airport members to it | open | one live run lands 330 rows in `gefs.forecast_station` |
-| M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | open | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
+| M1 | `gefs` schema in Neon + `hdd.py` writes per-airport members to it | DONE 2026-11-04 | 2026-11-03 00Z run: 330 rows in `gefs.forecast_station`; Midwest member CSV rebuilt from Neon to 0.0005 |
+| M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | next | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
 | M3 | `observe.py` writes to Neon; truth backfilled for the same dates; 10-year climatology per airport | open | `gefs.observed` covers every backfilled forecast date |
 | M4 | `score.py` reads from Neon; adds skill vs climatology; Bcf rows at the floor excluded | open | Accuracy tab shows per-lead n ≥ 200 |
 | M5 | `calibrate.py`: EMOS per airport per lead, trained 2024-25, validated 2025-26 | open | holdout coverage 0.75–0.85 at every lead, MAE below raw |
