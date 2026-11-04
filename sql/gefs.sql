@@ -69,3 +69,22 @@ CREATE TABLE IF NOT EXISTS gefs.scores (
     clim      real,
     PRIMARY KEY (model, run, date, index)
 );
+
+-- EMOS / nonhomogeneous Gaussian regression per airport and lead day
+-- (PRD D5): observed daily mean ~ N(a + b*m, c^2 + d^2*s^2) with m, s the
+-- ensemble mean and standard deviation of the daily mean. Identity = (0,1,0,1).
+CREATE TABLE IF NOT EXISTS gefs.emos_fit (
+    model      text     NOT NULL,
+    station    text     NOT NULL,
+    lead_day   smallint NOT NULL,
+    a          real     NOT NULL,
+    b          real     NOT NULL,
+    c          real     NOT NULL,
+    d          real     NOT NULL,
+    n          int      NOT NULL,           -- training samples
+    identity   boolean  NOT NULL DEFAULT false,   -- fit failed the holdout gate; stored as identity
+    train_from date     NOT NULL,
+    train_to   date     NOT NULL,
+    fitted_at  timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (model, station, lead_day)
+);

@@ -195,6 +195,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <h3>Last 14 days: observed vs what the day-1 / day-5 / day-10 forecasts said (median)</h3>
   <table class="wide"><thead><tr><th>Date</th>${hddIdx.map(k => `<th>${name(k)} obs</th><th>day 1</th><th>day 5</th><th>day 10</th>`).join("")}</tr></thead>
     <tbody>${lastRows || `<tr><td colspan="${1 + 4 * hddIdx.length}">no observed days yet</td></tr>`}</tbody></table>
+  <div id="calibration"></div>
   <h3>Thursday storage check (Midwest implied withdrawal vs EIA)</h3>
   <p class="muted">Hit rate: ${pct(a.storage.hit_rate)} (${a.storage.n} weeks logged)</p>
   <table class="wide"><thead><tr><th>Week ending</th><th>Run used</th><th>Implied range, Bcf</th><th>EIA print</th><th>Result</th></tr></thead>
@@ -205,6 +206,22 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     A statistic needs at least ${a.min_n} scores. Skill = 1 &minus; MAE / climatology MAE (${a.sources.climatology});
     0% means no better than normals. ${a.excluded_at_floor || 0} Bcf/d scores excluded because observed demand sat at the summer floor.
     Full detail: table <code>gefs.scores</code> in Neon.</p>`;
+    // calibration.json (written by calibrate.py): the EMOS fit and its holdout test
+    try {
+      const rc = await fetch("calibration.json?t=" + Date.now(), { cache: "no-store" });
+      if (rc.ok) {
+        const c = await rc.json();
+        const row = (k, r) => `<tr><td>${name(k)}</td><td>${r.lead_day}</td><td>${r.n}</td><td>${f(r.raw_mae, 2)}</td><td>${f(r.cal_mae, 2)}</td><td>${pct(r.raw_coverage)}</td><td>${pct(r.cal_coverage)}</td></tr>`;
+        const rows = Object.keys(c.holdout).flatMap(k => c.holdout[k].filter(r => r.n >= a.min_n && [1, 3, 5, 7, 10, 15].includes(r.lead_day)).map(r => row(k, r))).join("");
+        document.getElementById("calibration").innerHTML = `
+  <h3>Calibration (EMOS per airport per lead day): holdout test</h3>
+  <p class="muted">Fitted ${c.fitted_at} on ${c.train_from} to ${c.train_to}; tested on ${c.holdout_from} to ${c.holdout_to}, which the fit never saw.
+    Gate (coverage 75&ndash;85% and MAE not worse at every lead): <b class="${c.gate.passed ? "up" : "down"}">${c.gate.passed ? "passed" : "not yet"}</b>.
+    ${c.identity.length} of ${c.fits} airport-lead pairs left uncorrected (fit did not help on the holdout).</p>
+  <img src="${c.image}?v=${encodeURIComponent(c.fitted_at)}" alt="Holdout MAE and coverage, raw vs corrected">
+  <table class="wide"><thead><tr><th>Index</th><th>Lead day</th><th>n</th><th>Raw MAE</th><th>Corrected MAE</th><th>Raw coverage</th><th>Corrected coverage</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }
+    } catch (e) { /* no calibration yet */ }
   })().catch(err => { document.getElementById("tab-accuracy").innerHTML = '<p class="muted">Could not load accuracy.json: ' + err + "</p>"; });
 
   function show(tab) {

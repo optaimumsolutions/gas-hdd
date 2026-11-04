@@ -11,7 +11,7 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 | M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | RUNNING 2026-11-04 (3 windows dispatched 16:24 UTC) | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
 | M3 | `observe.py` writes to Neon; truth backfilled for the same dates; 10-year climatology per airport | DONE 2026-11-04 (3177091) | `gefs.observed` covers every backfilled forecast date |
 | M4 | `score.py` reads from Neon; adds skill vs climatology; Bcf rows at the floor excluded | DONE 2026-11-04 | first Neon scoring: 236 runs, 10,060 forecast-days, n ≥ 221 per lead |
-| M5 | `calibrate.py`: EMOS per airport per lead, trained 2024-25, validated 2025-26 | open | holdout coverage 0.75–0.85 at every lead, MAE below raw |
+| M5 | `calibrate.py`: EMOS per airport per lead, trained 2024-25, validated 2025-26 | BUILT 2026-11-04, gate NOT passed on half the training winter (see M5 notes); refit pending full backfill | holdout coverage 0.75–0.85 at every lead, MAE below raw |
 | M6 | `hdd.py` applies the fit; chart shows corrected band + raw median grey line | open | page shows "calibrated" badge; `refit: true` in latest.json |
 | M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | open | fit timestamp on page advances daily |
 | M8 | ECMWF ENS second line (gated: after M6 and a few days of Pivotal checks) | open | second score column on Accuracy tab |
@@ -177,6 +177,16 @@ forecast carries no information beyond climatology after day 13; raw p10–p90 c
 (raw vs corrected MAE and coverage per lead). Gate to M6: holdout coverage inside
 0.75–0.85 at every lead and corrected MAE ≤ raw MAE at every lead. If a station fails the
 gate its fit is stored with `b=1, d=1, a=0, c=0` (identity) and listed on the page.
+
+M5 first result (2026-11-04 19:40 UTC, training winter only 74 of 151 runs loaded, mostly
+Nov–Dec 2024): station-level holdout coverage rose from 0.30 to 0.70 at day 1 and MAE fell
+10%; index-level US coverage 0.27 → 0.64 at day 1, 0.65 → 0.83 at day 6, unchanged ≥ day 9
+because the per-station CRPS gate kept 149 of 330 pairs at identity (long leads). Two
+likely causes, both testable once the backfill lands: the fit saw no January–February
+errors (larger than November's), and index coverage is capped by the raw ensemble's
+cross-airport correlation, which ECC preserves. If the full-winter refit still misses
+0.75 at short leads, add a second stage: one index-level spread multiplier per lead,
+fitted on the training window, so the band's width is set where it is judged.
 
 **M6 — Apply in the forecast (half a day).** `hdd.py` loads `emos_fit`, transforms the
 members per station per lead (D16), computes everything downstream from the corrected

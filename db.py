@@ -172,3 +172,32 @@ def write_scores(conn, rows, model="gefs"):
             [(model, r[0].replace(tzinfo=timezone.utc), *r[1:]) for r in rows])
     conn.commit()
     return len(rows)
+
+
+def write_emos(conn, rows, model="gefs"):
+    """Upsert fits; rows = (station, lead_day, a, b, c, d, n, identity, train_from, train_to)."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO gefs.emos_fit (model, station, lead_day, a, b, c, d, n, identity, train_from, train_to) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (model, station, lead_day) DO UPDATE SET a = EXCLUDED.a, b = EXCLUDED.b, c = EXCLUDED.c, "
+            "d = EXCLUDED.d, n = EXCLUDED.n, identity = EXCLUDED.identity, train_from = EXCLUDED.train_from, "
+            "train_to = EXCLUDED.train_to, fitted_at = now()",
+            [(model, *r) for r in rows])
+    conn.commit()
+    return len(rows)
+
+
+def load_emos(conn, model="gefs"):
+    """{(station, lead_day): (a, b, c, d)} plus the fit's metadata, or (None, None) if no fit."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT station, lead_day, a, b, c, d, train_from, train_to, fitted_at, identity "
+                    "FROM gefs.emos_fit WHERE model = %s", (model,))
+        rows = cur.fetchall()
+    if not rows:
+        return None, None
+    fits = {(st, ld): (a, b, c, d) for st, ld, a, b, c, d, *_ in rows}
+    meta = {"train_from": min(r[6] for r in rows).isoformat(), "train_to": max(r[7] for r in rows).isoformat(),
+            "fitted_at": max(r[8] for r in rows).strftime("%Y-%m-%d %H:%M UTC"),
+            "identity": sorted({f"{st} d{ld}" for st, ld, *_, ident in rows if ident})}
+    return fits, meta
