@@ -35,6 +35,9 @@ jobs:
       - name: Score the forecast archive
         run: python score.py
 
+      - name: Catch up with commits pushed while this job ran (the push fails otherwise)
+        run: git pull --rebase --autostash origin main
+
       - name: Commit and push history/ and docs/
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
