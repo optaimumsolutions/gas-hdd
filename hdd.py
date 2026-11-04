@@ -210,7 +210,8 @@ def pick_run(explicit):
             print(f"  using run {run:%Y-%m-%d %H}Z (all {len(files)} files present)")
             return run, files, note
         print(f"  run {run:%Y-%m-%d %H}Z: {len(missing)} of {len(files)} files checked not on S3 yet")
-        note += f"{run:%Y-%m-%d %H}Z was incomplete at {now:%H:%M} UTC. "
+        note += (f"Newest cycle {run:%Y-%m-%d %H}Z was still uploading at {now:%H:%M} UTC "
+                 f"(a cycle is complete ~5 h after it starts), so the latest complete run is shown. ")
     raise RuntimeError("no complete GEFS run in the last 24 hours")
 
 
