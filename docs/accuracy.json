@@ -1,10 +1,10 @@
 {
- "generated_utc": "2026-11-03 22:31 UTC",
+ "generated_utc": "2026-11-04 03:13 UTC",
  "min_n": 5,
  "target_coverage": 0.8,
- "runs_scored": 0,
- "dates_observed": 20,
- "observed_through": "2026-11-02",
+ "runs_scored": 2,
+ "dates_observed": 21,
+ "observed_through": "2026-11-03",
  "indexes": [
   "us_hdd",
   "midwest_hdd",
@@ -12,21 +12,21 @@
  ],
  "overall": {
   "us_hdd": {
-   "n": 0,
+   "n": 2,
    "mae": null,
    "bias": null,
    "rmse": null,
    "coverage": null
   },
   "midwest_hdd": {
-   "n": 0,
+   "n": 2,
    "mae": null,
    "bias": null,
    "rmse": null,
    "coverage": null
   },
   "midwest_bcf": {
-   "n": 0,
+   "n": 2,
    "mae": null,
    "bias": null,
    "rmse": null,
@@ -37,7 +37,7 @@
   "us_hdd": [
    {
     "lead_day": 1,
-    "n": 0,
+    "n": 2,
     "mae": null,
     "bias": null,
     "rmse": null,
@@ -159,7 +159,7 @@
   "midwest_hdd": [
    {
     "lead_day": 1,
-    "n": 0,
+    "n": 2,
     "mae": null,
     "bias": null,
     "rmse": null,
@@ -281,7 +281,7 @@
   "midwest_bcf": [
    {
     "lead_day": 1,
-    "n": 0,
+    "n": 2,
     "mae": null,
     "bias": null,
     "rmse": null,
@@ -402,34 +402,38 @@
   ]
  },
  "by_month": {
-  "us_hdd": [],
-  "midwest_hdd": [],
-  "midwest_bcf": []
+  "us_hdd": [
+   {
+    "month": "2026-11",
+    "n": 2,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   }
+  ],
+  "midwest_hdd": [
+   {
+    "month": "2026-11",
+    "n": 2,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   }
+  ],
+  "midwest_bcf": [
+   {
+    "month": "2026-11",
+    "n": 2,
+    "mae": null,
+    "bias": null,
+    "rmse": null,
+    "coverage": null
+   }
+  ]
  },
  "last_14_days": [
-  {
-   "date": "2026-10-20",
-   "observed": {
-    "us_hdd": 4.09,
-    "midwest_hdd": 8.24,
-    "midwest_bcf": 3.29
-   },
-   "day1": {
-    "us_hdd": null,
-    "midwest_hdd": null,
-    "midwest_bcf": null
-   },
-   "day5": {
-    "us_hdd": null,
-    "midwest_hdd": null,
-    "midwest_bcf": null
-   },
-   "day10": {
-    "us_hdd": null,
-    "midwest_hdd": null,
-    "midwest_bcf": null
-   }
-  },
   {
    "date": "2026-10-21",
    "observed": {
@@ -717,6 +721,29 @@
     "us_hdd": null,
     "midwest_hdd": null,
     "midwest_bcf": null
+   },
+   "day5": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   },
+   "day10": {
+    "us_hdd": null,
+    "midwest_hdd": null,
+    "midwest_bcf": null
+   }
+  },
+  {
+   "date": "2026-11-03",
+   "observed": {
+    "us_hdd": 2.3,
+    "midwest_hdd": 0.75,
+    "midwest_bcf": 1.9
+   },
+   "day1": {
+    "us_hdd": 2.94,
+    "midwest_hdd": 1.19,
+    "midwest_bcf": 1.9
    },
    "day5": {
     "us_hdd": null,
