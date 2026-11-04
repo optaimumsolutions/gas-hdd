@@ -165,7 +165,8 @@ def last_days(scores, observed, today, n_days=14, leads=(1, 5, 10)):
     start = (today - timedelta(days=n_days)).isoformat()
     rows = []
     for date in sorted(d for d in observed.index if d >= start):
-        row = {"date": date, "observed": {index: _num(observed.loc[date, index]) for index in INDEXES}}
+        row = {"date": date, "observed": {index: _num(observed.loc[date, index]) if index in observed.columns else None
+                                          for index in INDEXES}}
         for k in leads:
             picks = scores[(scores["date"] == date) & (scores["lead_day"] == k)].sort_values("run")
             row[f"day{k}"] = {index: (_num(g.iloc[-1]["median"]) if len(g) else None)
@@ -179,7 +180,7 @@ def cpc_comparison(observed):
     HDD (kept in history/observed.csv by observe.py): a check on the city
     weights, not on the forecast."""
     path = HISTORY / "observed.csv"
-    if not path.exists() or "midwest_hdd" not in observed.columns:
+    if not path.exists() or "midwest_hdd" not in observed.columns:   # no Midwest region or no CPC file
         return {"n": 0, "mae": None, "bias": None}
     csv = pd.read_csv(path, index_col="date")
     if "cpc_midwest_hdd" not in csv.columns:
