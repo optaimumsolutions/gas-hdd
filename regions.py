@@ -20,8 +20,6 @@ from datetime import timedelta
 
 import numpy as np
 
-Z90 = 1.2816  # standard-normal quantile for p90 (p10 = -Z90)
-
 # ------------------------------------------------------------------- Midwest
 # EIA storage Midwest = IL, IN, IA, KY, MI, MN, MO, TN, WI.
 # (Ohio is East; Kansas is South Central; NE and the Dakotas are Mountain.)
@@ -74,14 +72,12 @@ MIDWEST = {
     "floor_bcfd": 1.9,              # summer res/comm baseload, scaled from the 13-state 2.3
     "cold_kink_hdd": 45,            # daily mean below 20 F: demand steepens (EIA extreme-cold note)
     "cold_kink_extra_frac": 0.15,   # +15% slope above the kink; placeholder until re-fit
-    "slope_sigma_frac": 0.10,       # 10% until re-fit, then 5%
     "storage_ratio": (1.12, 1.26),  # EIA storage slope 1.78-2.00 vs res+comm 1.59 Bcf/d per HDD
-    # GEFS 2 m temperature is under-dispersive, worse at longer leads (NOAA
-    # GEFSv12 docs). Deviation-from-median multipliers for days 1-15; a guess
-    # until Phase 3 fits spread-skill = 1 per lead day.
-    "spread_inflation": [1.0] * 5 + [1.15] * 2 + [1.3] * 8,
     "basins": ["Appalachia / Pittsburgh"],   # names from hdd.BASINS
-    "refit": False,                 # True once validate.py has replaced the placeholders
+    # The band width is no longer a placeholder: calibrate.py fits it per
+    # airport and per lead from the forecast archive (PRD-calibration.md).
+    # The slope and kink above are still EIA's 2010-14 numbers.
+    "refit": True,
 }
 
 REGIONS = [MIDWEST]   # Phase 2 appends EAST, SOUTH_CENTRAL, MOUNTAIN, PACIFIC
@@ -94,7 +90,6 @@ PHASE2_SLOPES = {"east": 0.62, "midwest": 0.40, "south_central": 0.23, "mountain
 
 for _r in REGIONS:
     assert abs(sum(c[4] for c in _r["cities"]) - 1) < 1e-4, f"{_r['key']} weights do not sum to 1"
-    assert len(_r["spread_inflation"]) == 15, f"{_r['key']} needs 15 inflation factors"
 
 
 def demand_bcfd(region, W):
@@ -129,30 +124,3 @@ def implied_withdrawal(region, D, days):
         rows.append({"week_ending": week_ending.isoformat(), "days_in_forecast": len(idx),
                      "low_bcf": round(lo * median, 1), "high_bcf": round(hi * median, 1)})
     return rows
-
-
-def calibrated_band(region, D):
-    """Calibrated p10/p90 from per-member daily demand D[member, day] (Bcf/d).
-
-    1. Stretch each member's deviation from the daily ensemble median by that
-       day's spread_inflation factor (floor still applies).
-    2. sigma_spread = std across members of the stretched values.
-    3. sigma_slope = slope_sigma_frac x median, for the slope's own uncertainty.
-    4. band = median -/+ 1.2816 x sqrt(sigma_spread^2 + sigma_slope^2).
-
-    Returns daily lo/hi arrays (Bcf/d) and the 15-day total lo/hi (Bcf). The
-    medians are the raw ensemble medians; only the width is calibrated."""
-    median_d = np.median(D, axis=0)
-    inflated = np.maximum(region["floor_bcfd"],
-                          median_d + (D - median_d) * np.array(region["spread_inflation"]))
-    frac = region["slope_sigma_frac"]
-
-    sigma_d = np.hypot(inflated.std(axis=0), frac * median_d)
-    median_s = np.median(D.sum(axis=1))
-    sigma_s = np.hypot(inflated.sum(axis=1).std(), frac * median_s)
-    return {
-        "daily_lo": np.maximum(region["floor_bcfd"], median_d - Z90 * sigma_d),
-        "daily_hi": median_d + Z90 * sigma_d,
-        "total_lo": median_s - Z90 * sigma_s,
-        "total_hi": median_s + Z90 * sigma_s,
-    }

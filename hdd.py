@@ -17,6 +17,12 @@ What this script does, in order:
      HDD to Bcf/d of res/comm demand, member by member. The same function
      (index_members) scores past runs in score.py, so forecast and scoring
      can never disagree on the definition.
+     Before that, the calibration fitted by calibrate.py (Neon: gefs.emos_fit
+     per airport and lead, gefs.spread_fit per index and lead) is applied to
+     the members: each airport's members are shifted and scaled, then each
+     index's members are stretched about the median. The raw GEFS median is
+     kept for the grey line on the charts. No calibration in Neon = raw
+     forecast, said so in the note.
   5. Compare the 15-day totals with the previous run and the run 24 h earlier
      (both read back from Neon).
   6. Archive each airport's daily Tmax/Tmin for all 31 members in Neon
@@ -55,7 +61,7 @@ import pandas as pd
 from herbie import Herbie
 
 import db
-from regions import REGIONS, calibrated_band, demand_bcfd, implied_withdrawal, scenario_10pct
+from regions import REGIONS, demand_bcfd, implied_withdrawal, scenario_10pct
 
 sys.stdout.reconfigure(encoding="utf-8")  # lets the degree sign print on Windows too
 
@@ -349,6 +355,60 @@ def region_cities(region):
     return [(c[5], c[4]) for c in region["cities"]]
 
 
+# ------------------------------------------------ 4b. apply the calibration
+def emos_sigma(c, d, s):
+    return np.sqrt(c * c + d * d * s * s) + 1e-6
+
+
+def adjust(members, fit):
+    """Shift and scale members[day, member] (daily mean F) with one EMOS fit
+    (a, b, c, d): mean -> a + b*mean, spread -> sqrt(c^2 + d^2*spread^2)."""
+    a, b, c, d = fit
+    m = members.mean(axis=1, keepdims=True)
+    s = members.std(axis=1, keepdims=True)
+    mu = a + b * m
+    sigma = emos_sigma(c, d, s)
+    return mu + (members - m) * np.where(s > 0, sigma / np.maximum(s, 1e-9), 0.0)
+
+
+def adjust_run(stations, fits):
+    """Apply the per-airport, per-lead fits {(station, lead_day): fit} to one
+    run's station data. Returns station data whose Tmax and Tmin both equal
+    the corrected daily mean, so index_members sees exactly the corrected means."""
+    out = {}
+    for st, (tmax, tmin) in stations.items():
+        mean = (tmax + tmin) / 2                                   # [day, member]
+        adj = mean.copy()
+        for day in range(mean.shape[0]):
+            fit = fits.get((st, day + 1))
+            if fit is not None:
+                adj[day] = adjust(mean[day:day + 1], fit)[0]
+        out[st] = (adj, adj)
+    return out
+
+
+def stretch(members, k):
+    """Scale members[member, day] about the daily median by k (scalar or per day)."""
+    med = np.median(members, axis=0, keepdims=True)
+    return med + (members - med) * k
+
+
+def calibrated_members(data, index_name, cities, stretches):
+    """Index members [member, day] from (already airport-corrected) station
+    data, stretched with that index's per-lead k from gefs.spread_fit."""
+    members = index_members(data, cities)
+    ks = np.array([stretches.get((index_name, d + 1), 1.0) for d in range(members.shape[1])])
+    return stretch(members, ks)
+
+
+def load_calibration():
+    """(fits, stretches, meta) from Neon; (None, {}, None) when there is no fit."""
+    with retry(db.connect) as conn:
+        fits, meta = db.load_emos(conn)
+        stretches = db.load_spread(conn) if fits else {}
+    return fits, stretches, meta
+
+
 def period_fields(T, lat, lon, day_steps, first, last):
     """For one map panel (days first+1..last):
     - ensemble-mean period-average temperature (F) at every grid cell,
@@ -368,16 +428,19 @@ def period_fields(T, lat, lon, day_steps, first, last):
     return mean_f, uncertain, risk
 
 
-def region_series(region, data):
+def region_series(region, data, data_raw, stretches):
     """One region's per-member numbers. Everything is converted member by member
     and only then summarised, never on the percentiles:
-      hdd[m, d]    consumption-weighted HDD
-      bcfd[m, d]   res/comm demand, Bcf/d
+      hdd[m, d]    consumption-weighted HDD, calibrated
+      bcfd[m, d]   res/comm demand, Bcf/d, from the calibrated HDD
       total_bcf[m] 15-day sum of bcfd, Bcf
-      cal          calibrated band (see regions.calibrated_band)"""
-    hdd = index_members(data, region_cities(region))
+      hdd_raw, bcfd_raw  the same from the uncorrected members (grey lines)"""
+    cities = region_cities(region)
+    hdd = calibrated_members(data, f"{region['key']}_hdd", cities, stretches)
+    hdd_raw = index_members(data_raw, cities)
     bcfd = demand_bcfd(region, hdd)
-    return {"hdd": hdd, "bcfd": bcfd, "total_bcf": bcfd.sum(axis=1), "cal": calibrated_band(region, bcfd)}
+    return {"hdd": hdd, "bcfd": bcfd, "total_bcf": bcfd.sum(axis=1),
+            "hdd_raw": hdd_raw, "bcfd_raw": demand_bcfd(region, hdd_raw)}
 
 
 def region_extent(region):
@@ -431,10 +494,12 @@ def png_bytes(fig):
     return buf.getvalue()
 
 
-def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD"):
+def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD", raw_median=None):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
-    ax.fill_between(days, p10, p90, color="tab:blue", alpha=0.2, label="10th-90th percentile")
-    ax.plot(days, median, color="tab:blue", lw=2.2, marker="o", ms=3.5, label="Ensemble median")
+    ax.fill_between(days, p10, p90, color="tab:blue", alpha=0.2, label="10th-90th percentile (calibrated)")
+    if raw_median is not None:
+        ax.plot(days, raw_median, color="gray", lw=1.2, ls="-", alpha=0.8, label="Raw GEFS median")
+    ax.plot(days, median, color="tab:blue", lw=2.2, marker="o", ms=3.5, label="Ensemble median (calibrated)")
     ax.set_ylabel("Gas-weighted HDD (°F-days)")
     ax.set_ylim(bottom=0)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
@@ -446,15 +511,14 @@ def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted H
     return png_bytes(fig)
 
 
-def make_bcf_chart(region, run, days, bcfd, cal, total):
-    """Daily res/comm demand: median line, raw p10-p90 shaded, calibrated
-    p10-p90 as a dashed outline."""
+def make_bcf_chart(region, run, days, bcfd, raw_median, total):
+    """Daily res/comm demand: calibrated median line and p10-p90 band, raw
+    GEFS median in grey."""
     p10, median, p90 = np.percentile(bcfd, [10, 50, 90], axis=0)
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
-    ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="Raw p10-p90 (GEFS spread)")
-    ax.plot(days, cal["daily_lo"], color="tab:red", lw=1.3, ls="--", label="Calibrated p10-p90")
-    ax.plot(days, cal["daily_hi"], color="tab:red", lw=1.3, ls="--")
-    ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median")
+    ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="p10-p90 (calibrated)")
+    ax.plot(days, raw_median, color="gray", lw=1.2, alpha=0.8, label="Raw GEFS median")
+    ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median (calibrated)")
     ax.set_ylabel("Res/comm gas demand (Bcf/d)")
     ax.set_ylim(bottom=0)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
@@ -525,21 +589,36 @@ def main():
     with step("4/8 compute HDDs and map fields"):
         days, day_steps = full_days(run)
         st_tmax, st_tmin = daily_extremes(TX, TN, lat, lon, day_steps, list(STATIONS.values()))
-        data = station_data(st_tmax, st_tmin)
-        hdd = index_members(data, national_cities())                 # [member, day]
+        data_raw = station_data(st_tmax, st_tmin)
+        try:
+            fits, stretches, cal_meta = load_calibration()
+        except Exception as err:
+            print(f"  WARNING: Neon unreachable, no calibration applied: {err}")
+            fits, stretches, cal_meta = None, {}, None
+        if fits:
+            data = adjust_run(data_raw, fits)
+            print(f"  calibration applied: {len(fits)} airport-lead fits from {cal_meta['fitted_at']}, "
+                  f"{len(stretches)} spread multipliers")
+        else:
+            data = data_raw
+            note += "No calibration available: raw GEFS shown. "
+        hdd = calibrated_members(data, "us_hdd", national_cities(), stretches)   # [member, day]
+        hdd_raw = index_members(data_raw, national_cities())
         p10, median, p90 = np.percentile(hdd, [10, 50, 90], axis=0)
+        raw_median = np.median(hdd_raw, axis=0)
         member_totals = hdd.sum(axis=1)
         total = {k: round(float(v), 1) for k, v in
                  zip(["p10", "median", "p90"], np.percentile(member_totals, [10, 50, 90]))}
+        total["raw_median"] = round(float(np.median(hdd_raw.sum(axis=1))), 1)
         maps = {label: period_fields(T, lat, lon, day_steps, a, b) for label, a, b in PERIODS}
-        regional = {r["key"]: region_series(r, data) for r in REGIONS}
+        regional = {r["key"]: region_series(r, data, data_raw, stretches) for r in REGIONS}
         for r in REGIONS:
             s = regional[r["key"]]
-            raw = np.percentile(s["total_bcf"], [10, 50, 90])
-            s["total"] = {"median": round(float(raw[1]), 1), "raw_p10": round(float(raw[0]), 1),
-                          "raw_p90": round(float(raw[2]), 1),
-                          "cal_p10": round(float(s["cal"]["total_lo"]), 1),
-                          "cal_p90": round(float(s["cal"]["total_hi"]), 1)}
+            cal = np.percentile(s["total_bcf"], [10, 50, 90])
+            raw = np.percentile(s["bcfd_raw"].sum(axis=1), [10, 50, 90])
+            s["total"] = {"median": round(float(cal[1]), 1), "cal_p10": round(float(cal[0]), 1),
+                          "cal_p90": round(float(cal[2]), 1), "raw_median": round(float(raw[1]), 1),
+                          "raw_p10": round(float(raw[0]), 1), "raw_p90": round(float(raw[2]), 1)}
             h = np.percentile(s["hdd"].sum(axis=1), [10, 50, 90])
             s["total_hdd"] = {"median": round(float(h[1]), 1), "p10": round(float(h[0]), 1),
                               "p90": round(float(h[2]), 1)}
@@ -560,14 +639,16 @@ def main():
         for key, other in [("vs_prev", prev), ("vs_24h", ago)]:
             if other is None:
                 continue
-            cmp = compare(hdd, days, other, index_members(other[2], national_cities()))
+            other_data = adjust_run(other[2], fits) if fits else other[2]   # same correction as this run
+            cmp = compare(hdd, days, other, calibrated_members(other_data, "us_hdd", national_cities(), stretches))
             if key == "vs_prev":
                 vs_prev = cmp
             else:
                 vs_24h = cmp
             for r in REGIONS:  # same comparison, in median 15-day Bcf
                 s = regional[r["key"]]
-                rcmp = compare(s["bcfd"], days, other, demand_bcfd(r, index_members(other[2], region_cities(r))))
+                rcmp = compare(s["bcfd"], days, other, demand_bcfd(
+                    r, calibrated_members(other_data, f"{r['key']}_hdd", region_cities(r), stretches)))
                 if rcmp:
                     rcmp["delta_bcf"] = rcmp.pop("delta")
                 s[key] = rcmp
@@ -589,7 +670,7 @@ def main():
             return
 
     with step("7/8 draw chart and maps"):
-        pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total)}
+        pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total, raw_median=raw_median)}
         for label, a, b in PERIODS:
             mean_f, uncertain, risk = maps[label]
             pngs[f"map_{label}.png"] = make_map(run, a, b, days, mean_f, uncertain, risk, lat, lon)
@@ -597,8 +678,9 @@ def main():
             k, s = r["key"], regional[r["key"]]
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
             pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
-                                              title=f"{r['name']} gas-consumption-weighted HDD")
-            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], s["cal"], s["total"])
+                                              title=f"{r['name']} gas-consumption-weighted HDD",
+                                              raw_median=np.median(s["hdd_raw"], axis=0))
+            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], np.median(s["bcfd_raw"], axis=0), s["total"])
             basins = [b for b in BASINS if b[0] in r["basins"]]
             points = [(c[2], c[3]) for c in r["cities"]]
             for label, a, b in PERIODS:
@@ -644,9 +726,11 @@ def main():
             "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
             "note": note.strip(),
             "days": [{"day": i + 1, "date": d.isoformat(), "median": round(float(median[i]), 1),
-                      "p10": round(float(p10[i]), 1), "p90": round(float(p90[i]), 1)}
+                      "p10": round(float(p10[i]), 1), "p90": round(float(p90[i]), 1),
+                      "raw_median": round(float(raw_median[i]), 1)}
                      for i, d in enumerate(days)],
             "total": total,
+            "calibration": cal_meta,
             "vs_prev": vs_prev,
             "vs_24h": vs_24h,
             "basin_freeze_risk": {label: {k: round(v, 2) for k, v in maps[label][2].items()}
@@ -658,13 +742,15 @@ def main():
             k, s = r["key"], regional[r["key"]]
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
             bp10, bmed, bp90 = np.percentile(s["bcfd"], [10, 50, 90], axis=0)
+            hraw, braw = np.median(s["hdd_raw"], axis=0), np.median(s["bcfd_raw"], axis=0)
             latest["regions"][k] = {
                 "name": r["name"], "states": r["states"], "eia_storage_region": r["eia_storage_region"],
                 "days": [{"day": i + 1, "date": d.isoformat(),
                           "hdd_median": round(float(hmed[i]), 1), "hdd_p10": round(float(hp10[i]), 1),
                           "hdd_p90": round(float(hp90[i]), 1),
                           "bcfd_median": round(float(bmed[i]), 2), "bcfd_p10": round(float(bp10[i]), 2),
-                          "bcfd_p90": round(float(bp90[i]), 2)}
+                          "bcfd_p90": round(float(bp90[i]), 2),
+                          "hdd_raw_median": round(float(hraw[i]), 1), "bcfd_raw_median": round(float(braw[i]), 2)}
                          for i, d in enumerate(days)],
                 "total_bcf": s["total"],
                 "total_hdd": s["total_hdd"],
@@ -675,9 +761,7 @@ def main():
                 "model": {"slope": r["slope_bcfd_per_hdd"], "intercept": r["intercept_bcfd"],
                           "floor": r["floor_bcfd"], "cold_kink_hdd": r["cold_kink_hdd"],
                           "cold_kink_extra_frac": r["cold_kink_extra_frac"],
-                          "storage_ratio": list(r["storage_ratio"]),
-                          "slope_sigma_frac": r["slope_sigma_frac"],
-                          "spread_inflation": r["spread_inflation"], "refit": r["refit"],
+                          "storage_ratio": list(r["storage_ratio"]), "refit": r["refit"],
                           "source": "EIA STEO Supplement, Weather Sensitivity in Natural Gas Markets, Oct 2014"},
                 "basin_freeze_risk": {label: {b: round(maps[label][2][b], 2) for b in r["basins"]}
                                       for label, _, _ in PERIODS},

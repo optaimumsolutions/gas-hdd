@@ -52,6 +52,7 @@ from scipy.stats import norm
 import db
 import hdd
 import score
+from hdd import adjust_run, emos_sigma, stretch
 
 ROOT = Path(__file__).resolve().parent
 DOCS = ROOT / "docs"
@@ -70,10 +71,6 @@ def crps_gaussian(mu, sigma, y):
     return sigma * (z * (2 * norm.cdf(z) - 1) + 2 * norm.pdf(z) - 1 / np.sqrt(np.pi))
 
 
-def emos_sigma(c, d, s):
-    return np.sqrt(c * c + d * d * s * s) + 1e-6
-
-
 def fit_emos(m, s, y):
     """(a, b, c, d) minimising mean CRPS. Starts from the identity with c set
     to the residual spread."""
@@ -85,32 +82,6 @@ def fit_emos(m, s, y):
     res = minimize(loss, x0, method="Nelder-Mead", options={"xatol": 1e-4, "fatol": 1e-6, "maxiter": 5000})
     a, b, c, d = res.x
     return float(a), float(b), float(abs(c)), float(abs(d))
-
-
-def adjust(members, fit):
-    """Shift and scale members[day, member] (daily mean F) with one fit."""
-    a, b, c, d = fit
-    m = members.mean(axis=1, keepdims=True)
-    s = members.std(axis=1, keepdims=True)
-    mu = a + b * m
-    sigma = emos_sigma(c, d, s)
-    return mu + (members - m) * np.where(s > 0, sigma / np.maximum(s, 1e-9), 0.0)
-
-
-def adjust_run(stations, fits):
-    """Apply the per-airport, per-lead fits to one run's station data.
-    Returns station data whose Tmax and Tmin both equal the corrected daily
-    mean, so hdd.index_members sees exactly the corrected means."""
-    out = {}
-    for st, (tmax, tmin) in stations.items():
-        mean = (tmax + tmin) / 2                                   # [day, member]
-        adj = mean.copy()
-        for day in range(mean.shape[0]):
-            fit = fits.get((st, day + 1))
-            if fit is not None:
-                adj[day] = adjust(mean[day:day + 1], fit)[0]
-        out[st] = (adj, adj)
-    return out
 
 
 # -------------------------------------------------------------- the samples
@@ -155,12 +126,6 @@ def fit_all(table, train_from, train_to, holdout):
 
 
 # ---------------------------------------------------------- index stretch
-def stretch(members, k):
-    """Scale members[member, day] (or [member]) about the daily median by k."""
-    med = np.median(members, axis=0, keepdims=True)
-    return med + (members - med) * k
-
-
 def calibrated_index(data, index, stretches):
     """Index members after the second stage: HDD members from the (already
     corrected) station data, stretched with that index's per-lead k."""

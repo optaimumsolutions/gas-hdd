@@ -9,6 +9,13 @@ serves the `docs/` folder as the dashboard. No servers, no accounts, no paid dat
 
 ## Changelog
 
+- **2026-11-04 (later) — Calibrated band live.** Every run now applies the fit from
+  `calibrate.py`: each airport's 31 members are shifted and scaled per lead day (EMOS, trained on
+  winter 2024–25), then each index's members are stretched about the median by a per-lead factor
+  (1.07–1.41) so the p10–p90 band held 80% of outcomes over that winter. On the untouched 2025–26
+  winter the US band's coverage went from 27% to 71% at day 1 and 55% to 81% at day 5, MAE
+  unchanged. The raw GEFS median stays on every chart as a grey line. The old guessed inflation
+  factors and slope-sigma in `regions.py` are gone; `refit` is true.
 - **2026-11-04 — Neon archive, two-winter backfill, scoring from the airports.** Every run
   now stores each of the 22 HDD airports' daily Tmax/Tmin for all 31 members in a Neon
   database (`gefs.forecast_station`), and ~340 past 00Z runs (Nov 2024–Mar 2025, Nov 2025–
@@ -79,10 +86,11 @@ with **Midwest**, works differently:
   member sum is taken, and it is multiplied by 1.12–1.26. That ratio is EIA's storage slope
   (1.78–2.00 Bcf/d per HDD) over its res+comm slope (1.59): storage also feeds power burn and
   industrial load when it is cold. Weeks with fewer than 4 forecast days are greyed out.
-- **Two ranges.** *Raw* p10–p90 is the spread of the 31 members. *Calibrated* p10–p90 widens
-  that for GEFS's known under-dispersion (deviations from the median stretched ×1.0 days 1–5,
-  ×1.15 days 6–7, ×1.3 days 8–15) and adds 10% slope uncertainty, then takes median ±
-  1.2816 σ. The calibrated range is the honest one.
+- **Two ranges.** *Calibrated* p10–p90 is the spread of the 31 members after the calibration
+  described in `PRD-calibration.md` (each airport's members shifted and scaled per lead day,
+  then the index stretched to the width that held 80% of outcomes over a training winter).
+  *Raw* is the uncorrected GEFS spread, shown for reference. The calibrated range is the honest
+  one; the Accuracy tab shows the holdout test behind it.
 - Regional deltas are in **median 15-day Bcf**, over the days both runs share, same rule as
   the US tab.
 
@@ -119,7 +127,7 @@ its tabs from `latest.json`, so `index.html` does not change.
 
 ### What is still a placeholder
 
-The page says so until `refit` is set to `True` in `regions.py`.
+The band width is fitted (see the Accuracy tab); the demand model's own numbers are not:
 
 - Slope 0.40 is EIA's 2010–14 census-division fit regrouped into the storage Midwest by
   consumption share, not fitted to this index.
@@ -127,7 +135,6 @@ The page says so until `refit` is set to `True` in `regions.py`.
   cancel; the Midwest's own intercept is unknown until re-fit.
 - Cold kink at 45 HDD with +15% slope is a placeholder for EIA's extreme-cold behaviour.
 - Storage ratio 1.12–1.26 is a national ratio applied to the Midwest.
-- Spread-inflation factors (1.0 / 1.15 / 1.3) are a guess at GEFS under-dispersion by lead.
 - MI 60/40 (Detroit / Grand Rapids) and MO 60/40 (St. Louis / Kansas City) splits are by
   metro population, not utility customer counts.
 

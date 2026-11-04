@@ -97,10 +97,15 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   document.getElementById("cards").innerHTML =
     `<div class="card"><div class="label">15-day total (median of members)</div>` +
     `<div class="big">${d.total.median.toFixed(1)}</div>` +
-    `<div class="label">p10 ${d.total.p10.toFixed(1)} · p90 ${d.total.p90.toFixed(1)}</div></div>` +
+    `<div class="label">p10 ${d.total.p10.toFixed(1)} · p90 ${d.total.p90.toFixed(1)}${d.total.raw_median !== undefined ? " · raw GEFS median " + d.total.raw_median.toFixed(1) : ""}</div></div>` +
     deltaCard("Change vs previous run", d.vs_prev) +
     deltaCard("Change vs 24 h earlier", d.vs_24h);
 
+  if (d.calibration) {
+    document.getElementById("cards").insertAdjacentHTML("afterend", `<p class="muted">Calibrated: each airport's members shifted and scaled per lead day (EMOS, fitted ${d.calibration.fitted_at} on ${d.calibration.train_from} to ${d.calibration.train_to}), then each index's band stretched to the width that held 80% of outcomes over that winter. The grey line on the charts is the raw GEFS median. Holdout test on the Accuracy tab.</p>`);
+  } else {
+    document.getElementById("cards").insertAdjacentHTML("afterend", `<p class="muted"><b>Uncalibrated:</b> no calibration was available for this run; the band is the raw GEFS spread, which the Accuracy tab shows is too narrow.</p>`);
+  }
   document.querySelector("#table tbody").innerHTML = d.days.map(x =>
     `<tr><td>${x.day}</td><td>${x.date}</td><td>${x.median.toFixed(1)}</td><td>${x.p10.toFixed(1)}</td><td>${x.p90.toFixed(1)}</td></tr>`
   ).join("");
@@ -145,9 +150,8 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     `<td>${r.total_hdd.p90.toFixed(1)}</td><td>${t.median.toFixed(1)}</td><td>${t.raw_p10.toFixed(1)}</td><td>${t.raw_p90.toFixed(1)}</td></tr></tfoot>
   </table>
   <p class="muted">Model: Bcf/d = max(${m.floor}, ${m.intercept} + ${m.slope} &times; HDD), slope +${(m.cold_kink_extra_frac * 100).toFixed(0)}% above ${m.cold_kink_hdd} HDD/day;
-    slope uncertainty ${(m.slope_sigma_frac * 100).toFixed(0)}%; GEFS spread inflation ${[...new Set(m.spread_inflation)].join(" / ")} by lead;
-    storage withdrawal = res/comm &times; ${m.storage_ratio[0]}&ndash;${m.storage_ratio[1]}. Source: ${m.source}.${m.refit ? "" : " <b>Placeholders &mdash; not yet re-fit.</b>"}
-    Daily p10/p90 in the table are raw; the totals row uses the member sums.</p>
+    storage withdrawal = res/comm &times; ${m.storage_ratio[0]}&ndash;${m.storage_ratio[1]}. Source: ${m.source}. The slope and kink are EIA's 2010&ndash;14 fit, not yet re-fit to this index.
+    The HDD band is calibrated (see the US tab) and converted to Bcf member by member; "raw" is the uncorrected GEFS. The totals row uses the member sums.</p>
 </div>`);
   }
 
