@@ -28,6 +28,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Fetch observed weather (IEM + CPC)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python observe.py
 
       - name: Score the forecast archive

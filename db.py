@@ -70,3 +70,29 @@ def count_forecast(conn, run, model="gefs"):
     with conn.cursor() as cur:
         cur.execute("SELECT count(*) FROM gefs.forecast_station WHERE model = %s AND run = %s", (model, run))
         return cur.fetchone()[0]
+
+
+def write_observed(conn, rows):
+    """Insert observed days; rows = (station, date, tmax, tmin, hours, source).
+    Existing rows are left untouched. Returns how many were new."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO gefs.observed (station, date, tmax, tmin, hours, source) "
+            "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (station, date) DO NOTHING",
+            rows, returning=False)
+        new = cur.rowcount
+    conn.commit()
+    return new
+
+
+def write_climatology(conn, rows):
+    """Upsert climatology rows (station, doy, tmean_normal, tmean_sd, years)."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO gefs.climatology (station, doy, tmean_normal, tmean_sd, years) "
+            "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (station, doy) DO UPDATE SET "
+            "tmean_normal = EXCLUDED.tmean_normal, tmean_sd = EXCLUDED.tmean_sd, "
+            "years = EXCLUDED.years, built_at = now()",
+            rows)
+    conn.commit()
+    return len(rows)

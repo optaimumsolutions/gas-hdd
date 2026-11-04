@@ -30,19 +30,26 @@ Rules for history/observed.csv:
 If IEM is unreachable the script prints why and exits 1; the forecast
 workflow treats that as a warning, never as a failed forecast.
 
-Usage: python observe.py [--days 20]
+Every complete station-day also goes to Neon (gefs.observed, insert-only; see
+PRD-calibration.md M3). --from/--to backfill a date range in 31-day chunks.
+--climatology rebuilds gefs.climatology: per airport, 10 years of IEM hourly
+data -> daily mean -> mean and sd per day of year, 15-day smoothed.
+
+Usage: python observe.py [--days 20 | --from 2024-11-01 --to 2025-04-15] [--climatology]
 """
 
 import argparse
 import io
 import sys
-from datetime import datetime, timedelta, timezone
+import time
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import requests
 
+import db
 import hdd
 from regions import REGIONS, demand_bcfd
 
@@ -54,6 +61,9 @@ CPC_URL = "https://ftp.cpc.ncep.noaa.gov/htdocs/degree_days/weighted/daily_data/
 MIN_HOURS = 18             # hourly reports a station needs in a UTC day for the day to count
 REVISION_TOLERANCE = 0.5   # HDD; a refetch that differs by more than this is logged, not applied
 SOURCE = "iem_asos_hourly_utc"
+CHUNK_DAYS = 31            # one IEM request covers at most this many days (all stations)
+CLIMO_YEARS = 10           # climatology window
+PAUSE = 2                  # seconds between IEM requests
 # CPC census divisions that overlap the storage Midwest, keyed by CPC's row label
 CPC_DIVISIONS = {"3": ["IL", "IN", "MI", "OH", "WI"],              # East North Central
                  "4": ["IA", "KS", "MN", "MO", "NE", "ND", "SD"]}  # West North Central
@@ -87,6 +97,22 @@ def fetch_iem(stations, start, end):
     return frame.dropna(subset=["tmpf"])
 
 
+def fetch_iem_range(stations, start, end):
+    """fetch_iem over start..end inclusive, CHUNK_DAYS at a time with a pause
+    between requests (IEM asks for that on long pulls). IEM's end day is
+    exclusive, so each request asks for one day past the chunk."""
+    frames = []
+    chunk_start = start
+    while chunk_start <= end:
+        chunk_end = min(chunk_start + timedelta(days=CHUNK_DAYS - 1), end)
+        frames.append(fetch_iem(stations, chunk_start, chunk_end + timedelta(days=1)))
+        print(f"  IEM {chunk_start} to {chunk_end}: {len(frames[-1])} hourly rows", flush=True)
+        chunk_start = chunk_end + timedelta(days=1)
+        if chunk_start <= end:
+            time.sleep(PAUSE)
+    return pd.concat(frames, ignore_index=True)
+
+
 def daily_extremes(hourly):
     """Per station and UTC date: max, min and how many hourly values there were."""
     hourly = hourly.assign(date=hourly["valid"].dt.strftime("%Y-%m-%d"))
@@ -107,6 +133,49 @@ def complete_days(extremes, stations, last_day):
             continue
         means[date] = {s: float(g.loc[s, "tmax"] + g.loc[s, "tmin"]) / 2 for s in stations}
     return means, dropped
+
+
+def station_day_rows(extremes, last_day):
+    """Rows for gefs.observed: every station-day <= last_day with at least
+    MIN_HOURS hourly reports, judged per station (one short station does not
+    discard the others' days there, unlike the index rows)."""
+    ok = extremes[(extremes["date"] <= last_day) & (extremes["hours"] >= MIN_HOURS)]
+    return [(r.station, date.fromisoformat(r.date), float(r.tmax), float(r.tmin), int(r.hours), SOURCE)
+            for r in ok.itertuples(index=False)]
+
+
+# -------------------------------------------------------------- climatology
+def climatology_rows(station, daily):
+    """daily = DataFrame[date, tmax, tmin, hours] for one station over
+    CLIMO_YEARS years. Mean and sd of the daily mean per day of year (Feb 29
+    folded into day 60), each smoothed with a 15-day circular window."""
+    d = daily[daily["hours"] >= MIN_HOURS].copy()
+    when = pd.to_datetime(d["date"])
+    d["doy"] = when.dt.dayofyear - (when.dt.is_leap_year & (when.dt.dayofyear > 60)).astype(int)
+    d["tmean"] = (d["tmax"] + d["tmin"]) / 2
+    by = d.groupby("doy")["tmean"].agg(["mean", "std", "count"]).reindex(range(1, 366)).interpolate()
+    years = int(round(by["count"].mean()))
+    smooth = {}
+    for col in ("mean", "std"):
+        x = by[col].to_numpy()
+        pad = np.concatenate([x[-7:], x, x[:7]])             # circular: Dec 25 neighbours Jan 1
+        smooth[col] = np.convolve(pad, np.ones(15) / 15, mode="valid")
+    return [(station, doy, float(smooth["mean"][i]), float(smooth["std"][i]), years)
+            for i, doy in enumerate(range(1, 366))]
+
+
+def build_climatology(conn, stations, today):
+    """One IEM pull per station, CLIMO_YEARS years back; writes gefs.climatology."""
+    start = date(today.year - CLIMO_YEARS, today.month, today.day)
+    for i, s in enumerate(stations):
+        daily = daily_extremes(fetch_iem([s], start, today))   # end exclusive: through yesterday
+        rows = climatology_rows(s, daily)
+        db.write_climatology(conn, rows)
+        jan, jul = rows[14], rows[195]
+        print(f"  {s}: {len(daily)} days, {rows[0][4]} yr; Jan 15 {jan[2]:.1f}+-{jan[3]:.1f} F, "
+              f"Jul 15 {jul[2]:.1f}+-{jul[3]:.1f} F", flush=True)
+        if i < len(stations) - 1:
+            time.sleep(PAUSE)
 
 
 def cpc_weights():
@@ -189,35 +258,53 @@ def merge(existing, new, log=print):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--days", type=int, default=20, help="how many past days to fetch (default 20)")
+    parser.add_argument("--from", dest="start", type=date.fromisoformat, help="backfill: first UTC day")
+    parser.add_argument("--to", dest="end", type=date.fromisoformat, help="backfill: last UTC day")
+    parser.add_argument("--climatology", action="store_true", help="rebuild gefs.climatology (10 years per airport)")
     args = parser.parse_args()
     now = datetime.now(timezone.utc)
     today = now.date()
-    start = today - timedelta(days=args.days)
-    last_day = (today - timedelta(days=1)).isoformat()   # yesterday is the newest complete UTC day
+    yesterday = today - timedelta(days=1)                # the newest complete UTC day
+    start = args.start or today - timedelta(days=args.days)
+    end = min(args.end or yesterday, yesterday)
+    last_day = end.isoformat()
+
+    if args.climatology:
+        print(f"[observe] climatology: {len(STATIONS)} stations, {CLIMO_YEARS} years each")
+        with db.connect() as conn:
+            build_climatology(conn, STATIONS, today)
 
     print(f"[observe] IEM hourly temperatures, {len(STATIONS)} stations, {start} to {last_day} (UTC days)")
     try:
-        hourly = fetch_iem(STATIONS, start, today + timedelta(days=1))
+        hourly = fetch_iem_range(STATIONS, start, end)
     except Exception as err:
         print(f"  IEM unavailable, skipping observations this run: {err}")
         sys.exit(1)
-    means, dropped = complete_days(daily_extremes(hourly), STATIONS, last_day)
-    for date, why in dropped:
-        print(f"  skipped {date}: {why}")
+    extremes = daily_extremes(hourly)
+    means, dropped = complete_days(extremes, STATIONS, last_day)
+    for date_, why in dropped:
+        print(f"  skipped {date_}: {why}")
 
     try:
-        cpc = fetch_cpc({start.year, today.year})
+        with db.connect() as conn:
+            new = db.write_observed(conn, station_day_rows(extremes, last_day))
+        print(f"  Neon gefs.observed: {new} new station-day(s)")
+    except Exception as err:
+        print(f"  WARNING: Neon write skipped: {err}")
+
+    try:
+        cpc = fetch_cpc(range(start.year, today.year + 1))
     except Exception as err:
         print(f"  CPC unavailable ({err}); cpc_midwest_hdd left blank for new dates")
         cpc = {}
 
     rows = {}
-    for date in sorted(means):
-        row = observed_row(means[date])
-        row["cpc_midwest_hdd"] = cpc.get(date)
+    for day in sorted(means):
+        row = observed_row(means[day])
+        row["cpc_midwest_hdd"] = cpc.get(day)
         row["source"] = SOURCE
         row["fetched_utc"] = now.strftime("%Y-%m-%d %H:%M")
-        rows[date] = row
+        rows[day] = row
     new = pd.DataFrame.from_dict(rows, orient="index").rename_axis("date")
     existing = pd.read_csv(OBSERVED, index_col="date") if OBSERVED.exists() else None
     merged, added = merge(existing, new)

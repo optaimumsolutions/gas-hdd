@@ -147,10 +147,14 @@ re-dispatching the same range retries only the leftovers. Dispatch windows (summ
 skipped: no HDD signal): 2024-11-01..2025-03-31, 2025-11-01..2026-03-31,
 2026-10-01..today. Observed truth is not fetched here (IEM rate limits): that is M3.
 
-**M3 — Truth and climatology (half a day).** `observe.py --from --to` writes
-`gefs.observed` in chunks of 30 days with a pause (IEM asks for that). Climatology:
-one pull per station of 10 winters of hourly data → daily (Tmax+Tmin)/2 → mean and sd
-per day-of-year, smoothed with a 15-day window, into `gefs.climatology`. Test: every
+**M3 — Truth and climatology (built 2026-11-04).** `observe.py` now writes every
+complete station-day to `gefs.observed` (insert-only, judged per station: one short
+station no longer discards the other 21 for that day) and still appends `observed.csv`
+until M4. `--from/--to` backfill a range in 31-day chunks with a 2 s pause; both
+workflows pass the secret. `--climatology`: one IEM pull per airport, 10 years of hourly
+data → daily (Tmax+Tmin)/2 → mean and sd per day of year (Feb 29 folded into day 60),
+15-day circular smoothing, upserted into `gefs.climatology`. Truth windows loaded:
+2024-11-01..2025-04-14, 2025-11-01..2026-04-14, 2026-10-01..2026-11-03. Test: every
 date in `forecast_station` has a row in `observed` for all 22 stations.
 
 **M4 — Scoring from Neon (half a day).** `score.py` reads `forecast_station` +
