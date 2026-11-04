@@ -1,5 +1,5 @@
 {
- "fitted_at": "2026-11-04 19:21 UTC",
+ "fitted_at": "2026-11-04 21:40 UTC",
  "method": "EMOS / NGR per airport per lead, CRPS-minimised, applied to members as shift-and-scale (ECC)",
  "train_from": "2024-11-01",
  "train_to": "2025-03-31",
@@ -7,17 +7,14 @@
  "holdout_to": "2026-03-31",
  "fits": 330,
  "identity": [
-  "ATL d11",
   "BNA d10",
   "BNA d11",
-  "BNA d13",
+  "BNA d12",
   "BOS d11",
-  "BOS d12",
   "BOS d13",
   "BOS d14",
   "BOS d15",
   "CMH d6",
-  "CMH d7",
   "CMH d8",
   "CMH d9",
   "CMH d10",
@@ -26,6 +23,9 @@
   "CMH d13",
   "CMH d14",
   "CMH d15",
+  "DCA d5",
+  "DCA d7",
+  "DCA d8",
   "DCA d9",
   "DCA d10",
   "DCA d11",
@@ -33,53 +33,32 @@
   "DCA d13",
   "DCA d14",
   "DCA d15",
-  "DFW d6",
-  "DFW d7",
-  "DFW d8",
-  "DFW d9",
-  "DFW d10",
-  "DFW d11",
-  "DFW d12",
-  "DFW d13",
-  "DSM d4",
   "DSM d5",
   "DSM d6",
-  "DSM d7",
-  "DSM d8",
-  "DSM d9",
-  "DSM d10",
-  "DSM d11",
-  "DSM d12",
-  "DSM d15",
-  "DTW d7",
   "DTW d8",
   "DTW d9",
   "DTW d10",
   "DTW d11",
   "DTW d12",
   "DTW d13",
+  "DTW d14",
   "DTW d15",
-  "GRR d8",
   "GRR d9",
   "GRR d10",
   "GRR d11",
   "GRR d12",
   "GRR d13",
+  "GRR d14",
   "GRR d15",
   "IAH d8",
   "IAH d9",
   "IAH d10",
   "IAH d11",
-  "IAH d14",
-  "IND d5",
-  "IND d6",
-  "IND d7",
-  "IND d8",
+  "IAH d12",
   "IND d9",
   "IND d10",
   "IND d11",
   "IND d12",
-  "IND d13",
   "LAX d7",
   "LAX d8",
   "LAX d9",
@@ -89,6 +68,7 @@
   "LAX d13",
   "LAX d14",
   "LAX d15",
+  "LGA d8",
   "LGA d9",
   "LGA d10",
   "LGA d11",
@@ -96,41 +76,23 @@
   "LGA d13",
   "LGA d14",
   "LGA d15",
-  "MCI d3",
-  "MCI d4",
-  "MCI d5",
-  "MCI d6",
-  "MCI d7",
-  "MCI d8",
-  "MCI d9",
-  "MCI d10",
-  "MCI d11",
-  "MCI d12",
-  "MCI d15",
-  "MKE d8",
   "MKE d9",
   "MKE d10",
   "MKE d11",
   "MKE d12",
   "MKE d13",
   "MKE d14",
-  "MKE d15",
-  "MSP d6",
-  "MSP d7",
-  "ORD d8",
   "ORD d9",
   "ORD d10",
   "ORD d11",
   "ORD d12",
-  "ORD d14",
-  "ORD d15",
+  "ORD d13",
   "PHL d10",
   "PHL d11",
   "PHL d12",
   "PHL d13",
   "PHL d14",
   "PHL d15",
-  "PIT d8",
   "PIT d9",
   "PIT d10",
   "PIT d11",
@@ -146,17 +108,50 @@
   "SDF d13",
   "SDF d14",
   "SDF d15",
-  "STL d4",
-  "STL d7",
   "STL d8",
   "STL d9",
   "STL d10",
   "STL d11",
   "STL d12",
   "STL d13",
-  "STL d14",
   "STL d15"
  ],
+ "stretch": {
+  "us_hdd": [
+   1.18,
+   1.188,
+   1.204,
+   1.179,
+   1.142,
+   1.122,
+   1.158,
+   1.239,
+   1.371,
+   1.393,
+   1.406,
+   1.412,
+   1.35,
+   1.251,
+   1.188
+  ],
+  "midwest_hdd": [
+   1.069,
+   1.03,
+   1.074,
+   1.077,
+   1.112,
+   1.104,
+   1.123,
+   1.189,
+   1.227,
+   1.355,
+   1.36,
+   1.328,
+   1.246,
+   1.179,
+   1.153
+  ]
+ },
  "holdout": {
   "us_hdd": [
    {
@@ -164,64 +159,64 @@
     "n": 150,
     "raw_mae": 1.03,
     "raw_coverage": 0.273,
-    "cal_mae": 1.01,
-    "cal_coverage": 0.64
+    "cal_mae": 1.04,
+    "cal_coverage": 0.713
    },
    {
     "lead_day": 2,
     "n": 150,
     "raw_mae": 1.2,
     "raw_coverage": 0.393,
-    "cal_mae": 1.21,
-    "cal_coverage": 0.613
+    "cal_mae": 1.22,
+    "cal_coverage": 0.747
    },
    {
     "lead_day": 3,
     "n": 150,
     "raw_mae": 1.32,
     "raw_coverage": 0.453,
-    "cal_mae": 1.37,
-    "cal_coverage": 0.64
+    "cal_mae": 1.31,
+    "cal_coverage": 0.733
    },
    {
     "lead_day": 4,
     "n": 150,
     "raw_mae": 1.51,
     "raw_coverage": 0.453,
-    "cal_mae": 1.57,
-    "cal_coverage": 0.68
+    "cal_mae": 1.53,
+    "cal_coverage": 0.78
    },
    {
     "lead_day": 5,
     "n": 150,
     "raw_mae": 1.66,
     "raw_coverage": 0.553,
-    "cal_mae": 1.69,
-    "cal_coverage": 0.76
+    "cal_mae": 1.68,
+    "cal_coverage": 0.813
    },
    {
     "lead_day": 6,
     "n": 150,
     "raw_mae": 1.98,
     "raw_coverage": 0.647,
-    "cal_mae": 2.03,
-    "cal_coverage": 0.833
+    "cal_mae": 1.96,
+    "cal_coverage": 0.84
    },
    {
     "lead_day": 7,
     "n": 150,
     "raw_mae": 2.26,
     "raw_coverage": 0.673,
-    "cal_mae": 2.23,
-    "cal_coverage": 0.8
+    "cal_mae": 2.2,
+    "cal_coverage": 0.853
    },
    {
     "lead_day": 8,
     "n": 150,
     "raw_mae": 2.63,
     "raw_coverage": 0.707,
-    "cal_mae": 2.64,
-    "cal_coverage": 0.78
+    "cal_mae": 2.62,
+    "cal_coverage": 0.793
    },
    {
     "lead_day": 9,
@@ -229,15 +224,15 @@
     "raw_mae": 3.06,
     "raw_coverage": 0.68,
     "cal_mae": 3.05,
-    "cal_coverage": 0.693
+    "cal_coverage": 0.84
    },
    {
     "lead_day": 10,
     "n": 150,
     "raw_mae": 3.14,
     "raw_coverage": 0.713,
-    "cal_mae": 3.16,
-    "cal_coverage": 0.707
+    "cal_mae": 3.14,
+    "cal_coverage": 0.867
    },
    {
     "lead_day": 11,
@@ -245,7 +240,7 @@
     "raw_mae": 3.53,
     "raw_coverage": 0.727,
     "cal_mae": 3.54,
-    "cal_coverage": 0.733
+    "cal_coverage": 0.86
    },
    {
     "lead_day": 12,
@@ -253,15 +248,15 @@
     "raw_mae": 3.99,
     "raw_coverage": 0.72,
     "cal_mae": 3.99,
-    "cal_coverage": 0.72
+    "cal_coverage": 0.853
    },
    {
     "lead_day": 13,
     "n": 150,
     "raw_mae": 4.12,
     "raw_coverage": 0.7,
-    "cal_mae": 4.11,
-    "cal_coverage": 0.713
+    "cal_mae": 4.09,
+    "cal_coverage": 0.853
    },
    {
     "lead_day": 14,
@@ -269,15 +264,15 @@
     "raw_mae": 4.36,
     "raw_coverage": 0.653,
     "cal_mae": 4.35,
-    "cal_coverage": 0.667
+    "cal_coverage": 0.827
    },
    {
     "lead_day": 15,
     "n": 150,
     "raw_mae": 4.56,
     "raw_coverage": 0.68,
-    "cal_mae": 4.52,
-    "cal_coverage": 0.687
+    "cal_mae": 4.5,
+    "cal_coverage": 0.753
    }
   ],
   "midwest_hdd": [
@@ -286,16 +281,16 @@
     "n": 150,
     "raw_mae": 1.27,
     "raw_coverage": 0.367,
-    "cal_mae": 1.13,
-    "cal_coverage": 0.74
+    "cal_mae": 1.17,
+    "cal_coverage": 0.78
    },
    {
     "lead_day": 2,
     "n": 150,
     "raw_mae": 1.65,
     "raw_coverage": 0.36,
-    "cal_mae": 1.58,
-    "cal_coverage": 0.64
+    "cal_mae": 1.56,
+    "cal_coverage": 0.74
    },
    {
     "lead_day": 3,
@@ -303,63 +298,63 @@
     "raw_mae": 1.9,
     "raw_coverage": 0.48,
     "cal_mae": 1.78,
-    "cal_coverage": 0.653
+    "cal_coverage": 0.727
    },
    {
     "lead_day": 4,
     "n": 150,
     "raw_mae": 2.14,
     "raw_coverage": 0.56,
-    "cal_mae": 2.04,
-    "cal_coverage": 0.767
+    "cal_mae": 2.08,
+    "cal_coverage": 0.847
    },
    {
     "lead_day": 5,
     "n": 150,
     "raw_mae": 2.78,
     "raw_coverage": 0.573,
-    "cal_mae": 2.62,
-    "cal_coverage": 0.793
+    "cal_mae": 2.63,
+    "cal_coverage": 0.86
    },
    {
     "lead_day": 6,
     "n": 150,
     "raw_mae": 3.17,
     "raw_coverage": 0.62,
-    "cal_mae": 3.08,
-    "cal_coverage": 0.74
+    "cal_mae": 3.05,
+    "cal_coverage": 0.8
    },
    {
     "lead_day": 7,
     "n": 150,
     "raw_mae": 4.01,
     "raw_coverage": 0.613,
-    "cal_mae": 3.98,
-    "cal_coverage": 0.707
+    "cal_mae": 3.95,
+    "cal_coverage": 0.793
    },
    {
     "lead_day": 8,
     "n": 150,
     "raw_mae": 4.52,
     "raw_coverage": 0.7,
-    "cal_mae": 4.52,
-    "cal_coverage": 0.693
+    "cal_mae": 4.61,
+    "cal_coverage": 0.82
    },
    {
     "lead_day": 9,
     "n": 150,
     "raw_mae": 5.27,
     "raw_coverage": 0.653,
-    "cal_mae": 5.31,
-    "cal_coverage": 0.673
+    "cal_mae": 5.28,
+    "cal_coverage": 0.8
    },
    {
     "lead_day": 10,
     "n": 150,
     "raw_mae": 5.99,
     "raw_coverage": 0.693,
-    "cal_mae": 6.0,
-    "cal_coverage": 0.693
+    "cal_mae": 5.97,
+    "cal_coverage": 0.82
    },
    {
     "lead_day": 11,
@@ -367,80 +362,56 @@
     "raw_mae": 6.56,
     "raw_coverage": 0.667,
     "cal_mae": 6.54,
-    "cal_coverage": 0.673
+    "cal_coverage": 0.833
    },
    {
     "lead_day": 12,
     "n": 150,
     "raw_mae": 7.34,
     "raw_coverage": 0.693,
-    "cal_mae": 7.39,
-    "cal_coverage": 0.713
+    "cal_mae": 7.35,
+    "cal_coverage": 0.847
    },
    {
     "lead_day": 13,
     "n": 150,
     "raw_mae": 7.42,
     "raw_coverage": 0.673,
-    "cal_mae": 7.39,
-    "cal_coverage": 0.687
+    "cal_mae": 7.35,
+    "cal_coverage": 0.787
    },
    {
     "lead_day": 14,
     "n": 150,
     "raw_mae": 7.95,
     "raw_coverage": 0.64,
-    "cal_mae": 7.94,
-    "cal_coverage": 0.667
+    "cal_mae": 7.95,
+    "cal_coverage": 0.833
    },
    {
     "lead_day": 15,
     "n": 150,
     "raw_mae": 8.19,
     "raw_coverage": 0.653,
-    "cal_mae": 8.18,
-    "cal_coverage": 0.653
+    "cal_mae": 8.26,
+    "cal_coverage": 0.793
    }
   ]
  },
  "gate": {
   "passed": false,
   "failures": [
-   "us_hdd day 1: coverage 0.64",
-   "us_hdd day 2: coverage 0.61",
-   "us_hdd day 2: MAE 1.21 > raw 1.2",
-   "us_hdd day 3: coverage 0.64",
-   "us_hdd day 3: MAE 1.37 > raw 1.32",
-   "us_hdd day 4: coverage 0.68",
-   "us_hdd day 4: MAE 1.57 > raw 1.51",
-   "us_hdd day 5: MAE 1.69 > raw 1.66",
-   "us_hdd day 6: MAE 2.03 > raw 1.98",
-   "us_hdd day 8: MAE 2.64 > raw 2.63",
-   "us_hdd day 9: coverage 0.69",
-   "us_hdd day 10: coverage 0.71",
-   "us_hdd day 10: MAE 3.16 > raw 3.14",
-   "us_hdd day 11: coverage 0.73",
-   "us_hdd day 11: MAE 3.54 > raw 3.53",
-   "us_hdd day 12: coverage 0.72",
-   "us_hdd day 13: coverage 0.71",
-   "us_hdd day 14: coverage 0.67",
-   "us_hdd day 15: coverage 0.69",
-   "midwest_hdd day 1: coverage 0.74",
-   "midwest_hdd day 2: coverage 0.64",
-   "midwest_hdd day 3: coverage 0.65",
-   "midwest_hdd day 6: coverage 0.74",
-   "midwest_hdd day 7: coverage 0.71",
-   "midwest_hdd day 8: coverage 0.69",
-   "midwest_hdd day 9: coverage 0.67",
-   "midwest_hdd day 9: MAE 5.31 > raw 5.27",
-   "midwest_hdd day 10: coverage 0.69",
-   "midwest_hdd day 10: MAE 6.0 > raw 5.99",
-   "midwest_hdd day 11: coverage 0.67",
-   "midwest_hdd day 12: coverage 0.71",
-   "midwest_hdd day 12: MAE 7.39 > raw 7.34",
-   "midwest_hdd day 13: coverage 0.69",
-   "midwest_hdd day 14: coverage 0.67",
-   "midwest_hdd day 15: coverage 0.65"
+   "us_hdd day 1: coverage 0.71",
+   "us_hdd day 2: coverage 0.75",
+   "us_hdd day 3: coverage 0.73",
+   "us_hdd day 7: coverage 0.85",
+   "us_hdd day 10: coverage 0.87",
+   "us_hdd day 11: coverage 0.86",
+   "us_hdd day 12: coverage 0.85",
+   "us_hdd day 13: coverage 0.85",
+   "midwest_hdd day 2: coverage 0.74",
+   "midwest_hdd day 3: coverage 0.73",
+   "midwest_hdd day 5: coverage 0.86"
   ]
  },
  "image": "calibration.png"

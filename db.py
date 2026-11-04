@@ -201,3 +201,23 @@ def load_emos(conn, model="gefs"):
             "fitted_at": max(r[8] for r in rows).strftime("%Y-%m-%d %H:%M UTC"),
             "identity": sorted({f"{st} d{ld}" for st, ld, *_, ident in rows if ident})}
     return fits, meta
+
+
+def write_spread(conn, rows, model="gefs"):
+    """Upsert spread multipliers; rows = (index, lead_day, k, n, train_from, train_to)."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO gefs.spread_fit (model, index, lead_day, k, n, train_from, train_to) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (model, index, lead_day) DO UPDATE SET "
+            "k = EXCLUDED.k, n = EXCLUDED.n, train_from = EXCLUDED.train_from, train_to = EXCLUDED.train_to, "
+            "fitted_at = now()",
+            [(model, *r) for r in rows])
+    conn.commit()
+    return len(rows)
+
+
+def load_spread(conn, model="gefs"):
+    """{(index, lead_day): k}; empty if nothing fitted."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT index, lead_day, k FROM gefs.spread_fit WHERE model = %s", (model,))
+        return {(i, l): k for i, l, k in cur.fetchall()}

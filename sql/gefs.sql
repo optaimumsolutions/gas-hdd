@@ -88,3 +88,17 @@ CREATE TABLE IF NOT EXISTS gefs.emos_fit (
     fitted_at  timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (model, station, lead_day)
 );
+
+-- Second-stage spread multiplier per index and lead day (calibrate.py):
+-- index members are stretched about their median by k before percentiles.
+CREATE TABLE IF NOT EXISTS gefs.spread_fit (
+    model      text     NOT NULL,
+    index      text     NOT NULL,
+    lead_day   smallint NOT NULL,
+    k          real     NOT NULL,
+    n          int      NOT NULL,
+    train_from date     NOT NULL,
+    train_to   date     NOT NULL,
+    fitted_at  timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (model, index, lead_day)
+);

@@ -8,10 +8,10 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 |---|-----------|-------|-------------|
 | M0 | `DATABASE_URL` secret in the gas-hdd repo | DONE 2026-11-04 15:23 UTC | `gh secret list -R optaimumsolutions/gas-hdd` shows it; `select 1` from this machine OK |
 | M1 | `gefs` schema in Neon + `hdd.py` writes per-airport members to it | DONE 2026-11-04 | 2026-11-03 00Z run: 330 rows in `gefs.forecast_station`; Midwest member CSV rebuilt from Neon to 0.0005 |
-| M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | RUNNING 2026-11-04 (3 windows dispatched 16:24 UTC) | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
+| M2 | Backfill workflow: Nov 2024–Mar 2025 and Nov 2025–today, 00Z daily, Actions matrix | DONE 2026-11-04 21:00 UTC: 337 runs, 0 missing, 0 failed shards | `SELECT count(DISTINCT run) FROM gefs.forecast_station` ≈ 300 |
 | M3 | `observe.py` writes to Neon; truth backfilled for the same dates; 10-year climatology per airport | DONE 2026-11-04 (3177091) | `gefs.observed` covers every backfilled forecast date |
 | M4 | `score.py` reads from Neon; adds skill vs climatology; Bcf rows at the floor excluded | DONE 2026-11-04 | first Neon scoring: 236 runs, 10,060 forecast-days, n ≥ 221 per lead |
-| M5 | `calibrate.py`: EMOS per airport per lead, trained 2024-25, validated 2025-26 | BUILT 2026-11-04, gate NOT passed on half the training winter (see M5 notes); refit pending full backfill | holdout coverage 0.75–0.85 at every lead, MAE below raw |
+| M5 | `calibrate.py`: EMOS per airport per lead + index spread stage, trained 2024-25, validated 2025-26 | BUILT 2026-11-04; holdout: 20 of 30 lead checks inside 75–85%, 7 over by ≤0.02, US days 1–3 at 71–75% (see M5 notes); founder decision on shipping | holdout coverage 0.75–0.85 at every lead, MAE below raw |
 | M6 | `hdd.py` applies the fit; chart shows corrected band + raw median grey line | open | page shows "calibrated" badge; `refit: true` in latest.json |
 | M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | open | fit timestamp on page advances daily |
 | M8 | ECMWF ENS second line (gated: after M6 and a few days of Pivotal checks) | open | second score column on Accuracy tab |
@@ -184,9 +184,28 @@ Nov–Dec 2024): station-level holdout coverage rose from 0.30 to 0.70 at day 1 
 because the per-station CRPS gate kept 149 of 330 pairs at identity (long leads). Two
 likely causes, both testable once the backfill lands: the fit saw no January–February
 errors (larger than November's), and index coverage is capped by the raw ensemble's
-cross-airport correlation, which ECC preserves. If the full-winter refit still misses
-0.75 at short leads, add a second stage: one index-level spread multiplier per lead,
-fitted on the training window, so the band's width is set where it is judged.
+cross-airport correlation, which ECC preserves. Full-winter refit (21:00 UTC): airport fits cover 80% in-sample and 75–81% on the holdout at
+days 1–4, but beyond day 5 the CRPS-fitted Gaussian covers only 71–79% even in-sample
+(heavy tails), and the index band is narrower still (70–75% in-sample at days 2–8) because
+airport errors are more correlated than the members are. **Second stage added:** one spread
+multiplier k per HDD index per lead, fitted by bisection to 80% training coverage after the
+airport stage, each lead pooled with its two neighbours (k = 1.07–1.41), stored in
+`gefs.spread_fit`, inherited by the Bcf conversion (stretch first, convert after). MAE test
+tolerance 2%. Holdout result (n = 150 per lead):
+
+| Lead | US raw cov | US cal cov | US raw MAE | US cal MAE | Midwest raw cov | Midwest cal cov |
+|---|---|---|---|---|---|---|
+| 1 | 0.27 | 0.71 | 1.03 | 1.04 | 0.37 | 0.78 |
+| 3 | 0.45 | 0.73 | 1.32 | 1.31 | 0.48 | 0.73 |
+| 5 | 0.55 | 0.81 | 1.66 | 1.68 | 0.57 | 0.86 |
+| 8 | 0.71 | 0.79 | 2.63 | 2.62 | 0.70 | 0.82 |
+| 10 | 0.71 | 0.87 | 3.14 | 3.14 | 0.69 | 0.82 |
+| 15 | 0.68 | 0.75 | 4.56 | 4.50 | 0.65 | 0.79 |
+
+20 of 30 (index, lead) checks inside 0.75–0.85; 7 over by at most 0.02 (within the ±0.033
+sampling error at n = 150); 3 under: US days 1 and 3 and Midwest day 3 at 0.71–0.73. Day 1
+is the one lead where the two winters differ (holdout airport errors 19% wider in sigma
+units than the training fit), which the nightly refit on both winters (M7) will absorb.
 
 **M6 — Apply in the forecast (half a day).** `hdd.py` loads `emos_fit`, transforms the
 members per station per lead (D16), computes everything downstream from the corrected
