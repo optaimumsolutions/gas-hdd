@@ -429,22 +429,29 @@ def draw_bands_chart(scores, observed, today, path, n_days=30):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--model", default="gefs", help="gefs (default) or ecmwf: own scores, own accuracy file")
+    args = parser.parse_args()
+    suffix = "" if args.model == "gefs" else f"_{args.model}"
     with db.connect() as conn:
-        forecasts = db.load_forecasts(conn)
+        forecasts = db.load_forecasts(conn, model=args.model)
         observed = observed_indexes(db.load_observed_means(conn), db.load_climatology(conn))
-        fits, _ = db.load_emos(conn)
-        stretches = db.load_spread(conn) if fits else {}
-        scores, excluded = build_scores(forecasts, observed, db.load_forecast_index(conn), fits, stretches)
+        fits, _ = db.load_emos(conn, model=args.model)
+        stretches = db.load_spread(conn, model=args.model) if fits else {}
+        scores, excluded = build_scores(forecasts, observed, db.load_forecast_index(conn, model=args.model), fits, stretches)
         totals = build_totals(forecasts, observed, fits, stretches)
         db.write_scores(conn, [(r.run, r.date, r.lead_day, r.index, r.median, r.p10, r.p90, r.observed, r.clim,
                                 r.sd, r.raw_median, r.raw_p10, r.raw_p90, bool(r.published))
-                               for r in scores.itertuples(index=False)])
+                               for r in scores.itertuples(index=False)], model=args.model)
     now = datetime.now(timezone.utc)
     summary = aggregate(scores, observed, excluded, now=now, totals=totals)
+    summary["model"] = args.model
     DOCS.mkdir(exist_ok=True)
-    draw_lead_chart(summary["by_lead"], DOCS / "accuracy_lead.png")
-    draw_bands_chart(scores, observed, now.date(), DOCS / "accuracy_bands.png")
-    (DOCS / "accuracy.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
+    draw_lead_chart(summary["by_lead"], DOCS / f"accuracy_lead{suffix}.png")
+    draw_bands_chart(scores, observed, now.date(), DOCS / f"accuracy_bands{suffix}.png")
+    summary["images"] = {"lead": f"accuracy_lead{suffix}.png", "bands": f"accuracy_bands{suffix}.png"}
+    (DOCS / f"accuracy{suffix}.json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
     print(f"scored {len(scores)} forecast-days from {summary['runs_scored']} runs "
           f"against {summary['dates_observed']} observed dates (through {summary['observed_through']}); "
           f"{excluded} Bcf rows at the floor excluded")
@@ -459,7 +466,7 @@ def main():
               f"z_sd={t['total15']['z_sd']} MAE={t['total15']['mae']} (raw {t['total15']['raw_mae']}) | "
               f"week1: n={t['week1']['n']} cov={t['week1']['coverage']} MAE={t['week1']['mae']} | "
               f"week2: n={t['week2']['n']} cov={t['week2']['coverage']} MAE={t['week2']['mae']}")
-    print("wrote gefs.scores, docs/accuracy.json, docs/accuracy_lead.png, docs/accuracy_bands.png")
+    print(f"wrote gefs.scores ({args.model}), docs/accuracy{suffix}.json and its two PNGs")
 
 
 if __name__ == "__main__":

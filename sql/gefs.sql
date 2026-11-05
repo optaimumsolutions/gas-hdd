@@ -4,8 +4,8 @@
 
 CREATE SCHEMA IF NOT EXISTS gefs;
 
--- One row per run x airport x forecast day. tmax/tmin hold the 31 members'
--- daily max / min 2 m temperature in F (index 0 = control, 1..30 = perturbed).
+-- One row per run x airport x forecast day. tmax/tmin hold every member's
+-- daily max / min 2 m temperature in F (GEFS: 31, index 0 = control; ECMWF: 51).
 -- Daily mean = (tmax + tmin) / 2, the same definition observe.py uses.
 CREATE TABLE IF NOT EXISTS gefs.forecast_station (
     model       text        NOT NULL DEFAULT 'gefs',
@@ -16,9 +16,10 @@ CREATE TABLE IF NOT EXISTS gefs.forecast_station (
     tmax        real[]      NOT NULL,          -- 31 members, F
     tmin        real[]      NOT NULL,          -- 31 members, F
     ingested_at timestamptz NOT NULL DEFAULT now(),
-    PRIMARY KEY (model, run, station, date),
-    CHECK (cardinality(tmax) = 31 AND cardinality(tmin) = 31)
+    PRIMARY KEY (model, run, station, date)
 );
+-- GEFS has 31 members, ECMWF 51: the old fixed-size check is dropped.
+ALTER TABLE gefs.forecast_station DROP CONSTRAINT IF EXISTS forecast_station_check;
 
 -- Where each airport sits on the model grid, so a coordinate change is visible.
 CREATE TABLE IF NOT EXISTS gefs.station (

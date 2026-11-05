@@ -335,19 +335,21 @@ def main():
     parser.add_argument("--holdout-from", type=date.fromisoformat, default=date(2025, 11, 1))
     parser.add_argument("--holdout-to", type=date.fromisoformat, default=date(2026, 3, 31))
     parser.add_argument("--nightly", action="store_true", help="refit on everything through yesterday (see above)")
+    parser.add_argument("--model", default="gefs", help="gefs (default) or ecmwf: own fits, own calibration file")
     args = parser.parse_args()
+    suffix = "" if args.model == "gefs" else f"_{args.model}"
     now = datetime.now(timezone.utc)
     if args.nightly:
         args.train_to = now.date() - timedelta(days=1)
 
     with db.connect() as conn:
-        forecasts = db.load_forecasts(conn)
+        forecasts = db.load_forecasts(conn, model=args.model)
         observed_means = db.load_observed_means(conn)
         table = sample_table(forecasts, observed_means)
         holdout = table[(table["date"] >= args.holdout_from) & (table["date"] <= args.holdout_to)]
         forced = None
         if args.nightly:
-            _, meta = db.load_emos(conn)
+            _, meta = db.load_emos(conn, model=args.model)
             if meta is None:
                 raise SystemExit("nightly mode needs a full run first (no fit in gefs.emos_fit)")
             forced = set(meta["identity"])
@@ -368,31 +370,31 @@ def main():
             result = index_holdout(forecasts, observed, fits, stretches, args.holdout_from, args.holdout_to)
             totals_result = total_holdout(forecasts, observed, fits, stretches, args.holdout_from, args.holdout_to)
             verdict = gate(result)
-        db.write_emos(conn, rows)
-        db.write_spread(conn, srows + trows)
+        db.write_emos(conn, rows, model=args.model)
+        db.write_spread(conn, srows + trows, model=args.model)
 
     DOCS.mkdir(exist_ok=True)
     live = {"fitted_at": now.strftime("%Y-%m-%d %H:%M UTC"), "train_from": args.train_from.isoformat(),
             "train_to": args.train_to.isoformat(), "fits": len(rows), "identity": len(identity),
             "stretch": {index: [stretches[(index, k)] for k in range(1, 16)] for index in score.HDD_INDEXES},
             "total_stretch": {index: totals_k[(index, 0)] for index in score.HDD_INDEXES}}
-    path = DOCS / "calibration.json"
+    path = DOCS / f"calibration{suffix}.json"
     if args.nightly:
         summary = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
         summary["live_fit"] = live
         path.write_text(json.dumps(summary, indent=1), encoding="utf-8")
         print(f"nightly refit done: {len(rows)} fits through {args.train_to}; holdout block in calibration.json unchanged")
-        print("wrote gefs.emos_fit, gefs.spread_fit, docs/calibration.json (live_fit)")
+        print(f"wrote gefs.emos_fit, gefs.spread_fit, docs/calibration{suffix}.json (live_fit)")
         return
     summary = {"fitted_at": live["fitted_at"], "method": "EMOS / NGR per airport per lead, CRPS-minimised, "
                "applied to members as shift-and-scale (ECC); then one spread multiplier per index per lead",
                "train_from": args.train_from.isoformat(), "train_to": args.train_to.isoformat(),
                "holdout_from": args.holdout_from.isoformat(), "holdout_to": args.holdout_to.isoformat(),
                "fits": len(rows), "identity": identity, "stretch": live["stretch"],
-               "holdout": result, "holdout_total15": totals_result, "gate": verdict, "image": "calibration.png",
-               "live_fit": live}
+               "holdout": result, "holdout_total15": totals_result, "gate": verdict, "image": f"calibration{suffix}.png",
+               "model": args.model, "live_fit": live}
     path.write_text(json.dumps(summary, indent=1), encoding="utf-8")
-    draw(result, DOCS / "calibration.png")
+    draw(result, DOCS / f"calibration{suffix}.png")
     for index, leads in result.items():
         print(f"\n{index}: lead  n   raw MAE  cal MAE  raw cov  cal cov")
         for r in leads:
@@ -402,7 +404,7 @@ def main():
         print(f"{index} 15-day total holdout: n={t['n']} raw cov {t['raw_coverage']} -> cal {t['cal_coverage']}, "
               f"raw MAE {t['raw_mae']} -> cal {t['cal_mae']}")
     print(f"\ngate {'PASSED' if verdict['passed'] else 'FAILED'}" + ("" if verdict["passed"] else ": " + "; ".join(verdict["failures"][:8])))
-    print("wrote gefs.emos_fit, gefs.spread_fit, docs/calibration.json, docs/calibration.png")
+    print(f"wrote gefs.emos_fit, gefs.spread_fit, docs/calibration{suffix}.json, docs/calibration{suffix}.png")
 
 
 if __name__ == "__main__":

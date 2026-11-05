@@ -1,0 +1,30 @@
+name: ECMWF ensemble archive
+
+# Archive the newest complete ECMWF open-data ensemble run (00Z / 12Z) at the
+# 22 HDD airports in Neon (PRD-calibration.md, M8). Commits nothing: the
+# forecast workflow draws the ECMWF line from Neon on its next run.
+# ECMWF publishes the 00Z ensemble by ~08:30 UTC and the 12Z by ~20:30 UTC.
+
+on:
+  schedule:
+    - cron: "45 8,20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Archive the run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python ecmwf.py

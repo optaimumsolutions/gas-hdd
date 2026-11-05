@@ -15,7 +15,8 @@ Three small commands, used by .github/workflows/backfill.yml:
           Print the runs in the range that are still not in Neon (exit 1 if any).
 
 Only 00Z runs are backfilled (one per day). Nothing is written to docs/ or
-history/, and nothing is committed.
+history/, and nothing is committed. --model ecmwf does the same for the ECMWF
+ensemble (ecmwf.py --run).
 """
 
 import argparse
@@ -40,20 +41,20 @@ def runs_between(start, end):
         d += timedelta(days=1)
 
 
-def archived_runs(conn):
+def archived_runs(conn, model):
     with conn.cursor() as cur:
-        cur.execute("SELECT DISTINCT run FROM gefs.forecast_station WHERE model = 'gefs'")
+        cur.execute("SELECT DISTINCT run FROM gefs.forecast_station WHERE model = %s", (model,))
         return {r[0].astimezone(timezone.utc).replace(tzinfo=None) for r in cur.fetchall()}
 
 
-def missing_runs(start, end):
+def missing_runs(start, end, model):
     with db.connect() as conn:
-        done = archived_runs(conn)
+        done = archived_runs(conn, model)
     return [r for r in runs_between(start, end) if r not in done]
 
 
 def cmd_plan(args):
-    todo = missing_runs(args.start, args.end)
+    todo = missing_runs(args.start, args.end, args.model)
     shards = [todo[i::args.shards] for i in range(args.shards)]
     shards = [" ".join(f"{r:%Y-%m-%dT%H}" for r in s) for s in shards if s]
     print(json.dumps(shards))
@@ -64,7 +65,11 @@ def cmd_run(args):
     failed = []
     for i, run in enumerate(args.runs, 1):
         print(f"\n===== run {i}/{len(args.runs)}: {run} =====", flush=True)
-        result = subprocess.run([sys.executable, str(ROOT / "hdd.py"), "--run", run, "--no-docs"])
+        if args.model == "ecmwf":
+            cmd = [sys.executable, str(ROOT / "ecmwf.py"), "--run", run]
+        else:
+            cmd = [sys.executable, str(ROOT / "hdd.py"), "--run", run, "--no-docs"]
+        result = subprocess.run(cmd)
         if result.returncode != 0:
             print(f"===== {run} FAILED (exit {result.returncode})", flush=True)
             failed.append(run)
@@ -75,7 +80,7 @@ def cmd_run(args):
 
 
 def cmd_missing(args):
-    todo = missing_runs(args.start, args.end)
+    todo = missing_runs(args.start, args.end, args.model)
     for r in todo:
         print(f"{r:%Y-%m-%dT%H}")
     print(f"{len(todo)} run(s) missing between {args.start} and {args.end}", file=sys.stderr)
@@ -84,6 +89,7 @@ def cmd_missing(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--model", default="gefs", choices=["gefs", "ecmwf"])
     sub = parser.add_subparsers(dest="cmd", required=True)
     for name, fn in [("plan", cmd_plan), ("missing", cmd_missing)]:
         p = sub.add_parser(name)

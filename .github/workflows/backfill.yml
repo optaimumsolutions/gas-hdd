@@ -16,6 +16,9 @@ on:
       shards:
         description: "Parallel jobs (each does ~8 min per run)"
         default: "20"
+      model:
+        description: "gefs or ecmwf"
+        default: "gefs"
 
 permissions:
   contents: read
@@ -34,7 +37,7 @@ jobs:
       - id: plan
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: echo "shards=$(python backfill.py plan --from ${{ inputs.from }} --to ${{ inputs.to }} --shards ${{ inputs.shards }})" >> "$GITHUB_OUTPUT"
+        run: echo "shards=$(python backfill.py --model ${{ inputs.model }} plan --from ${{ inputs.from }} --to ${{ inputs.to }} --shards ${{ inputs.shards }})" >> "$GITHUB_OUTPUT"
 
   archive:
     needs: plan
@@ -56,7 +59,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           THREADS: "4"                    # 20 jobs share NOAA's bucket; be gentle
-        run: python backfill.py run ${{ matrix.shard }}
+        run: python backfill.py --model ${{ inputs.model }} run ${{ matrix.shard }}
 
   report:
     needs: [plan, archive]
@@ -71,4 +74,4 @@ jobs:
       - name: Runs still missing (re-dispatch the same range to retry them)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python backfill.py missing --from ${{ inputs.from }} --to ${{ inputs.to }}
+        run: python backfill.py --model ${{ inputs.model }} missing --from ${{ inputs.from }} --to ${{ inputs.to }}
