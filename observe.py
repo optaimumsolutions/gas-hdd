@@ -33,7 +33,9 @@ workflow treats that as a warning, never as a failed forecast.
 Every complete station-day also goes to Neon (gefs.observed, insert-only; see
 PRD-calibration.md M3). --from/--to backfill a date range in 31-day chunks.
 --climatology rebuilds gefs.climatology: per airport, 10 years of IEM hourly
-data -> daily mean -> mean and sd per day of year, 15-day smoothed.
+data -> daily mean -> mean and sd per day of year, 15-day smoothed; the daily
+station rows from that pull also go to gefs.observed (insert-only), which is
+the 10-year truth the demand fit (fit_demand.py) uses.
 
 Usage: python observe.py [--days 20 | --from 2024-11-01 --to 2025-04-15] [--climatology]
 """
@@ -169,11 +171,12 @@ def build_climatology(conn, stations, today):
     start = date(today.year - CLIMO_YEARS, today.month, today.day)
     for i, s in enumerate(stations):
         daily = daily_extremes(fetch_iem([s], start, today))   # end exclusive: through yesterday
+        new = db.write_observed(conn, station_day_rows(daily, (today - timedelta(days=1)).isoformat()))
         rows = climatology_rows(s, daily)
         db.write_climatology(conn, rows)
         jan, jul = rows[14], rows[195]
-        print(f"  {s}: {len(daily)} days, {rows[0][4]} yr; Jan 15 {jan[2]:.1f}+-{jan[3]:.1f} F, "
-              f"Jul 15 {jul[2]:.1f}+-{jul[3]:.1f} F", flush=True)
+        print(f"  {s}: {len(daily)} days ({new} new in gefs.observed), {rows[0][4]} yr; "
+              f"Jan 15 {jan[2]:.1f}+-{jan[3]:.1f} F, Jul 15 {jul[2]:.1f}+-{jul[3]:.1f} F", flush=True)
         if i < len(stations) - 1:
             time.sleep(PAUSE)
 

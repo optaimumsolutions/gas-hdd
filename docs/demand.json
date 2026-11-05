@@ -1,0 +1,4446 @@
+{
+ "generated_utc": "2026-11-05 14:40 UTC",
+ "method": "OLS on heating months (mean HDD >= 5.0) of the last 5 winters; EIA monthly residential + commercial consumption per state vs observed airport HDD",
+ "regions": {
+  "us": {
+   "slope_bcfd_per_hdd": 1.6156,
+   "intercept_bcfd": 6.011,
+   "resid_sd_bcfd": 1.047,
+   "r2": 0.991,
+   "floor_bcfd": 8.48,
+   "fit_winters": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "fit_months": 31,
+   "all_winters": {
+    "from": 2016,
+    "to": 2025,
+    "slope": 1.6263,
+    "intercept": 5.483,
+    "months": 64
+   },
+   "months": [
+    {
+     "month": "2016-11",
+     "hdd": 11.7,
+     "bcfd": 22.01,
+     "winter": 2016
+    },
+    {
+     "month": "2016-12",
+     "hdd": 22.6,
+     "bcfd": 40.54,
+     "winter": 2016
+    },
+    {
+     "month": "2017-01",
+     "hdd": 22.2,
+     "bcfd": 42.27,
+     "winter": 2016
+    },
+    {
+     "month": "2017-02",
+     "hdd": 17.3,
+     "bcfd": 33.53,
+     "winter": 2016
+    },
+    {
+     "month": "2017-03",
+     "hdd": 16.8,
+     "bcfd": 30.7,
+     "winter": 2016
+    },
+    {
+     "month": "2017-04",
+     "hdd": 6.5,
+     "bcfd": 16.36,
+     "winter": 2016
+    },
+    {
+     "month": "2017-05",
+     "hdd": 3.8,
+     "bcfd": 12.19,
+     "winter": 2016
+    },
+    {
+     "month": "2017-06",
+     "hdd": 0.3,
+     "bcfd": 8.74,
+     "winter": 2016
+    },
+    {
+     "month": "2017-07",
+     "hdd": 0.0,
+     "bcfd": 7.78,
+     "winter": 2017
+    },
+    {
+     "month": "2017-08",
+     "hdd": 0.0,
+     "bcfd": 7.78,
+     "winter": 2017
+    },
+    {
+     "month": "2017-09",
+     "hdd": 0.6,
+     "bcfd": 8.64,
+     "winter": 2017
+    },
+    {
+     "month": "2017-10",
+     "hdd": 3.4,
+     "bcfd": 13.09,
+     "winter": 2017
+    },
+    {
+     "month": "2017-11",
+     "hdd": 13.6,
+     "bcfd": 26.34,
+     "winter": 2017
+    },
+    {
+     "month": "2017-12",
+     "hdd": 23.8,
+     "bcfd": 42.22,
+     "winter": 2017
+    },
+    {
+     "month": "2018-01",
+     "hdd": 27.1,
+     "bcfd": 49.52,
+     "winter": 2017
+    },
+    {
+     "month": "2018-02",
+     "hdd": 20.2,
+     "bcfd": 39.79,
+     "winter": 2017
+    },
+    {
+     "month": "2018-03",
+     "hdd": 18.6,
+     "bcfd": 34.75,
+     "winter": 2017
+    },
+    {
+     "month": "2018-04",
+     "hdd": 12.6,
+     "bcfd": 24.76,
+     "winter": 2017
+    },
+    {
+     "month": "2018-05",
+     "hdd": 1.5,
+     "bcfd": 10.73,
+     "winter": 2017
+    },
+    {
+     "month": "2018-06",
+     "hdd": 0.2,
+     "bcfd": 8.72,
+     "winter": 2017
+    },
+    {
+     "month": "2018-07",
+     "hdd": 0.0,
+     "bcfd": 7.85,
+     "winter": 2018
+    },
+    {
+     "month": "2018-08",
+     "hdd": 0.0,
+     "bcfd": 7.83,
+     "winter": 2018
+    },
+    {
+     "month": "2018-09",
+     "hdd": 0.6,
+     "bcfd": 8.63,
+     "winter": 2018
+    },
+    {
+     "month": "2018-10",
+     "hdd": 6.6,
+     "bcfd": 15.89,
+     "winter": 2018
+    },
+    {
+     "month": "2018-11",
+     "hdd": 17.2,
+     "bcfd": 32.84,
+     "winter": 2018
+    },
+    {
+     "month": "2018-12",
+     "hdd": 21.1,
+     "bcfd": 39.5,
+     "winter": 2018
+    },
+    {
+     "month": "2019-01",
+     "hdd": 26.6,
+     "bcfd": 48.65,
+     "winter": 2018
+    },
+    {
+     "month": "2019-02",
+     "hdd": 24.6,
+     "bcfd": 45.76,
+     "winter": 2018
+    },
+    {
+     "month": "2019-03",
+     "hdd": 19.2,
+     "bcfd": 35.9,
+     "winter": 2018
+    },
+    {
+     "month": "2019-04",
+     "hdd": 8.2,
+     "bcfd": 19.17,
+     "winter": 2018
+    },
+    {
+     "month": "2019-05",
+     "hdd": 4.1,
+     "bcfd": 12.82,
+     "winter": 2018
+    },
+    {
+     "month": "2019-06",
+     "hdd": 0.3,
+     "bcfd": 9.13,
+     "winter": 2018
+    },
+    {
+     "month": "2019-07",
+     "hdd": 0.0,
+     "bcfd": 8.18,
+     "winter": 2019
+    },
+    {
+     "month": "2019-08",
+     "hdd": 0.0,
+     "bcfd": 7.83,
+     "winter": 2019
+    },
+    {
+     "month": "2019-09",
+     "hdd": 0.2,
+     "bcfd": 8.43,
+     "winter": 2019
+    },
+    {
+     "month": "2019-10",
+     "hdd": 5.6,
+     "bcfd": 14.45,
+     "winter": 2019
+    },
+    {
+     "month": "2019-11",
+     "hdd": 17.4,
+     "bcfd": 32.6,
+     "winter": 2019
+    },
+    {
+     "month": "2019-12",
+     "hdd": 20.9,
+     "bcfd": 39.01,
+     "winter": 2019
+    },
+    {
+     "month": "2020-01",
+     "hdd": 21.7,
+     "bcfd": 42.4,
+     "winter": 2019
+    },
+    {
+     "month": "2020-02",
+     "hdd": 21.4,
+     "bcfd": 40.82,
+     "winter": 2019
+    },
+    {
+     "month": "2020-03",
+     "hdd": 13.4,
+     "bcfd": 27.91,
+     "winter": 2019
+    },
+    {
+     "month": "2020-04",
+     "hdd": 10.8,
+     "bcfd": 20.52,
+     "winter": 2019
+    },
+    {
+     "month": "2020-05",
+     "hdd": 4.1,
+     "bcfd": 12.87,
+     "winter": 2019
+    },
+    {
+     "month": "2020-06",
+     "hdd": 0.2,
+     "bcfd": 8.92,
+     "winter": 2019
+    },
+    {
+     "month": "2020-07",
+     "hdd": 0.0,
+     "bcfd": 7.96,
+     "winter": 2020
+    },
+    {
+     "month": "2020-08",
+     "hdd": 0.0,
+     "bcfd": 7.73,
+     "winter": 2020
+    },
+    {
+     "month": "2020-09",
+     "hdd": 1.0,
+     "bcfd": 8.99,
+     "winter": 2020
+    },
+    {
+     "month": "2020-10",
+     "hdd": 5.9,
+     "bcfd": 14.52,
+     "winter": 2020
+    },
+    {
+     "month": "2020-11",
+     "hdd": 10.5,
+     "bcfd": 24.42,
+     "winter": 2020
+    },
+    {
+     "month": "2020-12",
+     "hdd": 21.0,
+     "bcfd": 40.4,
+     "winter": 2020
+    },
+    {
+     "month": "2021-01",
+     "hdd": 24.1,
+     "bcfd": 44.89,
+     "winter": 2020
+    },
+    {
+     "month": "2021-02",
+     "hdd": 27.3,
+     "bcfd": 49.0,
+     "winter": 2020
+    },
+    {
+     "month": "2021-03",
+     "hdd": 14.9,
+     "bcfd": 30.04,
+     "winter": 2020
+    },
+    {
+     "month": "2021-04",
+     "hdd": 8.7,
+     "bcfd": 19.65,
+     "winter": 2020
+    },
+    {
+     "month": "2021-05",
+     "hdd": 3.9,
+     "bcfd": 12.91,
+     "winter": 2020
+    },
+    {
+     "month": "2021-06",
+     "hdd": 0.2,
+     "bcfd": 9.1,
+     "winter": 2020
+    },
+    {
+     "month": "2021-07",
+     "hdd": 0.0,
+     "bcfd": 8.25,
+     "winter": 2021
+    },
+    {
+     "month": "2021-08",
+     "hdd": 0.0,
+     "bcfd": 7.98,
+     "winter": 2021
+    },
+    {
+     "month": "2021-09",
+     "hdd": 0.3,
+     "bcfd": 8.94,
+     "winter": 2021
+    },
+    {
+     "month": "2021-10",
+     "hdd": 3.2,
+     "bcfd": 12.52,
+     "winter": 2021
+    },
+    {
+     "month": "2021-11",
+     "hdd": 14.0,
+     "bcfd": 27.29,
+     "winter": 2021
+    },
+    {
+     "month": "2021-12",
+     "hdd": 16.9,
+     "bcfd": 34.53,
+     "winter": 2021
+    },
+    {
+     "month": "2022-01",
+     "hdd": 27.5,
+     "bcfd": 48.66,
+     "winter": 2021
+    },
+    {
+     "month": "2022-02",
+     "hdd": 23.6,
+     "bcfd": 44.83,
+     "winter": 2021
+    },
+    {
+     "month": "2022-03",
+     "hdd": 15.4,
+     "bcfd": 31.42,
+     "winter": 2021
+    },
+    {
+     "month": "2022-04",
+     "hdd": 9.9,
+     "bcfd": 22.02,
+     "winter": 2021
+    },
+    {
+     "month": "2022-05",
+     "hdd": 2.8,
+     "bcfd": 12.4,
+     "winter": 2021
+    },
+    {
+     "month": "2022-06",
+     "hdd": 0.1,
+     "bcfd": 9.0,
+     "winter": 2021
+    },
+    {
+     "month": "2022-07",
+     "hdd": 0.0,
+     "bcfd": 8.22,
+     "winter": 2022
+    },
+    {
+     "month": "2022-08",
+     "hdd": 0.0,
+     "bcfd": 7.89,
+     "winter": 2022
+    },
+    {
+     "month": "2022-09",
+     "hdd": 0.9,
+     "bcfd": 8.8,
+     "winter": 2022
+    },
+    {
+     "month": "2022-10",
+     "hdd": 5.8,
+     "bcfd": 15.01,
+     "winter": 2022
+    },
+    {
+     "month": "2022-11",
+     "hdd": 13.3,
+     "bcfd": 28.89,
+     "winter": 2022
+    },
+    {
+     "month": "2022-12",
+     "hdd": 22.9,
+     "bcfd": 42.81,
+     "winter": 2022
+    },
+    {
+     "month": "2023-01",
+     "hdd": 20.4,
+     "bcfd": 41.5,
+     "winter": 2022
+    },
+    {
+     "month": "2023-02",
+     "hdd": 20.5,
+     "bcfd": 39.9,
+     "winter": 2022
+    },
+    {
+     "month": "2023-03",
+     "hdd": 17.2,
+     "bcfd": 33.8,
+     "winter": 2022
+    },
+    {
+     "month": "2023-04",
+     "hdd": 8.1,
+     "bcfd": 19.85,
+     "winter": 2022
+    },
+    {
+     "month": "2023-05",
+     "hdd": 3.1,
+     "bcfd": 12.33,
+     "winter": 2022
+    },
+    {
+     "month": "2023-06",
+     "hdd": 0.5,
+     "bcfd": 9.34,
+     "winter": 2022
+    },
+    {
+     "month": "2023-07",
+     "hdd": 0.0,
+     "bcfd": 8.28,
+     "winter": 2023
+    },
+    {
+     "month": "2023-08",
+     "hdd": 0.0,
+     "bcfd": 8.12,
+     "winter": 2023
+    },
+    {
+     "month": "2023-09",
+     "hdd": 0.5,
+     "bcfd": 8.72,
+     "winter": 2023
+    },
+    {
+     "month": "2023-10",
+     "hdd": 4.6,
+     "bcfd": 14.63,
+     "winter": 2023
+    },
+    {
+     "month": "2023-11",
+     "hdd": 14.0,
+     "bcfd": 28.18,
+     "winter": 2023
+    },
+    {
+     "month": "2023-12",
+     "hdd": 17.3,
+     "bcfd": 34.74,
+     "winter": 2023
+    },
+    {
+     "month": "2024-01",
+     "hdd": 25.2,
+     "bcfd": 47.63,
+     "winter": 2023
+    },
+    {
+     "month": "2024-02",
+     "hdd": 19.2,
+     "bcfd": 36.52,
+     "winter": 2023
+    },
+    {
+     "month": "2024-03",
+     "hdd": 14.1,
+     "bcfd": 27.63,
+     "winter": 2023
+    },
+    {
+     "month": "2024-04",
+     "hdd": 8.5,
+     "bcfd": 18.86,
+     "winter": 2023
+    },
+    {
+     "month": "2024-05",
+     "hdd": 2.4,
+     "bcfd": 11.24,
+     "winter": 2023
+    },
+    {
+     "month": "2024-06",
+     "hdd": 0.1,
+     "bcfd": 9.22,
+     "winter": 2023
+    },
+    {
+     "month": "2024-07",
+     "hdd": 0.0,
+     "bcfd": 8.2,
+     "winter": 2024
+    },
+    {
+     "month": "2024-08",
+     "hdd": 0.0,
+     "bcfd": 8.17,
+     "winter": 2024
+    },
+    {
+     "month": "2024-09",
+     "hdd": 0.3,
+     "bcfd": 8.9,
+     "winter": 2024
+    },
+    {
+     "month": "2024-10",
+     "hdd": 3.4,
+     "bcfd": 12.98,
+     "winter": 2024
+    },
+    {
+     "month": "2024-11",
+     "hdd": 11.2,
+     "bcfd": 24.2,
+     "winter": 2024
+    },
+    {
+     "month": "2024-12",
+     "hdd": 21.1,
+     "bcfd": 39.39,
+     "winter": 2024
+    },
+    {
+     "month": "2025-01",
+     "hdd": 28.5,
+     "bcfd": 53.07,
+     "winter": 2024
+    },
+    {
+     "month": "2025-02",
+     "hdd": 24.3,
+     "bcfd": 45.99,
+     "winter": 2024
+    },
+    {
+     "month": "2025-03",
+     "hdd": 13.5,
+     "bcfd": 28.8,
+     "winter": 2024
+    },
+    {
+     "month": "2025-04",
+     "hdd": 8.2,
+     "bcfd": 19.56,
+     "winter": 2024
+    },
+    {
+     "month": "2025-05",
+     "hdd": 3.0,
+     "bcfd": 12.27,
+     "winter": 2024
+    },
+    {
+     "month": "2025-06",
+     "hdd": 0.3,
+     "bcfd": 9.52,
+     "winter": 2024
+    },
+    {
+     "month": "2025-07",
+     "hdd": 0.0,
+     "bcfd": 8.52,
+     "winter": 2025
+    },
+    {
+     "month": "2025-08",
+     "hdd": 0.1,
+     "bcfd": 8.25,
+     "winter": 2025
+    },
+    {
+     "month": "2025-09",
+     "hdd": 0.3,
+     "bcfd": 8.88,
+     "winter": 2025
+    },
+    {
+     "month": "2025-10",
+     "hdd": 5.0,
+     "bcfd": 14.27,
+     "winter": 2025
+    },
+    {
+     "month": "2025-11",
+     "hdd": 13.5,
+     "bcfd": 27.02,
+     "winter": 2025
+    },
+    {
+     "month": "2025-12",
+     "hdd": 23.6,
+     "bcfd": 42.93,
+     "winter": 2025
+    },
+    {
+     "month": "2026-01",
+     "hdd": 27.6,
+     "bcfd": 50.41,
+     "winter": 2025
+    },
+    {
+     "month": "2026-02",
+     "hdd": 23.4,
+     "bcfd": 41.69,
+     "winter": 2025
+    },
+    {
+     "month": "2026-03",
+     "hdd": 12.9,
+     "bcfd": 26.76,
+     "winter": 2025
+    },
+    {
+     "month": "2026-04",
+     "hdd": 7.4,
+     "bcfd": 17.51,
+     "winter": 2025
+    },
+    {
+     "month": "2026-05",
+     "hdd": 3.2,
+     "bcfd": 12.12,
+     "winter": 2025
+    },
+    {
+     "month": "2026-06",
+     "hdd": 0.1,
+     "bcfd": 9.41,
+     "winter": 2025
+    },
+    {
+     "month": "2026-07",
+     "hdd": 0.0,
+     "bcfd": 8.55,
+     "winter": 2026
+    },
+    {
+     "month": "2026-08",
+     "hdd": 0.0,
+     "bcfd": 8.15,
+     "winter": 2026
+    }
+   ],
+   "level_table": [
+    {
+     "hdd_per_day": 0,
+     "fitted_bcfd": 8.48,
+     "seen_n_months": 41,
+     "seen_min": 7.73,
+     "seen_max": 11.24,
+     "seen_months": [
+      "2022-09 (1 HDD, 8.8)",
+      "2020-09 (1 HDD, 9.0)",
+      "2018-05 (2 HDD, 10.7)",
+      "2024-05 (2 HDD, 11.2)"
+     ]
+    },
+    {
+     "hdd_per_day": 5,
+     "fitted_bcfd": 14.09,
+     "seen_n_months": 6,
+     "seen_min": 14.45,
+     "seen_max": 17.51,
+     "seen_months": [
+      "2020-10 (6 HDD, 14.5)",
+      "2017-04 (6 HDD, 16.4)",
+      "2018-10 (7 HDD, 15.9)",
+      "2026-04 (7 HDD, 17.5)"
+     ]
+    },
+    {
+     "hdd_per_day": 10,
+     "fitted_bcfd": 22.17,
+     "seen_n_months": 10,
+     "seen_min": 18.86,
+     "seen_max": 24.42,
+     "seen_months": [
+      "2020-11 (10 HDD, 24.4)",
+      "2020-04 (11 HDD, 20.5)",
+      "2024-11 (11 HDD, 24.2)",
+      "2016-11 (12 HDD, 22.0)"
+     ]
+    },
+    {
+     "hdd_per_day": 15,
+     "fitted_bcfd": 30.25,
+     "seen_n_months": 19,
+     "seen_min": 24.76,
+     "seen_max": 34.74,
+     "seen_months": [
+      "2018-11 (17 HDD, 32.8)",
+      "2023-12 (17 HDD, 34.7)",
+      "2017-02 (17 HDD, 33.5)",
+      "2019-11 (17 HDD, 32.6)"
+     ]
+    },
+    {
+     "hdd_per_day": 20,
+     "fitted_bcfd": 38.32,
+     "seen_n_months": 13,
+     "seen_min": 34.75,
+     "seen_max": 42.4,
+     "seen_months": [
+      "2024-12 (21 HDD, 39.4)",
+      "2020-02 (21 HDD, 40.8)",
+      "2020-01 (22 HDD, 42.4)",
+      "2017-01 (22 HDD, 42.3)"
+     ]
+    },
+    {
+     "hdd_per_day": 25,
+     "fitted_bcfd": 46.4,
+     "seen_n_months": 13,
+     "seen_min": 40.54,
+     "seen_max": 49.52,
+     "seen_months": [
+      "2024-01 (25 HDD, 47.6)",
+      "2019-01 (27 HDD, 48.6)",
+      "2018-01 (27 HDD, 49.5)",
+      "2021-02 (27 HDD, 49.0)"
+     ]
+    },
+    {
+     "hdd_per_day": 30,
+     "fitted_bcfd": 54.48,
+     "seen_n_months": 3,
+     "seen_min": 48.66,
+     "seen_max": 53.07,
+     "seen_months": [
+      "2022-01 (28 HDD, 48.7)",
+      "2026-01 (28 HDD, 50.4)",
+      "2025-01 (29 HDD, 53.1)"
+     ]
+    },
+    {
+     "hdd_per_day": 35,
+     "fitted_bcfd": 62.56,
+     "seen_n_months": 0,
+     "seen_min": null,
+     "seen_max": null,
+     "seen_months": []
+    },
+    {
+     "hdd_per_day": 40,
+     "fitted_bcfd": 70.64,
+     "seen_n_months": 0,
+     "seen_min": null,
+     "seen_max": null,
+     "seen_months": []
+    },
+    {
+     "hdd_per_day": 45,
+     "fitted_bcfd": 78.71,
+     "seen_n_months": 0,
+     "seen_min": null,
+     "seen_max": null,
+     "seen_months": []
+    },
+    {
+     "hdd_per_day": 50,
+     "fitted_bcfd": 86.79,
+     "seen_n_months": 0,
+     "seen_min": null,
+     "seen_max": null,
+     "seen_months": []
+    }
+   ],
+   "normal_winter_hdd_per_day": 19.2,
+   "deviation_table": [
+    {
+     "deviation_hdd_per_day": -15,
+     "bcfd_change": -24.23,
+     "bcf_per_week": -169.6,
+     "demand_at_normal_bcfd": 12.74
+    },
+    {
+     "deviation_hdd_per_day": -10,
+     "bcfd_change": -16.16,
+     "bcf_per_week": -113.1,
+     "demand_at_normal_bcfd": 20.82
+    },
+    {
+     "deviation_hdd_per_day": -5,
+     "bcfd_change": -8.08,
+     "bcf_per_week": -56.5,
+     "demand_at_normal_bcfd": 28.89
+    },
+    {
+     "deviation_hdd_per_day": -2,
+     "bcfd_change": -3.23,
+     "bcf_per_week": -22.6,
+     "demand_at_normal_bcfd": 33.74
+    },
+    {
+     "deviation_hdd_per_day": 0,
+     "bcfd_change": 0.0,
+     "bcf_per_week": 0.0,
+     "demand_at_normal_bcfd": 36.97
+    },
+    {
+     "deviation_hdd_per_day": 2,
+     "bcfd_change": 3.23,
+     "bcf_per_week": 22.6,
+     "demand_at_normal_bcfd": 40.2
+    },
+    {
+     "deviation_hdd_per_day": 5,
+     "bcfd_change": 8.08,
+     "bcf_per_week": 56.5,
+     "demand_at_normal_bcfd": 45.05
+    },
+    {
+     "deviation_hdd_per_day": 10,
+     "bcfd_change": 16.16,
+     "bcf_per_week": 113.1,
+     "demand_at_normal_bcfd": 53.13
+    },
+    {
+     "deviation_hdd_per_day": 15,
+     "bcfd_change": 24.23,
+     "bcf_per_week": 169.6,
+     "demand_at_normal_bcfd": 61.21
+    }
+   ]
+  },
+  "midwest": {
+   "slope_bcfd_per_hdd": 0.3539,
+   "intercept_bcfd": 0.961,
+   "resid_sd_bcfd": 0.333,
+   "r2": 0.993,
+   "floor_bcfd": 1.82,
+   "fit_winters": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "fit_months": 37,
+   "all_winters": {
+    "from": 2016,
+    "to": 2025,
+    "slope": 0.3494,
+    "intercept": 0.859,
+    "months": 75
+   },
+   "months": [
+    {
+     "month": "2016-11",
+     "hdd": 18.4,
+     "bcfd": 6.04,
+     "winter": 2016
+    },
+    {
+     "month": "2016-12",
+     "hdd": 36.1,
+     "bcfd": 12.63,
+     "winter": 2016
+    },
+    {
+     "month": "2017-01",
+     "hdd": 33.5,
+     "bcfd": 12.35,
+     "winter": 2016
+    },
+    {
+     "month": "2017-02",
+     "hdd": 24.8,
+     "bcfd": 9.51,
+     "winter": 2016
+    },
+    {
+     "month": "2017-03",
+     "hdd": 23.9,
+     "bcfd": 9.05,
+     "winter": 2016
+    },
+    {
+     "month": "2017-04",
+     "hdd": 9.9,
+     "bcfd": 4.42,
+     "winter": 2016
+    },
+    {
+     "month": "2017-05",
+     "hdd": 6.2,
+     "bcfd": 3.2,
+     "winter": 2016
+    },
+    {
+     "month": "2017-06",
+     "hdd": 0.3,
+     "bcfd": 1.93,
+     "winter": 2016
+    },
+    {
+     "month": "2017-07",
+     "hdd": 0.0,
+     "bcfd": 1.69,
+     "winter": 2017
+    },
+    {
+     "month": "2017-08",
+     "hdd": 0.1,
+     "bcfd": 1.74,
+     "winter": 2017
+    },
+    {
+     "month": "2017-09",
+     "hdd": 1.5,
+     "bcfd": 1.98,
+     "winter": 2017
+    },
+    {
+     "month": "2017-10",
+     "hdd": 8.3,
+     "bcfd": 3.52,
+     "winter": 2017
+    },
+    {
+     "month": "2017-11",
+     "hdd": 23.0,
+     "bcfd": 8.16,
+     "winter": 2017
+    },
+    {
+     "month": "2017-12",
+     "hdd": 36.1,
+     "bcfd": 12.8,
+     "winter": 2017
+    },
+    {
+     "month": "2018-01",
+     "hdd": 39.2,
+     "bcfd": 14.83,
+     "winter": 2017
+    },
+    {
+     "month": "2018-02",
+     "hdd": 33.7,
+     "bcfd": 12.4,
+     "winter": 2017
+    },
+    {
+     "month": "2018-03",
+     "hdd": 26.8,
+     "bcfd": 9.89,
+     "winter": 2017
+    },
+    {
+     "month": "2018-04",
+     "hdd": 21.1,
+     "bcfd": 7.84,
+     "winter": 2017
+    },
+    {
+     "month": "2018-05",
+     "hdd": 2.1,
+     "bcfd": 2.57,
+     "winter": 2017
+    },
+    {
+     "month": "2018-06",
+     "hdd": 0.3,
+     "bcfd": 1.89,
+     "winter": 2017
+    },
+    {
+     "month": "2018-07",
+     "hdd": 0.0,
+     "bcfd": 1.7,
+     "winter": 2018
+    },
+    {
+     "month": "2018-08",
+     "hdd": 0.0,
+     "bcfd": 1.75,
+     "winter": 2018
+    },
+    {
+     "month": "2018-09",
+     "hdd": 1.9,
+     "bcfd": 1.93,
+     "winter": 2018
+    },
+    {
+     "month": "2018-10",
+     "hdd": 12.6,
+     "bcfd": 4.66,
+     "winter": 2018
+    },
+    {
+     "month": "2018-11",
+     "hdd": 28.7,
+     "bcfd": 10.1,
+     "winter": 2018
+    },
+    {
+     "month": "2018-12",
+     "hdd": 30.5,
+     "bcfd": 11.31,
+     "winter": 2018
+    },
+    {
+     "month": "2019-01",
+     "hdd": 40.2,
+     "bcfd": 14.82,
+     "winter": 2018
+    },
+    {
+     "month": "2019-02",
+     "hdd": 36.7,
+     "bcfd": 13.73,
+     "winter": 2018
+    },
+    {
+     "month": "2019-03",
+     "hdd": 28.7,
+     "bcfd": 10.72,
+     "winter": 2018
+    },
+    {
+     "month": "2019-04",
+     "hdd": 13.4,
+     "bcfd": 5.63,
+     "winter": 2018
+    },
+    {
+     "month": "2019-05",
+     "hdd": 6.5,
+     "bcfd": 3.34,
+     "winter": 2018
+    },
+    {
+     "month": "2019-06",
+     "hdd": 0.9,
+     "bcfd": 2.08,
+     "winter": 2018
+    },
+    {
+     "month": "2019-07",
+     "hdd": 0.0,
+     "bcfd": 1.74,
+     "winter": 2019
+    },
+    {
+     "month": "2019-08",
+     "hdd": 0.0,
+     "bcfd": 1.7,
+     "winter": 2019
+    },
+    {
+     "month": "2019-09",
+     "hdd": 0.5,
+     "bcfd": 1.86,
+     "winter": 2019
+    },
+    {
+     "month": "2019-10",
+     "hdd": 12.3,
+     "bcfd": 4.38,
+     "winter": 2019
+    },
+    {
+     "month": "2019-11",
+     "hdd": 28.1,
+     "bcfd": 10.27,
+     "winter": 2019
+    },
+    {
+     "month": "2019-12",
+     "hdd": 29.4,
+     "bcfd": 11.11,
+     "winter": 2019
+    },
+    {
+     "month": "2020-01",
+     "hdd": 33.0,
+     "bcfd": 12.53,
+     "winter": 2019
+    },
+    {
+     "month": "2020-02",
+     "hdd": 33.6,
+     "bcfd": 12.67,
+     "winter": 2019
+    },
+    {
+     "month": "2020-03",
+     "hdd": 21.0,
+     "bcfd": 8.2,
+     "winter": 2019
+    },
+    {
+     "month": "2020-04",
+     "hdd": 15.9,
+     "bcfd": 5.79,
+     "winter": 2019
+    },
+    {
+     "month": "2020-05",
+     "hdd": 6.9,
+     "bcfd": 3.4,
+     "winter": 2019
+    },
+    {
+     "month": "2020-06",
+     "hdd": 0.4,
+     "bcfd": 1.9,
+     "winter": 2019
+    },
+    {
+     "month": "2020-07",
+     "hdd": 0.0,
+     "bcfd": 1.64,
+     "winter": 2020
+    },
+    {
+     "month": "2020-08",
+     "hdd": 0.0,
+     "bcfd": 1.69,
+     "winter": 2020
+    },
+    {
+     "month": "2020-09",
+     "hdd": 2.5,
+     "bcfd": 2.15,
+     "winter": 2020
+    },
+    {
+     "month": "2020-10",
+     "hdd": 13.4,
+     "bcfd": 4.68,
+     "winter": 2020
+    },
+    {
+     "month": "2020-11",
+     "hdd": 17.5,
+     "bcfd": 7.04,
+     "winter": 2020
+    },
+    {
+     "month": "2020-12",
+     "hdd": 31.0,
+     "bcfd": 11.48,
+     "winter": 2020
+    },
+    {
+     "month": "2021-01",
+     "hdd": 34.8,
+     "bcfd": 13.08,
+     "winter": 2020
+    },
+    {
+     "month": "2021-02",
+     "hdd": 42.3,
+     "bcfd": 15.47,
+     "winter": 2020
+    },
+    {
+     "month": "2021-03",
+     "hdd": 19.1,
+     "bcfd": 8.24,
+     "winter": 2020
+    },
+    {
+     "month": "2021-04",
+     "hdd": 12.8,
+     "bcfd": 5.35,
+     "winter": 2020
+    },
+    {
+     "month": "2021-05",
+     "hdd": 6.4,
+     "bcfd": 3.39,
+     "winter": 2020
+    },
+    {
+     "month": "2021-06",
+     "hdd": 0.2,
+     "bcfd": 1.92,
+     "winter": 2020
+    },
+    {
+     "month": "2021-07",
+     "hdd": 0.0,
+     "bcfd": 1.75,
+     "winter": 2021
+    },
+    {
+     "month": "2021-08",
+     "hdd": 0.0,
+     "bcfd": 1.76,
+     "winter": 2021
+    },
+    {
+     "month": "2021-09",
+     "hdd": 0.8,
+     "bcfd": 1.98,
+     "winter": 2021
+    },
+    {
+     "month": "2021-10",
+     "hdd": 6.5,
+     "bcfd": 3.25,
+     "winter": 2021
+    },
+    {
+     "month": "2021-11",
+     "hdd": 23.3,
+     "bcfd": 8.23,
+     "winter": 2021
+    },
+    {
+     "month": "2021-12",
+     "hdd": 26.3,
+     "bcfd": 10.02,
+     "winter": 2021
+    },
+    {
+     "month": "2022-01",
+     "hdd": 42.2,
+     "bcfd": 15.41,
+     "winter": 2021
+    },
+    {
+     "month": "2022-02",
+     "hdd": 36.5,
+     "bcfd": 14.0,
+     "winter": 2021
+    },
+    {
+     "month": "2022-03",
+     "hdd": 23.1,
+     "bcfd": 9.34,
+     "winter": 2021
+    },
+    {
+     "month": "2022-04",
+     "hdd": 16.4,
+     "bcfd": 6.84,
+     "winter": 2021
+    },
+    {
+     "month": "2022-05",
+     "hdd": 4.3,
+     "bcfd": 3.03,
+     "winter": 2021
+    },
+    {
+     "month": "2022-06",
+     "hdd": 0.3,
+     "bcfd": 1.97,
+     "winter": 2021
+    },
+    {
+     "month": "2022-07",
+     "hdd": 0.0,
+     "bcfd": 1.78,
+     "winter": 2022
+    },
+    {
+     "month": "2022-08",
+     "hdd": 0.0,
+     "bcfd": 1.79,
+     "winter": 2022
+    },
+    {
+     "month": "2022-09",
+     "hdd": 2.3,
+     "bcfd": 2.1,
+     "winter": 2022
+    },
+    {
+     "month": "2022-10",
+     "hdd": 10.5,
+     "bcfd": 4.45,
+     "winter": 2022
+    },
+    {
+     "month": "2022-11",
+     "hdd": 21.1,
+     "bcfd": 8.39,
+     "winter": 2022
+    },
+    {
+     "month": "2022-12",
+     "hdd": 33.9,
+     "bcfd": 12.64,
+     "winter": 2022
+    },
+    {
+     "month": "2023-01",
+     "hdd": 31.4,
+     "bcfd": 12.3,
+     "winter": 2022
+    },
+    {
+     "month": "2023-02",
+     "hdd": 29.5,
+     "bcfd": 11.67,
+     "winter": 2022
+    },
+    {
+     "month": "2023-03",
+     "hdd": 25.4,
+     "bcfd": 9.96,
+     "winter": 2022
+    },
+    {
+     "month": "2023-04",
+     "hdd": 13.0,
+     "bcfd": 5.62,
+     "winter": 2022
+    },
+    {
+     "month": "2023-05",
+     "hdd": 4.2,
+     "bcfd": 3.07,
+     "winter": 2022
+    },
+    {
+     "month": "2023-06",
+     "hdd": 0.5,
+     "bcfd": 1.97,
+     "winter": 2022
+    },
+    {
+     "month": "2023-07",
+     "hdd": 0.0,
+     "bcfd": 1.78,
+     "winter": 2023
+    },
+    {
+     "month": "2023-08",
+     "hdd": 0.1,
+     "bcfd": 1.81,
+     "winter": 2023
+    },
+    {
+     "month": "2023-09",
+     "hdd": 0.7,
+     "bcfd": 1.95,
+     "winter": 2023
+    },
+    {
+     "month": "2023-10",
+     "hdd": 9.5,
+     "bcfd": 4.2,
+     "winter": 2023
+    },
+    {
+     "month": "2023-11",
+     "hdd": 21.0,
+     "bcfd": 7.92,
+     "winter": 2023
+    },
+    {
+     "month": "2023-12",
+     "hdd": 24.6,
+     "bcfd": 9.61,
+     "winter": 2023
+    },
+    {
+     "month": "2024-01",
+     "hdd": 37.0,
+     "bcfd": 14.3,
+     "winter": 2023
+    },
+    {
+     "month": "2024-02",
+     "hdd": 24.6,
+     "bcfd": 9.9,
+     "winter": 2023
+    },
+    {
+     "month": "2024-03",
+     "hdd": 19.6,
+     "bcfd": 7.88,
+     "winter": 2023
+    },
+    {
+     "month": "2024-04",
+     "hdd": 11.2,
+     "bcfd": 5.13,
+     "winter": 2023
+    },
+    {
+     "month": "2024-05",
+     "hdd": 2.1,
+     "bcfd": 2.38,
+     "winter": 2023
+    },
+    {
+     "month": "2024-06",
+     "hdd": 0.2,
+     "bcfd": 1.97,
+     "winter": 2023
+    },
+    {
+     "month": "2024-07",
+     "hdd": 0.0,
+     "bcfd": 1.74,
+     "winter": 2024
+    },
+    {
+     "month": "2024-08",
+     "hdd": 0.1,
+     "bcfd": 1.84,
+     "winter": 2024
+    },
+    {
+     "month": "2024-09",
+     "hdd": 0.5,
+     "bcfd": 1.91,
+     "winter": 2024
+    },
+    {
+     "month": "2024-10",
+     "hdd": 6.2,
+     "bcfd": 3.27,
+     "winter": 2024
+    },
+    {
+     "month": "2024-11",
+     "hdd": 18.2,
+     "bcfd": 6.73,
+     "winter": 2024
+    },
+    {
+     "month": "2024-12",
+     "hdd": 30.8,
+     "bcfd": 11.64,
+     "winter": 2024
+    },
+    {
+     "month": "2025-01",
+     "hdd": 40.9,
+     "bcfd": 15.77,
+     "winter": 2024
+    },
+    {
+     "month": "2025-02",
+     "hdd": 36.4,
+     "bcfd": 14.1,
+     "winter": 2024
+    },
+    {
+     "month": "2025-03",
+     "hdd": 18.9,
+     "bcfd": 8.38,
+     "winter": 2024
+    },
+    {
+     "month": "2025-04",
+     "hdd": 13.0,
+     "bcfd": 5.56,
+     "winter": 2024
+    },
+    {
+     "month": "2025-05",
+     "hdd": 6.1,
+     "bcfd": 3.3,
+     "winter": 2024
+    },
+    {
+     "month": "2025-06",
+     "hdd": 0.5,
+     "bcfd": 2.0,
+     "winter": 2024
+    },
+    {
+     "month": "2025-07",
+     "hdd": 0.0,
+     "bcfd": 1.88,
+     "winter": 2025
+    },
+    {
+     "month": "2025-08",
+     "hdd": 0.4,
+     "bcfd": 1.81,
+     "winter": 2025
+    },
+    {
+     "month": "2025-09",
+     "hdd": 1.0,
+     "bcfd": 2.04,
+     "winter": 2025
+    },
+    {
+     "month": "2025-10",
+     "hdd": 8.2,
+     "bcfd": 3.71,
+     "winter": 2025
+    },
+    {
+     "month": "2025-11",
+     "hdd": 21.4,
+     "bcfd": 8.07,
+     "winter": 2025
+    },
+    {
+     "month": "2025-12",
+     "hdd": 35.4,
+     "bcfd": 13.33,
+     "winter": 2025
+    },
+    {
+     "month": "2026-01",
+     "hdd": 41.7,
+     "bcfd": 15.94,
+     "winter": 2025
+    },
+    {
+     "month": "2026-02",
+     "hdd": 31.2,
+     "bcfd": 12.21,
+     "winter": 2025
+    },
+    {
+     "month": "2026-03",
+     "hdd": 19.0,
+     "bcfd": 8.05,
+     "winter": 2025
+    },
+    {
+     "month": "2026-04",
+     "hdd": 9.9,
+     "bcfd": 4.87,
+     "winter": 2025
+    },
+    {
+     "month": "2026-05",
+     "hdd": 5.9,
+     "bcfd": 3.18,
+     "winter": 2025
+    },
+    {
+     "month": "2026-08",
+     "hdd": 0.0,
+     "bcfd": 1.82,
+     "winter": 2026
+    }
+   ],
+   "level_table": [
+    {
+     "hdd_per_day": 0,
+     "fitted_bcfd": 1.82,
+     "seen_n_months": 39,
+     "seen_min": 1.64,
+     "seen_max": 2.57,
+     "seen_months": [
+      "2018-05 (2 HDD, 2.6)",
+      "2024-05 (2 HDD, 2.4)",
+      "2022-09 (2 HDD, 2.1)",
+      "2020-09 (2 HDD, 2.1)"
+     ]
+    },
+    {
+     "hdd_per_day": 5,
+     "fitted_bcfd": 2.73,
+     "seen_n_months": 8,
+     "seen_min": 3.18,
+     "seen_max": 3.4,
+     "seen_months": [
+      "2021-05 (6 HDD, 3.4)",
+      "2019-05 (6 HDD, 3.3)",
+      "2021-10 (7 HDD, 3.3)",
+      "2020-05 (7 HDD, 3.4)"
+     ]
+    },
+    {
+     "hdd_per_day": 10,
+     "fitted_bcfd": 4.5,
+     "seen_n_months": 8,
+     "seen_min": 3.52,
+     "seen_max": 5.13,
+     "seen_months": [
+      "2026-04 (10 HDD, 4.9)",
+      "2022-10 (10 HDD, 4.5)",
+      "2024-04 (11 HDD, 5.1)",
+      "2019-10 (12 HDD, 4.4)"
+     ]
+    },
+    {
+     "hdd_per_day": 15,
+     "fitted_bcfd": 6.27,
+     "seen_n_months": 9,
+     "seen_min": 4.66,
+     "seen_max": 7.04,
+     "seen_months": [
+      "2020-10 (13 HDD, 4.7)",
+      "2020-04 (16 HDD, 5.8)",
+      "2022-04 (16 HDD, 6.8)",
+      "2020-11 (17 HDD, 7.0)"
+     ]
+    },
+    {
+     "hdd_per_day": 20,
+     "fitted_bcfd": 8.04,
+     "seen_n_months": 11,
+     "seen_min": 6.04,
+     "seen_max": 8.39,
+     "seen_months": [
+      "2020-03 (21 HDD, 8.2)",
+      "2022-11 (21 HDD, 8.4)",
+      "2018-04 (21 HDD, 7.8)",
+      "2025-11 (21 HDD, 8.1)"
+     ]
+    },
+    {
+     "hdd_per_day": 25,
+     "fitted_bcfd": 9.81,
+     "seen_n_months": 10,
+     "seen_min": 8.16,
+     "seen_max": 10.02,
+     "seen_months": [
+      "2017-02 (25 HDD, 9.5)",
+      "2023-03 (25 HDD, 10.0)",
+      "2021-12 (26 HDD, 10.0)",
+      "2018-03 (27 HDD, 9.9)"
+     ]
+    },
+    {
+     "hdd_per_day": 30,
+     "fitted_bcfd": 11.58,
+     "seen_n_months": 10,
+     "seen_min": 10.1,
+     "seen_max": 12.3,
+     "seen_months": [
+      "2024-12 (31 HDD, 11.6)",
+      "2020-12 (31 HDD, 11.5)",
+      "2026-02 (31 HDD, 12.2)",
+      "2023-01 (31 HDD, 12.3)"
+     ]
+    },
+    {
+     "hdd_per_day": 35,
+     "fitted_bcfd": 13.35,
+     "seen_n_months": 13,
+     "seen_min": 12.35,
+     "seen_max": 14.3,
+     "seen_months": [
+      "2025-02 (36 HDD, 14.1)",
+      "2022-02 (36 HDD, 14.0)",
+      "2019-02 (37 HDD, 13.7)",
+      "2024-01 (37 HDD, 14.3)"
+     ]
+    },
+    {
+     "hdd_per_day": 40,
+     "fitted_bcfd": 15.12,
+     "seen_n_months": 6,
+     "seen_min": 14.82,
+     "seen_max": 15.94,
+     "seen_months": [
+      "2025-01 (41 HDD, 15.8)",
+      "2026-01 (42 HDD, 15.9)",
+      "2022-01 (42 HDD, 15.4)",
+      "2021-02 (42 HDD, 15.5)"
+     ]
+    },
+    {
+     "hdd_per_day": 45,
+     "fitted_bcfd": 16.89,
+     "seen_n_months": 0,
+     "seen_min": null,
+     "seen_max": null,
+     "seen_months": []
+    },
+    {
+     "hdd_per_day": 50,
+     "fitted_bcfd": 18.66,
+     "seen_n_months": 0,
+     "seen_min": null,
+     "seen_max": null,
+     "seen_months": []
+    }
+   ],
+   "storage": {
+    "bcf_per_weekly_hdd": -0.4712,
+    "intercept_bcf": 72.74,
+    "resid_sd_bcf": 16.86,
+    "r2": 0.839,
+    "fit_winters": [
+     2022,
+     2023,
+     2024,
+     2025,
+     2026
+    ],
+    "fit_weeks": 120,
+    "weeks": [
+     {
+      "week_ending": "2016-11-11",
+      "hdd_week": 80.9,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2016-11-18",
+      "hdd_week": 103.0,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2016-11-25",
+      "hdd_week": 189.7,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2016-12-02",
+      "hdd_week": 156.5,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2016-12-09",
+      "hdd_week": 234.7,
+      "change_bcf": -49.0
+     },
+     {
+      "week_ending": "2016-12-16",
+      "hdd_week": 319.4,
+      "change_bcf": -66.0
+     },
+     {
+      "week_ending": "2016-12-23",
+      "hdd_week": 288.5,
+      "change_bcf": -91.0
+     },
+     {
+      "week_ending": "2016-12-30",
+      "hdd_week": 195.7,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2017-01-06",
+      "hdd_week": 269.2,
+      "change_bcf": -34.0
+     },
+     {
+      "week_ending": "2017-01-13",
+      "hdd_week": 280.9,
+      "change_bcf": -85.0
+     },
+     {
+      "week_ending": "2017-01-20",
+      "hdd_week": 203.7,
+      "change_bcf": -15.0
+     },
+     {
+      "week_ending": "2017-01-27",
+      "hdd_week": 174.4,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2017-02-03",
+      "hdd_week": 253.2,
+      "change_bcf": -36.0
+     },
+     {
+      "week_ending": "2017-02-10",
+      "hdd_week": 229.4,
+      "change_bcf": -22.0
+     },
+     {
+      "week_ending": "2017-02-17",
+      "hdd_week": 166.7,
+      "change_bcf": -8.0
+     },
+     {
+      "week_ending": "2017-02-24",
+      "hdd_week": 84.7,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2017-03-03",
+      "hdd_week": 186.1,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2017-03-10",
+      "hdd_week": 144.7,
+      "change_bcf": 5.0
+     },
+     {
+      "week_ending": "2017-03-17",
+      "hdd_week": 253.0,
+      "change_bcf": -45.0
+     },
+     {
+      "week_ending": "2017-03-24",
+      "hdd_week": 139.9,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2017-03-31",
+      "hdd_week": 115.8,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2017-04-07",
+      "hdd_week": 111.4,
+      "change_bcf": 11.0
+     },
+     {
+      "week_ending": "2017-04-14",
+      "hdd_week": 61.4,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2017-04-21",
+      "hdd_week": 36.2,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2017-04-28",
+      "hdd_week": 57.9,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2017-05-05",
+      "hdd_week": 98.0,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2017-05-12",
+      "hdd_week": 67.0,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2017-05-19",
+      "hdd_week": 16.8,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2017-05-26",
+      "hdd_week": 34.8,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2017-06-02",
+      "hdd_week": 5.8,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2017-06-09",
+      "hdd_week": 2.0,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2017-06-16",
+      "hdd_week": 0.0,
+      "change_bcf": 5.0
+     },
+     {
+      "week_ending": "2017-06-23",
+      "hdd_week": 0.2,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2017-06-30",
+      "hdd_week": 5.6,
+      "change_bcf": 1.0
+     },
+     {
+      "week_ending": "2017-07-07",
+      "hdd_week": 0.6,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2017-07-14",
+      "hdd_week": 0.0,
+      "change_bcf": -9.0
+     },
+     {
+      "week_ending": "2017-07-21",
+      "hdd_week": 0.1,
+      "change_bcf": -15.0
+     },
+     {
+      "week_ending": "2017-07-28",
+      "hdd_week": 0.0,
+      "change_bcf": -19.0
+     },
+     {
+      "week_ending": "2017-08-04",
+      "hdd_week": 0.3,
+      "change_bcf": -7.0
+     },
+     {
+      "week_ending": "2017-08-11",
+      "hdd_week": 0.1,
+      "change_bcf": -7.0
+     },
+     {
+      "week_ending": "2017-08-18",
+      "hdd_week": 0.0,
+      "change_bcf": -13.0
+     },
+     {
+      "week_ending": "2017-08-25",
+      "hdd_week": 2.6,
+      "change_bcf": -14.0
+     },
+     {
+      "week_ending": "2017-09-01",
+      "hdd_week": 3.1,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2017-09-08",
+      "hdd_week": 18.5,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2017-09-15",
+      "hdd_week": 9.7,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2017-09-22",
+      "hdd_week": 1.5,
+      "change_bcf": 5.0
+     },
+     {
+      "week_ending": "2017-09-29",
+      "hdd_week": 6.4,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2017-10-06",
+      "hdd_week": 17.1,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2017-10-13",
+      "hdd_week": 27.1,
+      "change_bcf": 1.0
+     },
+     {
+      "week_ending": "2017-10-20",
+      "hdd_week": 38.8,
+      "change_bcf": 24.0
+     },
+     {
+      "week_ending": "2017-10-27",
+      "hdd_week": 79.4,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2017-11-03",
+      "hdd_week": 158.4,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2017-11-10",
+      "hdd_week": 164.8,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2017-11-17",
+      "hdd_week": 177.8,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2017-11-24",
+      "hdd_week": 176.9,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2017-12-01",
+      "hdd_week": 135.9,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2017-12-08",
+      "hdd_week": 184.4,
+      "change_bcf": -15.0
+     },
+     {
+      "week_ending": "2017-12-15",
+      "hdd_week": 257.7,
+      "change_bcf": -65.0
+     },
+     {
+      "week_ending": "2017-12-22",
+      "hdd_week": 190.7,
+      "change_bcf": -22.0
+     },
+     {
+      "week_ending": "2017-12-29",
+      "hdd_week": 347.2,
+      "change_bcf": -73.0
+     },
+     {
+      "week_ending": "2018-01-05",
+      "hdd_week": 409.1,
+      "change_bcf": -153.0
+     },
+     {
+      "week_ending": "2018-01-12",
+      "hdd_week": 247.6,
+      "change_bcf": -56.0
+     },
+     {
+      "week_ending": "2018-01-19",
+      "hdd_week": 326.4,
+      "change_bcf": -122.0
+     },
+     {
+      "week_ending": "2018-01-26",
+      "hdd_week": 186.0,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2018-02-02",
+      "hdd_week": 249.4,
+      "change_bcf": -16.0
+     },
+     {
+      "week_ending": "2018-02-09",
+      "hdd_week": 314.5,
+      "change_bcf": -54.0
+     },
+     {
+      "week_ending": "2018-02-16",
+      "hdd_week": 245.7,
+      "change_bcf": -35.0
+     },
+     {
+      "week_ending": "2018-02-23",
+      "hdd_week": 185.3,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2018-03-02",
+      "hdd_week": 156.7,
+      "change_bcf": 1.0
+     },
+     {
+      "week_ending": "2018-03-09",
+      "hdd_week": 209.0,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2018-03-16",
+      "hdd_week": 205.1,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2018-03-23",
+      "hdd_week": 184.9,
+      "change_bcf": 1.0
+     },
+     {
+      "week_ending": "2018-03-30",
+      "hdd_week": 159.5,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2018-04-06",
+      "hdd_week": 196.3,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2018-04-13",
+      "hdd_week": 163.9,
+      "change_bcf": -12.0
+     },
+     {
+      "week_ending": "2018-04-20",
+      "hdd_week": 170.1,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2018-04-27",
+      "hdd_week": 83.0,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2018-05-04",
+      "hdd_week": 44.3,
+      "change_bcf": 36.0
+     },
+     {
+      "week_ending": "2018-05-11",
+      "hdd_week": 17.4,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2018-05-18",
+      "hdd_week": 26.2,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2018-05-25",
+      "hdd_week": 17.1,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2018-06-01",
+      "hdd_week": 0.1,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2018-06-08",
+      "hdd_week": 5.8,
+      "change_bcf": 27.0
+     },
+     {
+      "week_ending": "2018-06-15",
+      "hdd_week": 2.1,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2018-06-22",
+      "hdd_week": 1.9,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2018-06-29",
+      "hdd_week": 0.2,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2018-07-06",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2018-07-13",
+      "hdd_week": 0.0,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2018-07-20",
+      "hdd_week": 0.0,
+      "change_bcf": -18.0
+     },
+     {
+      "week_ending": "2018-07-27",
+      "hdd_week": 0.0,
+      "change_bcf": -13.0
+     },
+     {
+      "week_ending": "2018-08-03",
+      "hdd_week": 0.1,
+      "change_bcf": 1.0
+     },
+     {
+      "week_ending": "2018-08-10",
+      "hdd_week": 0.0,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2018-08-17",
+      "hdd_week": 0.0,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2018-08-24",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2018-08-31",
+      "hdd_week": 0.6,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2018-09-07",
+      "hdd_week": 0.6,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2018-09-14",
+      "hdd_week": 4.0,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2018-09-21",
+      "hdd_week": 1.5,
+      "change_bcf": -11.0
+     },
+     {
+      "week_ending": "2018-09-28",
+      "hdd_week": 28.9,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2018-10-05",
+      "hdd_week": 40.2,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2018-10-12",
+      "hdd_week": 47.9,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2018-10-19",
+      "hdd_week": 124.3,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2018-10-26",
+      "hdd_week": 126.5,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2018-11-02",
+      "hdd_week": 107.1,
+      "change_bcf": 30.0
+     },
+     {
+      "week_ending": "2018-11-09",
+      "hdd_week": 155.4,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2018-11-16",
+      "hdd_week": 239.3,
+      "change_bcf": -55.0
+     },
+     {
+      "week_ending": "2018-11-23",
+      "hdd_week": 211.9,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2018-11-30",
+      "hdd_week": 216.8,
+      "change_bcf": -9.0
+     },
+     {
+      "week_ending": "2018-12-07",
+      "hdd_week": 221.9,
+      "change_bcf": -7.0
+     },
+     {
+      "week_ending": "2018-12-14",
+      "hdd_week": 234.8,
+      "change_bcf": -38.0
+     },
+     {
+      "week_ending": "2018-12-21",
+      "hdd_week": 186.8,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2018-12-28",
+      "hdd_week": 202.1,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2019-01-04",
+      "hdd_week": 224.7,
+      "change_bcf": -13.0
+     },
+     {
+      "week_ending": "2019-01-11",
+      "hdd_week": 206.4,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2019-01-18",
+      "hdd_week": 250.2,
+      "change_bcf": -38.0
+     },
+     {
+      "week_ending": "2019-01-25",
+      "hdd_week": 322.6,
+      "change_bcf": -52.0
+     },
+     {
+      "week_ending": "2019-02-01",
+      "hdd_week": 392.0,
+      "change_bcf": -79.0
+     },
+     {
+      "week_ending": "2019-02-08",
+      "hdd_week": 215.0,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2019-02-15",
+      "hdd_week": 266.7,
+      "change_bcf": -47.0
+     },
+     {
+      "week_ending": "2019-02-22",
+      "hdd_week": 267.5,
+      "change_bcf": -51.0
+     },
+     {
+      "week_ending": "2019-03-01",
+      "hdd_week": 265.6,
+      "change_bcf": -41.0
+     },
+     {
+      "week_ending": "2019-03-08",
+      "hdd_week": 309.2,
+      "change_bcf": -84.0
+     },
+     {
+      "week_ending": "2019-03-15",
+      "hdd_week": 165.7,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2019-03-22",
+      "hdd_week": 182.3,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2019-03-29",
+      "hdd_week": 140.7,
+      "change_bcf": 35.0
+     },
+     {
+      "week_ending": "2019-04-05",
+      "hdd_week": 152.7,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2019-04-12",
+      "hdd_week": 77.4,
+      "change_bcf": 48.0
+     },
+     {
+      "week_ending": "2019-04-19",
+      "hdd_week": 103.4,
+      "change_bcf": 45.0
+     },
+     {
+      "week_ending": "2019-04-26",
+      "hdd_week": 56.6,
+      "change_bcf": 50.0
+     },
+     {
+      "week_ending": "2019-05-03",
+      "hdd_week": 104.5,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2019-05-10",
+      "hdd_week": 60.7,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2019-05-17",
+      "hdd_week": 56.6,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2019-05-24",
+      "hdd_week": 35.8,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2019-05-31",
+      "hdd_week": 8.7,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2019-06-07",
+      "hdd_week": 9.8,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2019-06-14",
+      "hdd_week": 7.2,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2019-06-21",
+      "hdd_week": 9.9,
+      "change_bcf": 18.0
+     },
+     {
+      "week_ending": "2019-06-28",
+      "hdd_week": 0.2,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2019-07-05",
+      "hdd_week": 0.0,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2019-07-12",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2019-07-19",
+      "hdd_week": 0.0,
+      "change_bcf": -8.0
+     },
+     {
+      "week_ending": "2019-07-26",
+      "hdd_week": 0.0,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2019-08-02",
+      "hdd_week": 0.0,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2019-08-09",
+      "hdd_week": 0.0,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2019-08-16",
+      "hdd_week": 0.0,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2019-08-23",
+      "hdd_week": 0.1,
+      "change_bcf": -1.0
+     },
+     {
+      "week_ending": "2019-08-30",
+      "hdd_week": 0.4,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2019-09-06",
+      "hdd_week": 2.1,
+      "change_bcf": 11.0
+     },
+     {
+      "week_ending": "2019-09-13",
+      "hdd_week": 3.5,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2019-09-20",
+      "hdd_week": 0.2,
+      "change_bcf": 24.0
+     },
+     {
+      "week_ending": "2019-09-27",
+      "hdd_week": 3.3,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2019-10-04",
+      "hdd_week": 25.2,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2019-10-11",
+      "hdd_week": 42.0,
+      "change_bcf": 39.0
+     },
+     {
+      "week_ending": "2019-10-18",
+      "hdd_week": 111.2,
+      "change_bcf": 41.0
+     },
+     {
+      "week_ending": "2019-10-25",
+      "hdd_week": 87.9,
+      "change_bcf": 44.0
+     },
+     {
+      "week_ending": "2019-11-01",
+      "hdd_week": 152.3,
+      "change_bcf": 11.0
+     },
+     {
+      "week_ending": "2019-11-08",
+      "hdd_week": 189.2,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2019-11-15",
+      "hdd_week": 242.6,
+      "change_bcf": -33.0
+     },
+     {
+      "week_ending": "2019-11-22",
+      "hdd_week": 178.5,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2019-11-29",
+      "hdd_week": 177.4,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2019-12-06",
+      "hdd_week": 196.4,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2019-12-13",
+      "hdd_week": 224.7,
+      "change_bcf": -26.0
+     },
+     {
+      "week_ending": "2019-12-20",
+      "hdd_week": 263.0,
+      "change_bcf": -48.0
+     },
+     {
+      "week_ending": "2019-12-27",
+      "hdd_week": 153.2,
+      "change_bcf": -1.0
+     },
+     {
+      "week_ending": "2020-01-03",
+      "hdd_week": 179.7,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2020-01-10",
+      "hdd_week": 208.9,
+      "change_bcf": -21.0
+     },
+     {
+      "week_ending": "2020-01-17",
+      "hdd_week": 238.9,
+      "change_bcf": -11.0
+     },
+     {
+      "week_ending": "2020-01-24",
+      "hdd_week": 269.9,
+      "change_bcf": -70.0
+     },
+     {
+      "week_ending": "2020-01-31",
+      "hdd_week": 226.6,
+      "change_bcf": -54.0
+     },
+     {
+      "week_ending": "2020-02-07",
+      "hdd_week": 205.6,
+      "change_bcf": -38.0
+     },
+     {
+      "week_ending": "2020-02-14",
+      "hdd_week": 267.8,
+      "change_bcf": -42.0
+     },
+     {
+      "week_ending": "2020-02-21",
+      "hdd_week": 254.4,
+      "change_bcf": -40.0
+     },
+     {
+      "week_ending": "2020-02-28",
+      "hdd_week": 210.1,
+      "change_bcf": -37.0
+     },
+     {
+      "week_ending": "2020-03-06",
+      "hdd_week": 172.8,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2020-03-13",
+      "hdd_week": 129.8,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2020-03-20",
+      "hdd_week": 160.8,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2020-03-27",
+      "hdd_week": 161.8,
+      "change_bcf": 11.0
+     },
+     {
+      "week_ending": "2020-04-03",
+      "hdd_week": 110.1,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2020-04-10",
+      "hdd_week": 96.1,
+      "change_bcf": 40.0
+     },
+     {
+      "week_ending": "2020-04-17",
+      "hdd_week": 160.9,
+      "change_bcf": 29.0
+     },
+     {
+      "week_ending": "2020-04-24",
+      "hdd_week": 108.2,
+      "change_bcf": 38.0
+     },
+     {
+      "week_ending": "2020-05-01",
+      "hdd_week": 73.1,
+      "change_bcf": 48.0
+     },
+     {
+      "week_ending": "2020-05-08",
+      "hdd_week": 72.4,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2020-05-15",
+      "hdd_week": 90.0,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2020-05-22",
+      "hdd_week": 33.3,
+      "change_bcf": 24.0
+     },
+     {
+      "week_ending": "2020-05-29",
+      "hdd_week": 1.1,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2020-06-05",
+      "hdd_week": 10.0,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2020-06-12",
+      "hdd_week": 0.8,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2020-06-19",
+      "hdd_week": 9.9,
+      "change_bcf": 39.0
+     },
+     {
+      "week_ending": "2020-06-26",
+      "hdd_week": 0.0,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2020-07-03",
+      "hdd_week": 0.0,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2020-07-10",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2020-07-17",
+      "hdd_week": 0.0,
+      "change_bcf": -7.0
+     },
+     {
+      "week_ending": "2020-07-24",
+      "hdd_week": 0.0,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2020-07-31",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2020-08-07",
+      "hdd_week": 0.6,
+      "change_bcf": 5.0
+     },
+     {
+      "week_ending": "2020-08-14",
+      "hdd_week": 0.0,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2020-08-21",
+      "hdd_week": 0.0,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2020-08-28",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2020-09-04",
+      "hdd_week": 0.5,
+      "change_bcf": 18.0
+     },
+     {
+      "week_ending": "2020-09-11",
+      "hdd_week": 19.8,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2020-09-18",
+      "hdd_week": 13.4,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2020-09-25",
+      "hdd_week": 18.2,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2020-10-02",
+      "hdd_week": 51.1,
+      "change_bcf": 18.0
+     },
+     {
+      "week_ending": "2020-10-09",
+      "hdd_week": 52.6,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2020-10-16",
+      "hdd_week": 47.7,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2020-10-23",
+      "hdd_week": 102.6,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2020-10-30",
+      "hdd_week": 163.4,
+      "change_bcf": -36.0
+     },
+     {
+      "week_ending": "2020-11-06",
+      "hdd_week": 90.7,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2020-11-13",
+      "hdd_week": 76.1,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2020-11-20",
+      "hdd_week": 139.5,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2020-11-27",
+      "hdd_week": 159.7,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2020-12-04",
+      "hdd_week": 195.8,
+      "change_bcf": -32.0
+     },
+     {
+      "week_ending": "2020-12-11",
+      "hdd_week": 185.2,
+      "change_bcf": -38.0
+     },
+     {
+      "week_ending": "2020-12-18",
+      "hdd_week": 233.2,
+      "change_bcf": -49.0
+     },
+     {
+      "week_ending": "2020-12-25",
+      "hdd_week": 216.2,
+      "change_bcf": -24.0
+     },
+     {
+      "week_ending": "2021-01-01",
+      "hdd_week": 244.9,
+      "change_bcf": -20.0
+     },
+     {
+      "week_ending": "2021-01-08",
+      "hdd_week": 228.4,
+      "change_bcf": -37.0
+     },
+     {
+      "week_ending": "2021-01-15",
+      "hdd_week": 228.7,
+      "change_bcf": -75.0
+     },
+     {
+      "week_ending": "2021-01-22",
+      "hdd_week": 244.2,
+      "change_bcf": -37.0
+     },
+     {
+      "week_ending": "2021-01-29",
+      "hdd_week": 274.6,
+      "change_bcf": -44.0
+     },
+     {
+      "week_ending": "2021-02-05",
+      "hdd_week": 251.7,
+      "change_bcf": -55.0
+     },
+     {
+      "week_ending": "2021-02-12",
+      "hdd_week": 368.5,
+      "change_bcf": -89.0
+     },
+     {
+      "week_ending": "2021-02-19",
+      "hdd_week": 371.7,
+      "change_bcf": -156.0
+     },
+     {
+      "week_ending": "2021-02-26",
+      "hdd_week": 217.9,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2021-03-05",
+      "hdd_week": 177.7,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2021-03-12",
+      "hdd_week": 114.8,
+      "change_bcf": 30.0
+     },
+     {
+      "week_ending": "2021-03-19",
+      "hdd_week": 162.9,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2021-03-26",
+      "hdd_week": 100.2,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2021-04-02",
+      "hdd_week": 134.9,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2021-04-09",
+      "hdd_week": 33.9,
+      "change_bcf": 30.0
+     },
+     {
+      "week_ending": "2021-04-16",
+      "hdd_week": 101.4,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2021-04-23",
+      "hdd_week": 130.7,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2021-04-30",
+      "hdd_week": 61.3,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2021-05-07",
+      "hdd_week": 53.8,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2021-05-14",
+      "hdd_week": 93.4,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2021-05-21",
+      "hdd_week": 11.1,
+      "change_bcf": 43.0
+     },
+     {
+      "week_ending": "2021-05-28",
+      "hdd_week": 18.0,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2021-06-04",
+      "hdd_week": 23.8,
+      "change_bcf": 24.0
+     },
+     {
+      "week_ending": "2021-06-11",
+      "hdd_week": 0.0,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2021-06-18",
+      "hdd_week": 0.1,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2021-06-25",
+      "hdd_week": 4.2,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2021-07-02",
+      "hdd_week": 0.3,
+      "change_bcf": -14.0
+     },
+     {
+      "week_ending": "2021-07-09",
+      "hdd_week": 0.6,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2021-07-16",
+      "hdd_week": 0.0,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2021-07-23",
+      "hdd_week": 0.0,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2021-07-30",
+      "hdd_week": 0.0,
+      "change_bcf": -23.0
+     },
+     {
+      "week_ending": "2021-08-06",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2021-08-13",
+      "hdd_week": 0.0,
+      "change_bcf": 5.0
+     },
+     {
+      "week_ending": "2021-08-20",
+      "hdd_week": 0.0,
+      "change_bcf": -14.0
+     },
+     {
+      "week_ending": "2021-08-27",
+      "hdd_week": 0.0,
+      "change_bcf": -22.0
+     },
+     {
+      "week_ending": "2021-09-03",
+      "hdd_week": 0.4,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2021-09-10",
+      "hdd_week": 0.5,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2021-09-17",
+      "hdd_week": 0.2,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2021-09-24",
+      "hdd_week": 14.9,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2021-10-01",
+      "hdd_week": 7.7,
+      "change_bcf": 41.0
+     },
+     {
+      "week_ending": "2021-10-08",
+      "hdd_week": 0.9,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2021-10-15",
+      "hdd_week": 12.0,
+      "change_bcf": 29.0
+     },
+     {
+      "week_ending": "2021-10-22",
+      "hdd_week": 61.7,
+      "change_bcf": 36.0
+     },
+     {
+      "week_ending": "2021-10-29",
+      "hdd_week": 100.5,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2021-11-05",
+      "hdd_week": 147.7,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2021-11-12",
+      "hdd_week": 103.2,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2021-11-19",
+      "hdd_week": 175.4,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2021-11-26",
+      "hdd_week": 189.3,
+      "change_bcf": -12.0
+     },
+     {
+      "week_ending": "2021-12-03",
+      "hdd_week": 167.4,
+      "change_bcf": -14.0
+     },
+     {
+      "week_ending": "2021-12-10",
+      "hdd_week": 209.2,
+      "change_bcf": -13.0
+     },
+     {
+      "week_ending": "2021-12-17",
+      "hdd_week": 148.0,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2021-12-24",
+      "hdd_week": 214.0,
+      "change_bcf": -39.0
+     },
+     {
+      "week_ending": "2021-12-31",
+      "hdd_week": 187.7,
+      "change_bcf": 27.0
+     },
+     {
+      "week_ending": "2022-01-07",
+      "hdd_week": 301.0,
+      "change_bcf": -55.0
+     },
+     {
+      "week_ending": "2022-01-14",
+      "hdd_week": 264.6,
+      "change_bcf": -69.0
+     },
+     {
+      "week_ending": "2022-01-21",
+      "hdd_week": 291.4,
+      "change_bcf": -81.0
+     },
+     {
+      "week_ending": "2022-01-28",
+      "hdd_week": 324.3,
+      "change_bcf": -101.0
+     },
+     {
+      "week_ending": "2022-02-04",
+      "hdd_week": 283.6,
+      "change_bcf": -74.0
+     },
+     {
+      "week_ending": "2022-02-11",
+      "hdd_week": 252.7,
+      "change_bcf": -74.0
+     },
+     {
+      "week_ending": "2022-02-18",
+      "hdd_week": 264.1,
+      "change_bcf": -34.0
+     },
+     {
+      "week_ending": "2022-02-25",
+      "hdd_week": 248.6,
+      "change_bcf": -35.0
+     },
+     {
+      "week_ending": "2022-03-04",
+      "hdd_week": 195.1,
+      "change_bcf": -38.0
+     },
+     {
+      "week_ending": "2022-03-11",
+      "hdd_week": 191.1,
+      "change_bcf": -11.0
+     },
+     {
+      "week_ending": "2022-03-18",
+      "hdd_week": 148.4,
+      "change_bcf": -12.0
+     },
+     {
+      "week_ending": "2022-03-25",
+      "hdd_week": 121.5,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2022-04-01",
+      "hdd_week": 186.1,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2022-04-08",
+      "hdd_week": 143.8,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2022-04-15",
+      "hdd_week": 100.2,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2022-04-22",
+      "hdd_week": 133.3,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2022-04-29",
+      "hdd_week": 81.2,
+      "change_bcf": 40.0
+     },
+     {
+      "week_ending": "2022-05-06",
+      "hdd_week": 77.6,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2022-05-13",
+      "hdd_week": 17.7,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2022-05-20",
+      "hdd_week": 10.7,
+      "change_bcf": 17.0
+     },
+     {
+      "week_ending": "2022-05-27",
+      "hdd_week": 33.7,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2022-06-03",
+      "hdd_week": 2.9,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2022-06-10",
+      "hdd_week": 6.7,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2022-06-17",
+      "hdd_week": 0.5,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2022-06-24",
+      "hdd_week": 0.7,
+      "change_bcf": 11.0
+     },
+     {
+      "week_ending": "2022-07-01",
+      "hdd_week": 0.1,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2022-07-08",
+      "hdd_week": 0.0,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2022-07-15",
+      "hdd_week": 0.0,
+      "change_bcf": -16.0
+     },
+     {
+      "week_ending": "2022-07-22",
+      "hdd_week": 0.0,
+      "change_bcf": -12.0
+     },
+     {
+      "week_ending": "2022-07-29",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2022-08-05",
+      "hdd_week": 0.0,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2022-08-12",
+      "hdd_week": 0.0,
+      "change_bcf": -8.0
+     },
+     {
+      "week_ending": "2022-08-26",
+      "hdd_week": 0.0,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2022-09-02",
+      "hdd_week": 0.0,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2022-09-09",
+      "hdd_week": 0.2,
+      "change_bcf": 17.0
+     },
+     {
+      "week_ending": "2022-09-16",
+      "hdd_week": 3.7,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2022-09-23",
+      "hdd_week": 12.5,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2022-09-30",
+      "hdd_week": 53.0,
+      "change_bcf": 45.0
+     },
+     {
+      "week_ending": "2022-10-07",
+      "hdd_week": 38.0,
+      "change_bcf": 55.0
+     },
+     {
+      "week_ending": "2022-10-14",
+      "hdd_week": 72.4,
+      "change_bcf": 41.0
+     },
+     {
+      "week_ending": "2022-10-21",
+      "hdd_week": 128.5,
+      "change_bcf": 17.0
+     },
+     {
+      "week_ending": "2022-10-28",
+      "hdd_week": 54.3,
+      "change_bcf": 44.0
+     },
+     {
+      "week_ending": "2022-11-04",
+      "hdd_week": 51.0,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2022-11-11",
+      "hdd_week": 76.8,
+      "change_bcf": 35.0
+     },
+     {
+      "week_ending": "2022-11-18",
+      "hdd_week": 224.0,
+      "change_bcf": -28.0
+     },
+     {
+      "week_ending": "2022-11-25",
+      "hdd_week": 200.0,
+      "change_bcf": -19.0
+     },
+     {
+      "week_ending": "2022-12-02",
+      "hdd_week": 171.3,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2022-12-09",
+      "hdd_week": 195.5,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2022-12-16",
+      "hdd_week": 192.2,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2022-12-23",
+      "hdd_week": 307.7,
+      "change_bcf": -63.0
+     },
+     {
+      "week_ending": "2022-12-30",
+      "hdd_week": 268.7,
+      "change_bcf": -96.0
+     },
+     {
+      "week_ending": "2023-01-06",
+      "hdd_week": 180.2,
+      "change_bcf": 27.0
+     },
+     {
+      "week_ending": "2023-01-13",
+      "hdd_week": 207.1,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2023-01-20",
+      "hdd_week": 194.1,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2023-01-27",
+      "hdd_week": 243.9,
+      "change_bcf": -42.0
+     },
+     {
+      "week_ending": "2023-02-03",
+      "hdd_week": 310.4,
+      "change_bcf": -74.0
+     },
+     {
+      "week_ending": "2023-02-10",
+      "hdd_week": 198.2,
+      "change_bcf": -20.0
+     },
+     {
+      "week_ending": "2023-02-17",
+      "hdd_week": 183.8,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2023-02-24",
+      "hdd_week": 203.0,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2023-03-03",
+      "hdd_week": 171.6,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2023-03-10",
+      "hdd_week": 169.2,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2023-03-17",
+      "hdd_week": 205.0,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2023-03-24",
+      "hdd_week": 187.3,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2023-03-31",
+      "hdd_week": 156.1,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2023-04-07",
+      "hdd_week": 113.1,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2023-04-14",
+      "hdd_week": 36.6,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2023-04-21",
+      "hdd_week": 82.4,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2023-04-28",
+      "hdd_week": 128.8,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2023-05-05",
+      "hdd_week": 91.5,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2023-05-12",
+      "hdd_week": 14.3,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2023-05-19",
+      "hdd_week": 29.9,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2023-05-26",
+      "hdd_week": 20.6,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2023-06-02",
+      "hdd_week": 3.5,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2023-06-09",
+      "hdd_week": 2.5,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2023-06-16",
+      "hdd_week": 12.5,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2023-06-23",
+      "hdd_week": 0.1,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2023-06-30",
+      "hdd_week": 0.0,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2023-07-07",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2023-07-14",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2023-07-21",
+      "hdd_week": 0.0,
+      "change_bcf": -11.0
+     },
+     {
+      "week_ending": "2023-07-28",
+      "hdd_week": 0.0,
+      "change_bcf": -15.0
+     },
+     {
+      "week_ending": "2023-08-04",
+      "hdd_week": 0.0,
+      "change_bcf": -16.0
+     },
+     {
+      "week_ending": "2023-08-11",
+      "hdd_week": 0.0,
+      "change_bcf": -15.0
+     },
+     {
+      "week_ending": "2023-08-18",
+      "hdd_week": 0.1,
+      "change_bcf": -21.0
+     },
+     {
+      "week_ending": "2023-08-25",
+      "hdd_week": 0.1,
+      "change_bcf": -22.0
+     },
+     {
+      "week_ending": "2023-09-01",
+      "hdd_week": 2.6,
+      "change_bcf": -15.0
+     },
+     {
+      "week_ending": "2023-09-08",
+      "hdd_week": 1.0,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2023-09-15",
+      "hdd_week": 8.9,
+      "change_bcf": 12.0
+     },
+     {
+      "week_ending": "2023-09-22",
+      "hdd_week": 7.8,
+      "change_bcf": 18.0
+     },
+     {
+      "week_ending": "2023-09-29",
+      "hdd_week": 2.6,
+      "change_bcf": 19.0
+     },
+     {
+      "week_ending": "2023-10-06",
+      "hdd_week": 7.3,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2023-10-13",
+      "hdd_week": 78.5,
+      "change_bcf": 40.0
+     },
+     {
+      "week_ending": "2023-10-20",
+      "hdd_week": 74.5,
+      "change_bcf": 30.0
+     },
+     {
+      "week_ending": "2023-10-27",
+      "hdd_week": 42.0,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2023-11-03",
+      "hdd_week": 157.6,
+      "change_bcf": -8.0
+     },
+     {
+      "week_ending": "2023-11-10",
+      "hdd_week": 93.5,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2023-11-17",
+      "hdd_week": 107.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2023-11-24",
+      "hdd_week": 163.9,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2023-12-01",
+      "hdd_week": 221.0,
+      "change_bcf": -32.0
+     },
+     {
+      "week_ending": "2023-12-08",
+      "hdd_week": 169.1,
+      "change_bcf": -9.0
+     },
+     {
+      "week_ending": "2023-12-15",
+      "hdd_week": 180.6,
+      "change_bcf": -16.0
+     },
+     {
+      "week_ending": "2023-12-22",
+      "hdd_week": 184.1,
+      "change_bcf": -16.0
+     },
+     {
+      "week_ending": "2023-12-29",
+      "hdd_week": 144.6,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2024-01-05",
+      "hdd_week": 226.1,
+      "change_bcf": -41.0
+     },
+     {
+      "week_ending": "2024-01-12",
+      "hdd_week": 221.7,
+      "change_bcf": -32.0
+     },
+     {
+      "week_ending": "2024-01-19",
+      "hdd_week": 375.7,
+      "change_bcf": -138.0
+     },
+     {
+      "week_ending": "2024-01-26",
+      "hdd_week": 249.5,
+      "change_bcf": -71.0
+     },
+     {
+      "week_ending": "2024-02-02",
+      "hdd_week": 182.5,
+      "change_bcf": -3.0
+     },
+     {
+      "week_ending": "2024-02-09",
+      "hdd_week": 160.4,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2024-02-16",
+      "hdd_week": 196.3,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2024-02-23",
+      "hdd_week": 181.7,
+      "change_bcf": -9.0
+     },
+     {
+      "week_ending": "2024-03-01",
+      "hdd_week": 153.7,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2024-03-08",
+      "hdd_week": 104.8,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2024-03-15",
+      "hdd_week": 105.9,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2024-03-22",
+      "hdd_week": 178.7,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2024-03-29",
+      "hdd_week": 160.0,
+      "change_bcf": 5.0
+     },
+     {
+      "week_ending": "2024-04-05",
+      "hdd_week": 136.2,
+      "change_bcf": 18.0
+     },
+     {
+      "week_ending": "2024-04-12",
+      "hdd_week": 78.2,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2024-04-19",
+      "hdd_week": 42.2,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2024-04-26",
+      "hdd_week": 100.9,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2024-05-03",
+      "hdd_week": 17.3,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2024-05-10",
+      "hdd_week": 26.5,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2024-05-17",
+      "hdd_week": 16.7,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2024-05-24",
+      "hdd_week": 1.5,
+      "change_bcf": 17.0
+     },
+     {
+      "week_ending": "2024-05-31",
+      "hdd_week": 13.2,
+      "change_bcf": 17.0
+     },
+     {
+      "week_ending": "2024-06-07",
+      "hdd_week": 0.6,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2024-06-14",
+      "hdd_week": 6.3,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2024-06-21",
+      "hdd_week": 0.0,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2024-06-28",
+      "hdd_week": 0.2,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2024-07-05",
+      "hdd_week": 1.4,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2024-07-12",
+      "hdd_week": 0.0,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2024-07-19",
+      "hdd_week": 0.0,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2024-07-26",
+      "hdd_week": 0.0,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2024-08-02",
+      "hdd_week": 0.0,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2024-08-09",
+      "hdd_week": 0.3,
+      "change_bcf": -27.0
+     },
+     {
+      "week_ending": "2024-08-16",
+      "hdd_week": 0.4,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2024-08-23",
+      "hdd_week": 1.9,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2024-08-30",
+      "hdd_week": 0.0,
+      "change_bcf": -14.0
+     },
+     {
+      "week_ending": "2024-09-06",
+      "hdd_week": 1.7,
+      "change_bcf": -7.0
+     },
+     {
+      "week_ending": "2024-09-13",
+      "hdd_week": 11.4,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2024-09-20",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2024-09-27",
+      "hdd_week": 3.2,
+      "change_bcf": 0.0
+     },
+     {
+      "week_ending": "2024-10-04",
+      "hdd_week": 8.9,
+      "change_bcf": 23.0
+     },
+     {
+      "week_ending": "2024-10-11",
+      "hdd_week": 24.3,
+      "change_bcf": 30.0
+     },
+     {
+      "week_ending": "2024-10-18",
+      "hdd_week": 82.6,
+      "change_bcf": 39.0
+     },
+     {
+      "week_ending": "2024-10-25",
+      "hdd_week": 34.8,
+      "change_bcf": 35.0
+     },
+     {
+      "week_ending": "2024-11-01",
+      "hdd_week": 59.9,
+      "change_bcf": 27.0
+     },
+     {
+      "week_ending": "2024-11-08",
+      "hdd_week": 67.0,
+      "change_bcf": 18.0
+     },
+     {
+      "week_ending": "2024-11-15",
+      "hdd_week": 108.5,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2024-11-22",
+      "hdd_week": 122.8,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2024-11-29",
+      "hdd_week": 188.8,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2024-12-06",
+      "hdd_week": 279.4,
+      "change_bcf": -59.0
+     },
+     {
+      "week_ending": "2024-12-13",
+      "hdd_week": 221.6,
+      "change_bcf": -29.0
+     },
+     {
+      "week_ending": "2024-12-20",
+      "hdd_week": 198.8,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2024-12-27",
+      "hdd_week": 210.3,
+      "change_bcf": -20.0
+     },
+     {
+      "week_ending": "2025-01-03",
+      "hdd_week": 195.4,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2025-01-10",
+      "hdd_week": 308.3,
+      "change_bcf": -93.0
+     },
+     {
+      "week_ending": "2025-01-17",
+      "hdd_week": 283.7,
+      "change_bcf": -77.0
+     },
+     {
+      "week_ending": "2025-01-24",
+      "hdd_week": 354.3,
+      "change_bcf": -136.0
+     },
+     {
+      "week_ending": "2025-01-31",
+      "hdd_week": 211.4,
+      "change_bcf": -47.0
+     },
+     {
+      "week_ending": "2025-02-07",
+      "hdd_week": 224.0,
+      "change_bcf": -1.0
+     },
+     {
+      "week_ending": "2025-02-14",
+      "hdd_week": 287.8,
+      "change_bcf": -54.0
+     },
+     {
+      "week_ending": "2025-02-21",
+      "hdd_week": 336.2,
+      "change_bcf": -111.0
+     },
+     {
+      "week_ending": "2025-02-28",
+      "hdd_week": 172.4,
+      "change_bcf": -30.0
+     },
+     {
+      "week_ending": "2025-03-07",
+      "hdd_week": 192.6,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2025-03-14",
+      "hdd_week": 109.2,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2025-03-21",
+      "hdd_week": 115.7,
+      "change_bcf": 37.0
+     },
+     {
+      "week_ending": "2025-03-28",
+      "hdd_week": 131.4,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2025-04-04",
+      "hdd_week": 106.2,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2025-04-11",
+      "hdd_week": 156.1,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2025-04-18",
+      "hdd_week": 77.2,
+      "change_bcf": 47.0
+     },
+     {
+      "week_ending": "2025-04-25",
+      "hdd_week": 49.2,
+      "change_bcf": 34.0
+     },
+     {
+      "week_ending": "2025-05-02",
+      "hdd_week": 50.7,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2025-05-09",
+      "hdd_week": 59.2,
+      "change_bcf": 40.0
+     },
+     {
+      "week_ending": "2025-05-16",
+      "hdd_week": 11.7,
+      "change_bcf": 39.0
+     },
+     {
+      "week_ending": "2025-05-23",
+      "hdd_week": 66.5,
+      "change_bcf": 25.0
+     },
+     {
+      "week_ending": "2025-05-30",
+      "hdd_week": 34.7,
+      "change_bcf": 34.0
+     },
+     {
+      "week_ending": "2025-06-06",
+      "hdd_week": 12.0,
+      "change_bcf": 36.0
+     },
+     {
+      "week_ending": "2025-06-13",
+      "hdd_week": 4.3,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2025-06-20",
+      "hdd_week": 1.9,
+      "change_bcf": 29.0
+     },
+     {
+      "week_ending": "2025-06-27",
+      "hdd_week": 0.1,
+      "change_bcf": 8.0
+     },
+     {
+      "week_ending": "2025-07-04",
+      "hdd_week": 0.0,
+      "change_bcf": 10.0
+     },
+     {
+      "week_ending": "2025-07-11",
+      "hdd_week": 0.0,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2025-07-18",
+      "hdd_week": 0.3,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2025-07-25",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2025-08-01",
+      "hdd_week": 0.0,
+      "change_bcf": -17.0
+     },
+     {
+      "week_ending": "2025-08-08",
+      "hdd_week": 0.0,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2025-08-15",
+      "hdd_week": 0.0,
+      "change_bcf": -13.0
+     },
+     {
+      "week_ending": "2025-08-22",
+      "hdd_week": 0.0,
+      "change_bcf": -16.0
+     },
+     {
+      "week_ending": "2025-08-29",
+      "hdd_week": 9.0,
+      "change_bcf": 4.0
+     },
+     {
+      "week_ending": "2025-09-05",
+      "hdd_week": 13.0,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2025-09-12",
+      "hdd_week": 19.6,
+      "change_bcf": 29.0
+     },
+     {
+      "week_ending": "2025-09-19",
+      "hdd_week": 0.0,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2025-09-26",
+      "hdd_week": 0.2,
+      "change_bcf": -4.0
+     },
+     {
+      "week_ending": "2025-10-03",
+      "hdd_week": 0.8,
+      "change_bcf": 15.0
+     },
+     {
+      "week_ending": "2025-10-10",
+      "hdd_week": 29.3,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2025-10-17",
+      "hdd_week": 33.1,
+      "change_bcf": 33.0
+     },
+     {
+      "week_ending": "2025-10-24",
+      "hdd_week": 83.7,
+      "change_bcf": 27.0
+     },
+     {
+      "week_ending": "2025-10-31",
+      "hdd_week": 108.8,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2025-11-07",
+      "hdd_week": 107.8,
+      "change_bcf": 22.0
+     },
+     {
+      "week_ending": "2025-11-14",
+      "hdd_week": 160.4,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2025-11-21",
+      "hdd_week": 128.9,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2025-11-28",
+      "hdd_week": 172.7,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2025-12-05",
+      "hdd_week": 284.1,
+      "change_bcf": -55.0
+     },
+     {
+      "week_ending": "2025-12-12",
+      "hdd_week": 262.7,
+      "change_bcf": -48.0
+     },
+     {
+      "week_ending": "2025-12-19",
+      "hdd_week": 277.1,
+      "change_bcf": -52.0
+     },
+     {
+      "week_ending": "2025-12-26",
+      "hdd_week": 187.6,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2026-01-09",
+      "hdd_week": 191.3,
+      "change_bcf": -1.0
+     },
+     {
+      "week_ending": "2026-01-16",
+      "hdd_week": 231.2,
+      "change_bcf": -38.0
+     },
+     {
+      "week_ending": "2026-01-23",
+      "hdd_week": 339.1,
+      "change_bcf": -89.0
+     },
+     {
+      "week_ending": "2026-01-30",
+      "hdd_week": 394.6,
+      "change_bcf": -158.0
+     },
+     {
+      "week_ending": "2026-02-06",
+      "hdd_week": 296.9,
+      "change_bcf": -108.0
+     },
+     {
+      "week_ending": "2026-02-13",
+      "hdd_week": 230.8,
+      "change_bcf": -37.0
+     },
+     {
+      "week_ending": "2026-02-20",
+      "hdd_week": 136.2,
+      "change_bcf": 6.0
+     },
+     {
+      "week_ending": "2026-02-27",
+      "hdd_week": 237.4,
+      "change_bcf": -41.0
+     },
+     {
+      "week_ending": "2026-03-06",
+      "hdd_week": 166.7,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2026-03-13",
+      "hdd_week": 111.1,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2026-03-20",
+      "hdd_week": 179.3,
+      "change_bcf": -2.0
+     },
+     {
+      "week_ending": "2026-03-27",
+      "hdd_week": 106.4,
+      "change_bcf": 30.0
+     },
+     {
+      "week_ending": "2026-04-03",
+      "hdd_week": 88.4,
+      "change_bcf": 32.0
+     },
+     {
+      "week_ending": "2026-04-10",
+      "hdd_week": 114.5,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2026-04-17",
+      "hdd_week": 25.1,
+      "change_bcf": 41.0
+     },
+     {
+      "week_ending": "2026-04-24",
+      "hdd_week": 57.5,
+      "change_bcf": 26.0
+     },
+     {
+      "week_ending": "2026-05-01",
+      "hdd_week": 78.4,
+      "change_bcf": 9.0
+     },
+     {
+      "week_ending": "2026-05-08",
+      "hdd_week": 79.3,
+      "change_bcf": 27.0
+     },
+     {
+      "week_ending": "2026-05-15",
+      "hdd_week": 49.4,
+      "change_bcf": 31.0
+     },
+     {
+      "week_ending": "2026-05-22",
+      "hdd_week": 24.9,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2026-05-29",
+      "hdd_week": 7.7,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2026-06-05",
+      "hdd_week": 5.3,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2026-06-12",
+      "hdd_week": 0.1,
+      "change_bcf": 16.0
+     },
+     {
+      "week_ending": "2026-06-19",
+      "hdd_week": 3.4,
+      "change_bcf": 13.0
+     },
+     {
+      "week_ending": "2026-06-26",
+      "hdd_week": 3.5,
+      "change_bcf": 20.0
+     },
+     {
+      "week_ending": "2026-07-03",
+      "hdd_week": 0.2,
+      "change_bcf": 14.0
+     },
+     {
+      "week_ending": "2026-07-10",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2026-07-17",
+      "hdd_week": 0.0,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2026-07-24",
+      "hdd_week": 0.2,
+      "change_bcf": -9.0
+     },
+     {
+      "week_ending": "2026-07-31",
+      "hdd_week": 0.0,
+      "change_bcf": -6.0
+     },
+     {
+      "week_ending": "2026-08-07",
+      "hdd_week": 0.0,
+      "change_bcf": 3.0
+     },
+     {
+      "week_ending": "2026-08-14",
+      "hdd_week": 0.0,
+      "change_bcf": -13.0
+     },
+     {
+      "week_ending": "2026-08-21",
+      "hdd_week": 0.0,
+      "change_bcf": -19.0
+     },
+     {
+      "week_ending": "2026-08-28",
+      "hdd_week": 0.2,
+      "change_bcf": -10.0
+     },
+     {
+      "week_ending": "2026-09-04",
+      "hdd_week": 0.0,
+      "change_bcf": -7.0
+     },
+     {
+      "week_ending": "2026-09-11",
+      "hdd_week": 0.2,
+      "change_bcf": -5.0
+     },
+     {
+      "week_ending": "2026-09-18",
+      "hdd_week": 4.6,
+      "change_bcf": 2.0
+     },
+     {
+      "week_ending": "2026-09-25",
+      "hdd_week": 21.4,
+      "change_bcf": 7.0
+     },
+     {
+      "week_ending": "2026-10-02",
+      "hdd_week": 15.8,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2026-10-09",
+      "hdd_week": 26.2,
+      "change_bcf": 21.0
+     },
+     {
+      "week_ending": "2026-10-16",
+      "hdd_week": 18.7,
+      "change_bcf": 28.0
+     },
+     {
+      "week_ending": "2026-10-23",
+      "hdd_week": 64.8,
+      "change_bcf": 43.0
+     }
+    ]
+   },
+   "normal_winter_hdd_per_day": 29.2,
+   "deviation_table": [
+    {
+     "deviation_hdd_per_day": -15,
+     "bcfd_change": -5.31,
+     "bcf_per_week": -37.2,
+     "demand_at_normal_bcfd": 5.97,
+     "storage_change_per_week_bcf": 49.5
+    },
+    {
+     "deviation_hdd_per_day": -10,
+     "bcfd_change": -3.54,
+     "bcf_per_week": -24.8,
+     "demand_at_normal_bcfd": 7.74,
+     "storage_change_per_week_bcf": 33.0
+    },
+    {
+     "deviation_hdd_per_day": -5,
+     "bcfd_change": -1.77,
+     "bcf_per_week": -12.4,
+     "demand_at_normal_bcfd": 9.51,
+     "storage_change_per_week_bcf": 16.5
+    },
+    {
+     "deviation_hdd_per_day": -2,
+     "bcfd_change": -0.71,
+     "bcf_per_week": -5.0,
+     "demand_at_normal_bcfd": 10.57,
+     "storage_change_per_week_bcf": 6.6
+    },
+    {
+     "deviation_hdd_per_day": 0,
+     "bcfd_change": 0.0,
+     "bcf_per_week": 0.0,
+     "demand_at_normal_bcfd": 11.28,
+     "storage_change_per_week_bcf": -0.0
+    },
+    {
+     "deviation_hdd_per_day": 2,
+     "bcfd_change": 0.71,
+     "bcf_per_week": 5.0,
+     "demand_at_normal_bcfd": 11.99,
+     "storage_change_per_week_bcf": -6.6
+    },
+    {
+     "deviation_hdd_per_day": 5,
+     "bcfd_change": 1.77,
+     "bcf_per_week": 12.4,
+     "demand_at_normal_bcfd": 13.05,
+     "storage_change_per_week_bcf": -16.5
+    },
+    {
+     "deviation_hdd_per_day": 10,
+     "bcfd_change": 3.54,
+     "bcf_per_week": 24.8,
+     "demand_at_normal_bcfd": 14.82,
+     "storage_change_per_week_bcf": -33.0
+    },
+    {
+     "deviation_hdd_per_day": 15,
+     "bcfd_change": 5.31,
+     "bcf_per_week": 37.2,
+     "demand_at_normal_bcfd": 16.59,
+     "storage_change_per_week_bcf": -49.5
+    }
+   ]
+  }
+ }
+}

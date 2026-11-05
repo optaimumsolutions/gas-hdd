@@ -15,7 +15,9 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 | M6 | `hdd.py` applies the fit; chart shows corrected band + raw median grey line | DONE 2026-11-04 (founder: "ship") | local run 2026-11-03 00Z: 330 fits + 30 multipliers applied, raw grey line, `calibration` block in latest.json, `refit: true` |
 | M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | DONE 2026-11-04 (`calibrate.py --nightly` in observe.yml 09:00 UTC; identity verdicts inherited from the holdout run) | fit timestamp on page advances daily |
 | M8 | ECMWF ENS second line (gated: after M6 and a few days of Pivotal checks) | gated on the founder's Pivotal check |
-| M9 | Band scorecard: grade the published calibrated band (coverage, error/spread, MAE) with raw alongside; `gefs.forecast_index` written per run; "as published" block accrues from go-live | DONE 2026-11-05 | second score column on Accuracy tab |
+| M9 | Band scorecard: grade the published calibrated band (coverage, error/spread, MAE) with raw alongside; `gefs.forecast_index` written per run; "as published" block accrues from go-live | DONE 2026-11-05 |
+| M10 | Totals scorecard (15-day total + EIA-week sums: coverage, error/spread, MAE) and no-skill shading on the chart | next |
+| M11 | Demand fitted to data: `fit_demand.py` (EIA monthly res+comm per state + weekly Midwest storage vs 10 winters of observed airport HDD); regions.py refit (Midwest 0.96 + 0.354·HDD, floor 1.82; storage change = 72.7 − 0.471·weekly HDD); reference tables A/B on the US and Midwest tabs | DONE 2026-11-05 | second score column on Accuracy tab |
 
 ## 1. Goal
 
@@ -251,3 +253,15 @@ any paid data, any server beyond the existing Actions + Pages + Neon.
 ## 8. Open items for the founder
 
 1. Confirm D13–D16 stand, or say which to change, before M1 starts.
+
+## 9. Grill of 2026-11-05 (accuracy and what to improve)
+
+| # | Decision | Chosen |
+|---|----------|--------|
+| G1 | Judged on | the 15-day total and the EIA-week sums, scored like the daily values (M10) |
+| G2 | No-skill days | keep the 15-day total; shade days with skill < 20% on the chart (M10) |
+| G3 | ECMWF | gate lifted; same backfill (bucket has enfo 0.25° from Jan 2024), own calibration and scorecard, second line; blend only once scored (M8) |
+| G4 | Demand fit basis | EIA monthly res+comm per state and weekly Midwest storage vs this index's observed HDD, 10 winters stored (observe.py --climatology now writes the daily rows), last 5 winters set the numbers (M11) |
+| G5 | Fit storage | `fit_demand.py` prints; `regions.py` updated by hand with date and source; refit is a deliberate act |
+| G6 | Tables | A: HDD level → Bcf/d with past range; B: deviation from normal → ΔBcf/d, ΔBcf/week, Δstorage/week; on the US and every region tab |
+| G7 | Storage card | fitted weekly relation replaces the 1.12–1.26 ratio; EIA's sign convention (negative = withdrawal) |

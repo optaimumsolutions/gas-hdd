@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Log one Thursday check: forecast implied Midwest withdrawal vs EIA's report.
+"""Log one Thursday check: forecast implied Midwest storage change vs EIA's report.
 
   python validate_log.py --week-ending 2026-11-06 --eia-midwest -42
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import db
 from hdd import index_members, region_cities
-from regions import MIDWEST, demand_bcfd, implied_withdrawal
+from regions import MIDWEST, implied_withdrawal
 
 HISTORY = Path(__file__).resolve().parent / "history"
 
@@ -28,15 +28,15 @@ saturday = args.week_ending - timedelta(days=6)
 with db.connect() as conn:
     run = min(db.list_runs(conn), key=lambda r: abs(r - saturday))
     loaded = db.load_forecasts(conn, run=run)[run]
-D = demand_bcfd(MIDWEST, index_members(loaded["stations"], region_cities(MIDWEST)))   # [member, day]
-week = [w for w in implied_withdrawal(MIDWEST, D, loaded["dates"])
+W = index_members(loaded["stations"], region_cities(MIDWEST))   # [member, day] weighted HDD
+week = [w for w in implied_withdrawal(MIDWEST, W, loaded["dates"])
         if w["week_ending"] == f"{args.week_ending:%Y-%m-%d}"]
 if not week:
     raise SystemExit(f"run {run:%Y-%m-%d %H}Z does not cover the week ending {args.week_ending:%Y-%m-%d}")
 w = week[0]
 row = {"week_ending": w["week_ending"], "run_used": f"{run:%Y-%m-%d %H}Z", "days_in_forecast": w["days_in_forecast"],
        "implied_low": w["low_bcf"], "implied_high": w["high_bcf"], "eia_reported": args.eia_midwest,
-       "inside_range": w["low_bcf"] <= -args.eia_midwest <= w["high_bcf"]}
+       "inside_range": w["low_bcf"] <= args.eia_midwest <= w["high_bcf"]}
 out = HISTORY / "validation.csv"
 new = not out.exists()
 with out.open("a", newline="") as f:

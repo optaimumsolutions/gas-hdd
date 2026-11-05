@@ -11,9 +11,14 @@ Each region:
           the region. Coordinates are approximate airport (ASOS) locations and
           station is that airport's ICAO code, which observe.py scores against.
   demand  Bcf/d = max(floor, intercept + slope * W + slope * kink_frac * max(0, W - kink))
+  storage weekly EIA change (Bcf) = storage_intercept + storage_per_hdd * (week's summed W)
 
-Model source for every slope/intercept/ratio below: EIA, "STEO Supplement:
-Weather Sensitivity in Natural Gas Markets" (Oct 2014).
+Slope, intercept, floor and the storage fit were fitted on 2026-11-05 by
+fit_demand.py (EIA monthly residential + commercial consumption per state and
+EIA weekly Midwest working gas, against this index's own observed airport HDD;
+last 5 winters 2021-22..2025-26 for the numbers, 10 winters checked). Re-run
+fit_demand.py and paste the printed numbers here to refit. The cold kink is
+still EIA's 2014 STEO Supplement note.
 """
 
 from datetime import timedelta
@@ -43,12 +48,10 @@ import numpy as np
 # The MI and MO 60/40 splits are by metro population, not utility customer
 # counts: a judgment call, flagged for refinement.
 #
-# Slope: EIA STEO Supplement Table 2, res+comm Bcf/d per HDD/d by census
-# division: East North Central 0.33, West North Central 0.12, East South
-# Central 0.09. Scaled to the storage Midwest by each division's share inside
-# it: ENC minus Ohio (0.33 x 0.80) + WNC's IA/MN/MO (0.12 x 0.70) + KY/TN
-# (0.09 x 0.60) = 0.40. A 2010-14 fit, not fitted to this index: placeholder
-# until the Phase 3 re-fit.
+# Slope 0.354 Bcf/d per HDD/day, intercept 0.96, floor 1.82: fit_demand.py
+# 2026-11-05, r2 0.993, residual sd 0.33 Bcf/d over 37 heating months of the
+# last 5 winters (all 10 winters: slope 0.349). EIA's 2014 census-division
+# regrouping gave 0.40 / 0 / 1.9, the placeholders this replaced.
 MIDWEST = {
     "name": "Midwest",
     "key": "midwest",
@@ -67,17 +70,19 @@ MIDWEST = {
         ("Des Moines",   "IA", 41.53, -93.66, 0.04872, "DSM"),
         ("Louisville",   "KY", 38.17, -85.73, 0.03687, "SDF"),
     ],
-    "slope_bcfd_per_hdd": 0.40,     # EIA Table 2: ENC 0.33x0.80 + WNC 0.12x0.70 + ESC 0.09x0.60
-    "intercept_bcfd": 0.0,          # EIA national res (-2.05) + comm (+2.28) intercepts net to ~0
-    "floor_bcfd": 1.9,              # summer res/comm baseload, scaled from the 13-state 2.3
+    "slope_bcfd_per_hdd": 0.354,    # fit_demand.py 2026-11-05 (EIA 2014 placeholder was 0.40)
+    "intercept_bcfd": 0.96,         # fit_demand.py 2026-11-05 (was 0)
+    "floor_bcfd": 1.82,             # median Bcf/d of months with < 1 HDD/day (was 1.9)
     "cold_kink_hdd": 45,            # daily mean below 20 F: demand steepens (EIA extreme-cold note)
-    "cold_kink_extra_frac": 0.15,   # +15% slope above the kink; placeholder until re-fit
-    "storage_ratio": (1.12, 1.26),  # EIA storage slope 1.78-2.00 vs res+comm 1.59 Bcf/d per HDD
+    "cold_kink_extra_frac": 0.15,   # +15% slope above the kink; still EIA's note, not fitted
+    # EIA weekly Midwest change (Bcf) = 72.7 - 0.471 x the storage week's summed HDD;
+    # residual sd 16.9 Bcf, r2 0.84, 120 winter weeks of the last 5 winters (fit_demand.py 2026-11-05).
+    # Replaces the national storage/consumption ratio 1.12-1.26 (the fitted ratio is 1.33).
+    "storage_intercept_bcf": 72.7,
+    "storage_per_weekly_hdd": -0.471,
+    "storage_sd_bcf": 16.9,
     "basins": ["Appalachia / Pittsburgh"],   # names from hdd.BASINS
-    # The band width is no longer a placeholder: calibrate.py fits it per
-    # airport and per lead from the forecast archive (PRD-calibration.md).
-    # The slope and kink above are still EIA's 2010-14 numbers.
-    "refit": True,
+    "refit": True,                  # band (calibrate.py) and demand (fit_demand.py) both fitted; kink is not
 }
 
 REGIONS = [MIDWEST]   # Phase 2 appends EAST, SOUTH_CENTRAL, MOUNTAIN, PACIFIC
@@ -108,19 +113,29 @@ def scenario_10pct(region, W_median_path):
     return {"colder_bcf": round(delta, 1), "warmer_bcf": round(-delta, 1)}
 
 
-def implied_withdrawal(region, D, days):
-    """Implied storage withdrawal per EIA storage week (Saturday-Friday) that
-    overlaps the forecast. For each week: each member's demand summed over the
-    week's days inside the forecast, the median of those member sums, times the
-    storage_ratio low and high. D[member, day] in Bcf/d; days = list of dates."""
+Z90 = 1.2816  # standard-normal quantile for p90 (p10 = -Z90)
+
+
+def implied_withdrawal(region, W, days):
+    """Implied EIA weekly storage change per storage week (Saturday-Friday)
+    that overlaps the forecast, from the fitted weekly relation
+    change = storage_intercept_bcf + storage_per_weekly_hdd * weekly HDD.
+    For each week: each member's HDD summed over the week's days inside the
+    forecast, the median of those sums, through the fit; low/high = the median
+    -/+ 1.2816 x the fit's residual sd (the p10-p90 of past weeks).
+    EIA's sign: negative = withdrawal, positive = injection.
+    W[member, day] = weighted HDD; days = list of dates. A week only partly
+    inside the forecast is scaled to 7 days."""
     weeks = {}
     for i, d in enumerate(days):
         week_ending = d + timedelta(days=(4 - d.weekday()) % 7)   # the Friday
         weeks.setdefault(week_ending, []).append(i)
-    lo, hi = region["storage_ratio"]
     rows = []
     for week_ending, idx in sorted(weeks.items()):
-        median = float(np.median(D[:, idx].sum(axis=1)))
+        hdd_week = float(np.median(W[:, idx].sum(axis=1))) * 7 / len(idx)
+        change = region["storage_intercept_bcf"] + region["storage_per_weekly_hdd"] * hdd_week
         rows.append({"week_ending": week_ending.isoformat(), "days_in_forecast": len(idx),
-                     "low_bcf": round(lo * median, 1), "high_bcf": round(hi * median, 1)})
+                     "hdd_week": round(hdd_week, 1), "median_bcf": round(change, 1),
+                     "low_bcf": round(change - Z90 * region["storage_sd_bcf"], 1),
+                     "high_bcf": round(change + Z90 * region["storage_sd_bcf"], 1)})
     return rows

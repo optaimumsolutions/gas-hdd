@@ -124,8 +124,8 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     document.getElementById("tabs").insertAdjacentHTML("beforeend", `<button data-tab="${key}">${r.name}</button>`);
     const t = r.total_bcf, m = r.model, sc = r.scenario_10pct;
     const weeks = (r.implied_withdrawal || []).map(w =>
-      `<div class="${w.days_in_forecast < 4 ? "partial" : ""}">Implied ${r.name} withdrawal, week ending ${w.week_ending}: ` +
-      `<b>${w.low_bcf.toFixed(0)}&ndash;${w.high_bcf.toFixed(0)} Bcf</b> (EIA reports Thursday)` +
+      `<div class="${w.days_in_forecast < 4 ? "partial" : ""}">Implied EIA ${r.name} storage change, week ending ${w.week_ending}: ` +
+      `<b>${(w.median_bcf > 0 ? "+" : "") + w.median_bcf.toFixed(0)} Bcf</b> (p10&ndash;p90 ${(w.low_bcf > 0 ? "+" : "") + w.low_bcf.toFixed(0)} to ${(w.high_bcf > 0 ? "+" : "") + w.high_bcf.toFixed(0)}; ${w.hdd_week.toFixed(0)} HDD in the week; negative = withdrawal; EIA reports Thursday)` +
       `${w.days_in_forecast < 7 ? ` <span class="muted">&middot; ${w.days_in_forecast} of 7 days in forecast</span>` : ""}</div>`).join("");
     const rows = r.days.map(x => `<tr><td>${x.day}</td><td>${x.date}</td><td>${x.hdd_median.toFixed(1)}</td>` +
       `<td>${x.hdd_p10.toFixed(1)}</td><td>${x.hdd_p90.toFixed(1)}</td><td>${x.bcfd_median.toFixed(2)}</td>` +
@@ -149,11 +149,40 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     <tfoot><tr><td colspan="2">15-day total</td><td>${r.total_hdd.median.toFixed(1)}</td><td>${r.total_hdd.p10.toFixed(1)}</td>` +
     `<td>${r.total_hdd.p90.toFixed(1)}</td><td>${t.median.toFixed(1)}</td><td>${t.raw_p10.toFixed(1)}</td><td>${t.raw_p90.toFixed(1)}</td></tr></tfoot>
   </table>
-  <p class="muted">Model: Bcf/d = max(${m.floor}, ${m.intercept} + ${m.slope} &times; HDD), slope +${(m.cold_kink_extra_frac * 100).toFixed(0)}% above ${m.cold_kink_hdd} HDD/day;
-    storage withdrawal = res/comm &times; ${m.storage_ratio[0]}&ndash;${m.storage_ratio[1]}. Source: ${m.source}. The slope and kink are EIA's 2010&ndash;14 fit, not yet re-fit to this index.
+  <div id="demand-${key}"></div>
+  <p class="muted">Model: Bcf/d = max(${m.floor}, ${m.intercept} + ${m.slope} &times; HDD/day), slope +${(m.cold_kink_extra_frac * 100).toFixed(0)}% above ${m.cold_kink_hdd} HDD/day;
+    EIA weekly storage change = ${m.storage_intercept_bcf} ${m.storage_per_weekly_hdd} &times; the week's HDD (residual sd ${m.storage_sd_bcf} Bcf). Source: ${m.source}. The cold kink is still EIA's 2014 note.
     The HDD band is calibrated (see the US tab) and converted to Bcf member by member; "raw" is the uncorrected GEFS. The totals row uses the member sums.</p>
 </div>`);
   }
+
+  // ---- Reference tables: what an HDD is worth in gas (demand.json, written by fit_demand.py)
+  (async function () {
+    const r = await fetch("demand.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return;
+    const dm = await r.json();
+    const f0 = x => (x === null || x === undefined) ? "&ndash;" : x.toFixed(x >= 10 ? 1 : 2);
+    const sign = x => (x > 0 ? "+" : "") + x.toFixed(Math.abs(x) >= 10 ? 1 : 2);
+    const block = (key, g, unit) => {
+      const levels = g.level_table.map(x => `<tr><td>${x.hdd_per_day}</td><td>${f0(x.fitted_bcfd)}</td>` +
+        `<td>${x.seen_n_months ? `${f0(x.seen_min)}&ndash;${f0(x.seen_max)} <span class="muted">(${x.seen_n_months} months)</span>` : `<span class="muted">not seen</span>`}</td></tr>`).join("");
+      const devs = g.deviation_table.map(x => `<tr><td>${sign(x.deviation_hdd_per_day)}</td><td>${f0(x.demand_at_normal_bcfd)}</td><td>${sign(x.bcfd_change)}</td><td>${sign(x.bcf_per_week)}</td>` +
+        (g.storage ? `<td>${sign(x.storage_change_per_week_bcf)}</td>` : "") + `</tr>`).join("");
+      return `
+  <h3>What an HDD is worth here (fitted to ${g.fit_months} heating months, winters ${g.fit_winters[0]}&ndash;${g.fit_winters[g.fit_winters.length - 1] + 1})</h3>
+  <p class="muted">Res/comm demand = ${g.intercept_bcfd.toFixed(2)} + ${g.slope_bcfd_per_hdd.toFixed(3)} &times; HDD/day (r&sup2; ${g.r2}, typical miss ${g.resid_sd_bcfd} Bcf/d).
+    Over all ${g.all_winters.to - g.all_winters.from + 1} winters since ${g.all_winters.from} the slope was ${g.all_winters.slope.toFixed(3)}. Normal Nov&ndash;Mar day: ${g.normal_winter_hdd_per_day} HDD.
+    ${g.storage ? `EIA weekly storage change = ${g.storage.intercept_bcf} ${g.storage.bcf_per_weekly_hdd} &times; weekly HDD (r&sup2; ${g.storage.r2}, typical miss ${g.storage.resid_sd_bcf} Bcf), i.e. one HDD/day sustained for a week moves storage by ${(7 * g.storage.bcf_per_weekly_hdd).toFixed(1)} Bcf.` : ""}</p>
+  <div class="cards" style="align-items:flex-start">
+    <div><b>A. HDD level &rarr; demand</b><table><thead><tr><th>HDD/day</th><th>Fitted Bcf/d</th><th>Seen in past months</th></tr></thead><tbody>${levels}</tbody></table></div>
+    <div><b>B. Deviation from normal &rarr; gas</b><table><thead><tr><th>HDD/day vs normal</th><th>Demand Bcf/d</th><th>&Delta; Bcf/d</th><th>&Delta; Bcf / 7-day week</th>${g.storage ? "<th>&Delta; storage / week</th>" : ""}</tr></thead><tbody>${devs}</tbody></table></div>
+  </div>`;
+    };
+    for (const [key, g] of Object.entries(dm.regions)) {
+      const host = key === "us" ? document.getElementById("tab-us") : document.getElementById(`demand-${key}`);
+      if (host) host.insertAdjacentHTML("beforeend", block(key, g));
+    }
+  })().catch(() => {});
 
   // ---- Accuracy tab: scores of past forecasts against observed weather (accuracy.json, written by score.py)
   document.getElementById("tabs").insertAdjacentHTML("beforeend", `<button data-tab="accuracy">Accuracy</button>`);
@@ -202,7 +231,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <table class="wide"><thead><tr><th>Date</th>${hddIdx.map(k => `<th>${name(k)} obs</th><th>day 1</th><th>day 5</th><th>day 10</th>`).join("")}</tr></thead>
     <tbody>${lastRows || `<tr><td colspan="${1 + 4 * hddIdx.length}">no observed days yet</td></tr>`}</tbody></table>
   <div id="calibration"></div>
-  <h3>Thursday storage check (Midwest implied withdrawal vs EIA)</h3>
+  <h3>Thursday storage check (Midwest implied storage change vs EIA print, Bcf; negative = withdrawal)</h3>
   <p class="muted">Hit rate: ${pct(a.storage.hit_rate)} (${a.storage.n} weeks logged)</p>
   <table class="wide"><thead><tr><th>Week ending</th><th>Run used</th><th>Implied range, Bcf</th><th>EIA print</th><th>Result</th></tr></thead>
     <tbody>${storeRows || `<tr><td colspan="5">no weeks logged yet (python validate_log.py)</td></tr>`}</tbody></table>

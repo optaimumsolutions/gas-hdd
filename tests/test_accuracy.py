@@ -54,7 +54,8 @@ def test_bcf_rows_at_the_floor_are_excluded():
     temps = np.full((1, 31), 75.0)                                  # summer: 0 HDD everywhere
     stations = {st: (temps, temps) for st in hdd.STATIONS}
     forecasts = {datetime(2026, 7, 1): {"dates": dates, "stations": stations}}
-    observed = pd.DataFrame({"us_hdd": [0.0], "midwest_hdd": [0.0], "midwest_bcf": [1.9]},
+    from regions import MIDWEST
+    observed = pd.DataFrame({"us_hdd": [0.0], "midwest_hdd": [0.0], "midwest_bcf": [MIDWEST["floor_bcfd"]]},
                             index=pd.Index(["2026-07-01"], name="date"))
     scores, excluded = score.build_scores(forecasts, observed)
     assert excluded == 1

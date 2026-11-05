@@ -9,6 +9,15 @@ serves the `docs/` folder as the dashboard. No servers, no accounts, no paid dat
 
 ## Changelog
 
+- **2026-11-05 — Demand model fitted to data; reference tables.** `fit_demand.py` fits
+  EIA monthly residential + commercial consumption (9 Midwest states; US) and EIA weekly Midwest
+  storage against ten winters of this dashboard's own observed airport HDD (now stored in Neon).
+  Midwest: Bcf/d = 0.96 + 0.354 × HDD/day (r² 0.993; the 2014 placeholder was 0 + 0.40), summer
+  floor 1.82; weekly storage change = 72.7 − 0.471 × weekly HDD (r² 0.84), replacing the
+  1.12–1.26 ratio. US: 6.01 + 1.616 × HDD/day (r² 0.991). Each tab gained two reference tables:
+  HDD level → Bcf/d with the range seen in past months, and deviation from normal → Bcf/d, Bcf
+  per week and (Midwest) storage change per week. The scorecard now grades the published
+  calibrated band (coverage, error/spread, MAE) with raw alongside.
 - **2026-11-04 (later) — Calibrated band live.** Every run now applies the fit from
   `calibrate.py`: each airport's 31 members are shifted and scaled per lead day (EMOS, trained on
   winter 2024–25), then each index's members are stretched about the median by a per-lead factor
@@ -81,11 +90,12 @@ with **Midwest**, works differently:
 - **±10% weather**: the line under the headline is
   how many Bcf the 15 days would move if every day were 10% colder or warmer in HDD than the
   median path: 0.10 × slope × the 15-day median HDD.
-- **Implied storage withdrawal**: for each EIA storage week (Saturday–Friday) that overlaps
-  the forecast, each member's demand is summed over the week's forecast days, the median
-  member sum is taken, and it is multiplied by 1.12–1.26. That ratio is EIA's storage slope
-  (1.78–2.00 Bcf/d per HDD) over its res+comm slope (1.59): storage also feeds power burn and
-  industrial load when it is cold. Weeks with fewer than 4 forecast days are greyed out.
+- **Implied EIA storage change**: for each EIA storage week (Saturday–Friday) that overlaps
+  the forecast, each member's HDD is summed over the week, the median of those sums goes
+  through the fitted weekly relation (EIA Midwest change = 72.7 − 0.471 × weekly HDD, fitted on
+  120 winter weeks of the last 5 winters, typical miss 17 Bcf), and the p10–p90 is that median
+  ± 1.28 × the fit's residual. EIA's sign: negative = withdrawal. Weeks with fewer than 4
+  forecast days are greyed out.
 - **Two ranges.** *Calibrated* p10–p90 is the spread of the 31 members after the calibration
   described in `PRD-calibration.md` (each airport's members shifted and scaled per lead day,
   then the index stretched to the width that held 80% of outcomes over a training winter).
@@ -127,14 +137,10 @@ its tabs from `latest.json`, so `index.html` does not change.
 
 ### What is still a placeholder
 
-The band width is fitted (see the Accuracy tab); the demand model's own numbers are not:
+The band width (calibrate.py) and the demand slope, intercept, floor and storage relation
+(fit_demand.py) are fitted. Still not fitted:
 
-- Slope 0.40 is EIA's 2010–14 census-division fit regrouped into the storage Midwest by
-  consumption share, not fitted to this index.
-- Intercept 0: EIA's national residential (−2.05) and commercial (+2.28) intercepts roughly
-  cancel; the Midwest's own intercept is unknown until re-fit.
 - Cold kink at 45 HDD with +15% slope is a placeholder for EIA's extreme-cold behaviour.
-- Storage ratio 1.12–1.26 is a national ratio applied to the Midwest.
 - MI 60/40 (Detroit / Grand Rapids) and MO 60/40 (St. Louis / Kansas City) splits are by
   metro population, not utility customer counts.
 

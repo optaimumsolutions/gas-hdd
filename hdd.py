@@ -635,7 +635,7 @@ def main():
                               "p90": round(float(h[2]), 1)}
             s["hdd_median"] = np.median(s["hdd"], axis=0)
             s["scenario_10pct"] = scenario_10pct(r, s["hdd_median"])
-            s["implied_withdrawal"] = implied_withdrawal(r, s["bcfd"], days)
+            s["implied_withdrawal"] = implied_withdrawal(r, s["hdd"], days)
 
     with step("5/8 compare with earlier runs"):
         try:
@@ -728,8 +728,8 @@ def main():
         sc = s["scenario_10pct"]
         print(f"  10% colder: {sc['colder_bcf']:+.1f} Bcf, 10% warmer: {sc['warmer_bcf']:+.1f} Bcf")
         for w in s["implied_withdrawal"]:
-            print(f"  implied withdrawal, week ending {w['week_ending']} ({w['days_in_forecast']}/7 days): "
-                  f"{w['low_bcf']}-{w['high_bcf']} Bcf")
+            print(f"  implied EIA change, week ending {w['week_ending']} ({w['days_in_forecast']}/7 days): "
+                  f"{w['median_bcf']:+.0f} Bcf (p10-p90 {w['low_bcf']:+.0f} to {w['high_bcf']:+.0f})")
         for name, key in [("previous run", "vs_prev"), ("run 24h earlier", "vs_24h")]:
             cmp = s[key]
             print(f"  vs {name}: " + ("no prior run" if cmp is None else
@@ -779,8 +779,11 @@ def main():
                 "model": {"slope": r["slope_bcfd_per_hdd"], "intercept": r["intercept_bcfd"],
                           "floor": r["floor_bcfd"], "cold_kink_hdd": r["cold_kink_hdd"],
                           "cold_kink_extra_frac": r["cold_kink_extra_frac"],
-                          "storage_ratio": list(r["storage_ratio"]), "refit": r["refit"],
-                          "source": "EIA STEO Supplement, Weather Sensitivity in Natural Gas Markets, Oct 2014"},
+                          "storage_intercept_bcf": r["storage_intercept_bcf"],
+                          "storage_per_weekly_hdd": r["storage_per_weekly_hdd"],
+                          "storage_sd_bcf": r["storage_sd_bcf"], "refit": r["refit"],
+                          "source": "fit_demand.py 2026-11-05: EIA monthly res+comm consumption and weekly "
+                                    "Midwest storage vs observed airport HDD, last 5 winters"},
                 "basin_freeze_risk": {label: {b: round(maps[label][2][b], 2) for b in r["basins"]}
                                       for label, _, _ in PERIODS},
                 "images": {"hdd_chart": f"{k}_hdd.png", "bcf_chart": f"{k}_bcf.png",

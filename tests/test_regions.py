@@ -30,8 +30,11 @@ def test_member_sums_not_converted_percentiles():
 
 
 def test_phase2_slopes_sum_to_eia_national():
+    """EIA's 2014 regrouped slopes still sum to its national 1.59; the fitted
+    Midwest slope (fit_demand.py) must stay within 20% of EIA's 0.40 or the
+    fit, not EIA, needs a second look."""
     assert np.isclose(sum(PHASE2_SLOPES.values()), 1.59)
-    assert PHASE2_SLOPES["midwest"] == MIDWEST["slope_bcfd_per_hdd"]
+    assert abs(MIDWEST["slope_bcfd_per_hdd"] / PHASE2_SLOPES["midwest"] - 1) < 0.2
 
 
 def test_weights_sum_to_one():
