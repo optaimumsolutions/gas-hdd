@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install "psycopg[binary]>=3.1"
+      - run: pip install "psycopg[binary]>=3.1" numpy      # db.py needs both
       - id: plan
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -70,7 +70,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install "psycopg[binary]>=3.1"
+      - run: pip install "psycopg[binary]>=3.1" numpy      # db.py needs both
       - name: Runs still missing (re-dispatch the same range to retry them)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
