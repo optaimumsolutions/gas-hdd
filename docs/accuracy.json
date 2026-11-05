@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-05 15:07 UTC",
+ "generated_utc": "2026-11-05 17:05 UTC",
  "min_n": 5,
  "target_coverage": 0.8,
  "runs_scored": 337,
@@ -2284,5 +2284,6 @@
   "climatology": "10-year mean of the same airport daily means by day of year, 15-day smoothed",
   "cpc": "NOAA CPC daily gas-weighted HDD, East + West North Central, consumption-weighted average",
   "storage": "history/validation.csv, logged by validate_log.py from the Thursday EIA report"
- }
+ },
+ "model": "gefs"
 }
