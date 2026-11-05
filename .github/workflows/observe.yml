@@ -40,7 +40,10 @@ jobs:
       - name: Nightly calibration refit on every archived day (a failure here only warns)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python calibrate.py --nightly || echo "::warning::calibrate.py failed; the previous fit stays in use"
+        run: |
+          python calibrate.py --nightly || echo "::warning::calibrate.py failed; the previous fit stays in use"
+          python calibrate.py --nightly --model ecmwf || echo "::warning::ECMWF refit skipped (no full fit yet, or it failed)"
+          python score.py --model ecmwf || echo "::warning::score.py --model ecmwf failed"
 
       - name: Catch up with commits pushed while this job ran (the push fails otherwise)
         run: git pull --rebase --autostash origin main
