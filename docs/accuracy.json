@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-05 15:01 UTC",
+ "generated_utc": "2026-11-05 15:07 UTC",
  "min_n": 5,
  "target_coverage": 0.8,
  "runs_scored": 337,
@@ -676,6 +676,122 @@
      "skill": null
     }
    ]
+  }
+ },
+ "totals": {
+  "us_hdd": {
+   "total15": {
+    "n": 308,
+    "mae": 21.45,
+    "bias": -0.16,
+    "rmse": 26.35,
+    "coverage": 0.802,
+    "z_sd": 0.9,
+    "raw_mae": 21.65,
+    "raw_coverage": 0.565,
+    "clim_mae": null,
+    "skill": null
+   },
+   "week1": {
+    "n": 319,
+    "mae": 10.12,
+    "bias": 0.87,
+    "rmse": 13.42,
+    "coverage": 0.765,
+    "z_sd": 1.1,
+    "raw_mae": 10.32,
+    "raw_coverage": 0.596,
+    "clim_mae": null,
+    "skill": null
+   },
+   "week2": {
+    "n": 91,
+    "mae": 17.91,
+    "bias": 1.0,
+    "rmse": 22.94,
+    "coverage": 0.736,
+    "z_sd": 1.11,
+    "raw_mae": 17.93,
+    "raw_coverage": 0.56,
+    "clim_mae": null,
+    "skill": null
+   }
+  },
+  "midwest_hdd": {
+   "total15": {
+    "n": 308,
+    "mae": 36.0,
+    "bias": 5.05,
+    "rmse": 43.75,
+    "coverage": 0.802,
+    "z_sd": 0.98,
+    "raw_mae": 37.72,
+    "raw_coverage": 0.607,
+    "clim_mae": null,
+    "skill": null
+   },
+   "week1": {
+    "n": 319,
+    "mae": 16.48,
+    "bias": 3.56,
+    "rmse": 21.93,
+    "coverage": 0.79,
+    "z_sd": 1.02,
+    "raw_mae": 17.41,
+    "raw_coverage": 0.633,
+    "clim_mae": null,
+    "skill": null
+   },
+   "week2": {
+    "n": 91,
+    "mae": 30.39,
+    "bias": 4.22,
+    "rmse": 37.6,
+    "coverage": 0.725,
+    "z_sd": 1.09,
+    "raw_mae": 30.46,
+    "raw_coverage": 0.626,
+    "clim_mae": null,
+    "skill": null
+   }
+  },
+  "midwest_bcf": {
+   "total15": {
+    "n": 308,
+    "mae": 12.97,
+    "bias": 1.79,
+    "rmse": 15.81,
+    "coverage": 0.799,
+    "z_sd": 0.98,
+    "raw_mae": 13.56,
+    "raw_coverage": 0.617,
+    "clim_mae": null,
+    "skill": null
+   },
+   "week1": {
+    "n": 319,
+    "mae": 5.91,
+    "bias": 1.25,
+    "rmse": 7.84,
+    "coverage": 0.784,
+    "z_sd": 1.02,
+    "raw_mae": 6.23,
+    "raw_coverage": 0.627,
+    "clim_mae": null,
+    "skill": null
+   },
+   "week2": {
+    "n": 91,
+    "mae": 10.89,
+    "bias": 1.44,
+    "rmse": 13.51,
+    "coverage": 0.736,
+    "z_sd": 1.08,
+    "raw_mae": 10.91,
+    "raw_coverage": 0.615,
+    "clim_mae": null,
+    "skill": null
+   }
   }
  },
  "by_lead": {

@@ -450,7 +450,9 @@ def region_series(region, data, data_raw, stretches):
     hdd = calibrated_members(data, f"{region['key']}_hdd", cities, stretches)
     hdd_raw = index_members(data_raw, cities)
     bcfd = demand_bcfd(region, hdd)
-    return {"hdd": hdd, "bcfd": bcfd, "total_bcf": bcfd.sum(axis=1),
+    k_total = stretches.get((f"{region['key']}_hdd", 0), 1.0)
+    return {"hdd": hdd, "bcfd": bcfd, "total_bcf": stretch(bcfd.sum(axis=1, keepdims=True), k_total)[:, 0],
+            "total_hdd_members": stretch(hdd.sum(axis=1, keepdims=True), k_total)[:, 0],
             "hdd_raw": hdd_raw, "bcfd_raw": demand_bcfd(region, hdd_raw)}
 
 
@@ -505,8 +507,34 @@ def png_bytes(fig):
     return buf.getvalue()
 
 
-def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD", raw_median=None):
+NO_SKILL = 0.20   # shade lead days whose skill vs climatology (Accuracy tab) is below this
+
+
+def skill_horizon(index):
+    """First lead day (1-based) from which the scored skill of this index is
+    below NO_SKILL, from docs/accuracy.json; None if unknown or never."""
+    path = DOCS / "accuracy.json"
+    if not path.exists():
+        return None
+    rows = json.loads(path.read_text(encoding="utf-8")).get("by_lead", {}).get(index, [])
+    for r in rows:
+        if r.get("skill") is not None and r["skill"] < NO_SKILL:
+            return r["lead_day"]
+    return None
+
+
+def shade_no_skill(ax, days, index):
+    """Grey band from the first no-skill lead day to the end of the window."""
+    k = skill_horizon(index)
+    if k is None or k > len(days):
+        return
+    ax.axvspan(days[k - 1] - timedelta(hours=12), days[-1] + timedelta(hours=12), color="gray", alpha=0.08, lw=0,
+               label=f"little skill beyond day {k - 1} (Accuracy tab)")
+
+
+def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD", raw_median=None, index="us_hdd"):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
+    shade_no_skill(ax, days, index)
     ax.fill_between(days, p10, p90, color="tab:blue", alpha=0.2, label="10th-90th percentile (calibrated)")
     if raw_median is not None:
         ax.plot(days, raw_median, color="gray", lw=1.2, ls="-", alpha=0.8, label="Raw GEFS median")
@@ -527,6 +555,7 @@ def make_bcf_chart(region, run, days, bcfd, raw_median, total):
     GEFS median in grey."""
     p10, median, p90 = np.percentile(bcfd, [10, 50, 90], axis=0)
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
+    shade_no_skill(ax, days, f"{region['key']}_bcf")
     ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="p10-p90 (calibrated)")
     ax.plot(days, raw_median, color="gray", lw=1.2, alpha=0.8, label="Raw GEFS median")
     ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median (calibrated)")
@@ -617,7 +646,9 @@ def main():
         hdd_raw = index_members(data_raw, national_cities())
         p10, median, p90 = np.percentile(hdd, [10, 50, 90], axis=0)
         raw_median = np.median(hdd_raw, axis=0)
-        member_totals = hdd.sum(axis=1)
+        # the 15-day total has its own spread multiplier (daily errors add up
+        # more than the members suggest): key (index, 0) in gefs.spread_fit
+        member_totals = stretch(hdd.sum(axis=1, keepdims=True), stretches.get(("us_hdd", 0), 1.0))[:, 0]
         total = {k: round(float(v), 1) for k, v in
                  zip(["p10", "median", "p90"], np.percentile(member_totals, [10, 50, 90]))}
         total["raw_median"] = round(float(np.median(hdd_raw.sum(axis=1))), 1)
@@ -630,7 +661,7 @@ def main():
             s["total"] = {"median": round(float(cal[1]), 1), "cal_p10": round(float(cal[0]), 1),
                           "cal_p90": round(float(cal[2]), 1), "raw_median": round(float(raw[1]), 1),
                           "raw_p10": round(float(raw[0]), 1), "raw_p90": round(float(raw[2]), 1)}
-            h = np.percentile(s["hdd"].sum(axis=1), [10, 50, 90])
+            h = np.percentile(s["total_hdd_members"], [10, 50, 90])
             s["total_hdd"] = {"median": round(float(h[1]), 1), "p10": round(float(h[0]), 1),
                               "p90": round(float(h[2]), 1)}
             s["hdd_median"] = np.median(s["hdd"], axis=0)
@@ -697,7 +728,7 @@ def main():
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
             pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
                                               title=f"{r['name']} gas-consumption-weighted HDD",
-                                              raw_median=np.median(s["hdd_raw"], axis=0))
+                                              raw_median=np.median(s["hdd_raw"], axis=0), index=f"{k}_hdd")
             pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], np.median(s["bcfd_raw"], axis=0), s["total"])
             basins = [b for b in BASINS if b[0] in r["basins"]]
             points = [(c[2], c[3]) for c in r["cities"]]

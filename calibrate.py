@@ -184,6 +184,77 @@ def fit_stretch(forecasts, observed, fits, train_from, train_to):
     return out, rows
 
 
+def fit_total_stretch(forecasts, observed, fits, stretches, train_from, train_to):
+    """{(index, 0): k}: one more multiplier per HDD index for the 15-DAY TOTAL.
+    Daily errors are more correlated from day to day than the members are, so
+    the member sums' band is too narrow even when every daily band is right
+    (measured: 71% coverage on the total vs 80% daily). Fitted like the daily
+    k, on member sums of the calibrated members, to TARGET coverage."""
+    samples = {index: [] for index in score.HDD_INDEXES}
+    for run, fc in forecasts.items():
+        if not (train_from <= run.date() <= train_to):
+            continue
+        keys = [d.isoformat() for d in fc["dates"]]
+        if any(k not in observed.index for k in keys):
+            continue
+        corrected = adjust_run(fc["stations"], fits)
+        for index in score.HDD_INDEXES:
+            members = calibrated_index(corrected, index, stretches).sum(axis=1)     # [member]
+            samples[index].append((members, float(observed.loc[keys, index].sum())))
+    out, rows = {}, []
+    for index, rows_ in samples.items():
+        if len(rows_) < MIN_SAMPLES:
+            out[(index, 0)] = 1.0
+            rows.append((index, 0, 1.0, len(rows_), train_from, train_to))
+            continue
+        M = np.array([m for m, _ in rows_])                                     # [sample, member]
+        y = np.array([o for _, o in rows_])
+
+        def coverage(k):
+            st = stretch(M.T, k).T
+            p10, p90 = np.percentile(st, [10, 90], axis=1)
+            return float(((y >= p10) & (y <= p90)).mean())
+
+        lo, hi = K_RANGE
+        for _ in range(40):
+            mid = (lo + hi) / 2
+            if coverage(mid) < TARGET:
+                lo = mid
+            else:
+                hi = mid
+        k = round((lo + hi) / 2, 3)
+        out[(index, 0)] = k
+        rows.append((index, 0, k, len(rows_), train_from, train_to))
+    return out, rows
+
+
+def total_holdout(forecasts, observed, fits, stretches, holdout_from, holdout_to):
+    """Per HDD index: raw vs corrected coverage and MAE of the 15-day total on
+    the holdout runs (corrected = daily stretch, then the total's k)."""
+    out = {}
+    for index in score.HDD_INDEXES:
+        rows = []
+        for run, fc in forecasts.items():
+            if not (holdout_from <= run.date() <= holdout_to):
+                continue
+            keys = [d.isoformat() for d in fc["dates"]]
+            if any(k not in observed.index for k in keys):
+                continue
+            o = float(observed.loc[keys, index].sum())
+            raw = score.index_value(fc["stations"], index).sum(axis=1)
+            cal = stretch(calibrated_index(adjust_run(fc["stations"], fits), index, stretches).sum(axis=1, keepdims=True),
+                          stretches.get((index, 0), 1.0))[:, 0]
+            r10, r50, r90 = np.percentile(raw, [10, 50, 90])
+            c10, c50, c90 = np.percentile(cal, [10, 50, 90])
+            rows.append((abs(r50 - o), r10 <= o <= r90, abs(c50 - o), c10 <= o <= c90))
+        arr = np.array(rows, dtype=float) if rows else np.zeros((0, 4))
+        out[index] = {"n": len(rows), "raw_mae": round(float(arr[:, 0].mean()), 2) if len(rows) else None,
+                      "raw_coverage": round(float(arr[:, 1].mean()), 3) if len(rows) else None,
+                      "cal_mae": round(float(arr[:, 2].mean()), 2) if len(rows) else None,
+                      "cal_coverage": round(float(arr[:, 3].mean()), 3) if len(rows) else None}
+    return out
+
+
 # ----------------------------------------------------------- index holdout
 def index_holdout(forecasts, observed, fits, stretches, holdout_from, holdout_to):
     """Per index and lead: raw vs corrected MAE and p10-p90 coverage over the
@@ -289,17 +360,22 @@ def main():
         stretches, srows = fit_stretch(forecasts, observed, fits, args.train_from, args.train_to)
         print("spread multipliers k by lead: " + "; ".join(
             f"{index} " + " ".join(f"{stretches[(index, k)]:.2f}" for k in range(1, 16)) for index in score.HDD_INDEXES))
-        result = verdict = None
+        totals_k, trows = fit_total_stretch(forecasts, observed, fits, stretches, args.train_from, args.train_to)
+        stretches.update(totals_k)
+        print("15-day total multipliers: " + ", ".join(f"{index} {totals_k[(index, 0)]:.2f}" for index in score.HDD_INDEXES))
+        result = verdict = totals_result = None
         if not args.nightly:
             result = index_holdout(forecasts, observed, fits, stretches, args.holdout_from, args.holdout_to)
+            totals_result = total_holdout(forecasts, observed, fits, stretches, args.holdout_from, args.holdout_to)
             verdict = gate(result)
         db.write_emos(conn, rows)
-        db.write_spread(conn, srows)
+        db.write_spread(conn, srows + trows)
 
     DOCS.mkdir(exist_ok=True)
     live = {"fitted_at": now.strftime("%Y-%m-%d %H:%M UTC"), "train_from": args.train_from.isoformat(),
             "train_to": args.train_to.isoformat(), "fits": len(rows), "identity": len(identity),
-            "stretch": {index: [stretches[(index, k)] for k in range(1, 16)] for index in score.HDD_INDEXES}}
+            "stretch": {index: [stretches[(index, k)] for k in range(1, 16)] for index in score.HDD_INDEXES},
+            "total_stretch": {index: totals_k[(index, 0)] for index in score.HDD_INDEXES}}
     path = DOCS / "calibration.json"
     if args.nightly:
         summary = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
@@ -313,7 +389,8 @@ def main():
                "train_from": args.train_from.isoformat(), "train_to": args.train_to.isoformat(),
                "holdout_from": args.holdout_from.isoformat(), "holdout_to": args.holdout_to.isoformat(),
                "fits": len(rows), "identity": identity, "stretch": live["stretch"],
-               "holdout": result, "gate": verdict, "image": "calibration.png", "live_fit": live}
+               "holdout": result, "holdout_total15": totals_result, "gate": verdict, "image": "calibration.png",
+               "live_fit": live}
     path.write_text(json.dumps(summary, indent=1), encoding="utf-8")
     draw(result, DOCS / "calibration.png")
     for index, leads in result.items():
@@ -321,6 +398,9 @@ def main():
         for r in leads:
             if r["n"]:
                 print(f"  {r['lead_day']:>4} {r['n']:>4} {r['raw_mae']:>8} {r['cal_mae']:>8} {r['raw_coverage']:>8} {r['cal_coverage']:>8}")
+    for index, t in totals_result.items():
+        print(f"{index} 15-day total holdout: n={t['n']} raw cov {t['raw_coverage']} -> cal {t['cal_coverage']}, "
+              f"raw MAE {t['raw_mae']} -> cal {t['cal_mae']}")
     print(f"\ngate {'PASSED' if verdict['passed'] else 'FAILED'}" + ("" if verdict["passed"] else ": " + "; ".join(verdict["failures"][:8])))
     print("wrote gefs.emos_fit, gefs.spread_fit, docs/calibration.json, docs/calibration.png")
 

@@ -25,6 +25,11 @@ Outputs, all rebuilt from scratch each time:
   docs/accuracy_lead.png  MAE (with the climatology line) and band coverage by lead day
   docs/accuracy_bands.png last 30 days: observed vs the day-1 / 7 / 14 bands
 
+Totals (PRD G1): the same grading for the 15-day total and for every EIA
+storage week (Saturday-Friday) that lies fully inside the window, from each
+member's sum. Member sums need the members, so totals use today's fit for
+every run (no "as published" split); the page says so.
+
 Bcf rows whose observed demand sits at the floor are excluded (PRD D14): a
 zero-width band at the floor would score 100% while saying nothing.
 A statistic is only reported from MIN_N = 5 scores; below that it is null and
@@ -159,6 +164,73 @@ def build_scores(forecasts, observed, published=None, fits=None, stretches=None)
     return scores.sort_values(["index", "date", "run"]).reset_index(drop=True), excluded
 
 
+TOTAL_COLUMNS = ["run", "index", "window", "lead_day", "n_days", "median", "p10", "p90", "sd",
+                 "raw_median", "raw_p10", "raw_p90", "observed", "error", "abs_error", "inside_band", "raw_inside", "z"]
+
+
+def windows(dates):
+    """[(label, [day indexes])]: the full 15 days, then every Saturday-Friday
+    EIA week that lies completely inside the forecast."""
+    out = [("15d", list(range(len(dates))))]
+    week = {}
+    for i, d in enumerate(dates):
+        week.setdefault(d + timedelta(days=(4 - d.weekday()) % 7), []).append(i)
+    for ending, idx in sorted(week.items()):
+        if len(idx) == 7:
+            out.append((f"week:{ending.isoformat()}", idx))
+    return out
+
+
+def build_totals(forecasts, observed, fits=None, stretches=None):
+    """One row per run x index x window (15-day total, full EIA weeks), from
+    member sums: calibrated and raw median / p10 / p90 / sd vs the observed sum.
+    A window counts only when every one of its days was observed."""
+    stretches = stretches or {}
+    rows = []
+    for run, fc in forecasts.items():
+        data_cal = hdd.adjust_run(fc["stations"], fits) if fits else fc["stations"]
+        for index, (_, region) in INDEXES.items():
+            if index not in observed.columns:
+                continue
+            raw = index_value(fc["stations"], index)
+            cal = calibrated_value(data_cal, index, stretches)
+            for label, idx in windows(fc["dates"]):
+                keys = [fc["dates"][i].isoformat() for i in idx]
+                if any(k not in observed.index for k in keys):
+                    continue
+                o = float(observed.loc[keys, index].sum())
+                if region is not None and o <= region["floor_bcfd"] * len(idx) + 1e-6:
+                    continue
+                cs, rs = cal[:, idx].sum(axis=1), raw[:, idx].sum(axis=1)
+                if label == "15d":                                   # the total's own multiplier, as hdd.py applies it
+                    hdd_name = index if region is None else f"{region['key']}_hdd"
+                    cs = hdd.stretch(cs[:, None], stretches.get((hdd_name, 0), 1.0))[:, 0]
+                cp10, cmed, cp90 = np.percentile(cs, [10, 50, 90])
+                rp10, rmed, rp90 = np.percentile(rs, [10, 50, 90])
+                sd = float(cs.std())
+                rows.append({"run": run, "index": index, "window": label, "lead_day": idx[0] + 1, "n_days": len(idx),
+                             "median": round(float(cmed), 2), "p10": round(float(cp10), 2), "p90": round(float(cp90), 2),
+                             "sd": round(sd, 3), "raw_median": round(float(rmed), 2), "raw_p10": round(float(rp10), 2),
+                             "raw_p90": round(float(rp90), 2), "observed": round(o, 2),
+                             "error": round(float(cmed - o), 2), "abs_error": round(abs(float(cmed - o)), 2),
+                             "inside_band": bool(cp10 <= o <= cp90), "raw_inside": bool(rp10 <= o <= rp90),
+                             "z": round(float(cmed - o) / sd, 3) if sd > 1e-6 else None})
+    return pd.DataFrame(rows, columns=TOTAL_COLUMNS)
+
+
+def total_stats(totals):
+    """{index: {"total15": stats, "week1": stats (week starting on lead day
+    1-7), "week2": stats (lead day 8-14)}} with the daily stats() fields."""
+    out = {}
+    for index in INDEXES:
+        t = totals[totals["index"] == index]
+        weeks = t[t["window"] != "15d"]
+        out[index] = {"total15": stats(t[t["window"] == "15d"]),
+                      "week1": stats(weeks[weeks["lead_day"] <= 7]),
+                      "week2": stats(weeks[weeks["lead_day"] >= 8])}
+    return out
+
+
 # ---------------------------------------------------------------- aggregates
 EMPTY = {"n": 0, "mae": None, "bias": None, "rmse": None, "coverage": None, "z_sd": None,
          "raw_mae": None, "raw_coverage": None, "clim_mae": None, "skill": None}
@@ -182,7 +254,7 @@ def stats(group):
            "z_sd": round(float(np.sqrt((z ** 2).mean())), 2) if len(z) >= MIN_N else None,
            "raw_mae": round(float(np.abs(raw_err).mean()), 2),
            "raw_coverage": round(float(group["raw_inside"].mean()), 3), "clim_mae": None, "skill": None}
-    clim = group["clim"].dropna()
+    clim = group["clim"].dropna() if "clim" in group.columns else []
     if len(clim) == n:
         clim_mae = float(np.abs(clim.to_numpy(dtype=float) - group["observed"].to_numpy(dtype=float)).mean())
         out["clim_mae"] = round(clim_mae, 2)
@@ -244,9 +316,10 @@ def storage_checks(history=HISTORY):
     return {"n": n, "hit_rate": hit, "rows": rows}
 
 
-def aggregate(scores, observed, excluded=0, history=HISTORY, now=None):
+def aggregate(scores, observed, excluded=0, history=HISTORY, now=None, totals=None):
     """Everything docs/accuracy.json holds."""
     now = now or datetime.now(timezone.utc)
+    totals = totals if totals is not None else pd.DataFrame(columns=TOTAL_COLUMNS)
     by_lead, by_month, overall, live = {}, {}, {}, {}
     for index in INDEXES:
         s = scores[scores["index"] == index]
@@ -266,6 +339,7 @@ def aggregate(scores, observed, excluded=0, history=HISTORY, now=None):
         "indexes": list(INDEXES),
         "overall": overall,
         "live": live,
+        "totals": total_stats(totals),
         "by_lead": by_lead,
         "by_month": by_month,
         "last_14_days": last_days(scores, observed, now.date()),
@@ -361,11 +435,12 @@ def main():
         fits, _ = db.load_emos(conn)
         stretches = db.load_spread(conn) if fits else {}
         scores, excluded = build_scores(forecasts, observed, db.load_forecast_index(conn), fits, stretches)
+        totals = build_totals(forecasts, observed, fits, stretches)
         db.write_scores(conn, [(r.run, r.date, r.lead_day, r.index, r.median, r.p10, r.p90, r.observed, r.clim,
                                 r.sd, r.raw_median, r.raw_p10, r.raw_p90, bool(r.published))
                                for r in scores.itertuples(index=False)])
     now = datetime.now(timezone.utc)
-    summary = aggregate(scores, observed, excluded, now=now)
+    summary = aggregate(scores, observed, excluded, now=now, totals=totals)
     DOCS.mkdir(exist_ok=True)
     draw_lead_chart(summary["by_lead"], DOCS / "accuracy_lead.png")
     draw_bands_chart(scores, observed, now.date(), DOCS / "accuracy_bands.png")
@@ -378,6 +453,12 @@ def main():
         print(f"  {index:14s} n={o['n']:5d}  MAE={o['mae']} (raw {o['raw_mae']})  bias={o['bias']}  "
               f"coverage={o['coverage']} (raw {o['raw_coverage']})  z_sd={o['z_sd']}  skill={o['skill']}  "
               f"| as published: n={l['n']} coverage={l['coverage']} z_sd={l['z_sd']}")
+    for index in INDEXES:
+        t = summary["totals"][index]
+        print(f"  {index:14s} 15-day total: n={t['total15']['n']} cov={t['total15']['coverage']} (raw {t['total15']['raw_coverage']}) "
+              f"z_sd={t['total15']['z_sd']} MAE={t['total15']['mae']} (raw {t['total15']['raw_mae']}) | "
+              f"week1: n={t['week1']['n']} cov={t['week1']['coverage']} MAE={t['week1']['mae']} | "
+              f"week2: n={t['week2']['n']} cov={t['week2']['coverage']} MAE={t['week2']['mae']}")
     print("wrote gefs.scores, docs/accuracy.json, docs/accuracy_lead.png, docs/accuracy_bands.png")
 
 

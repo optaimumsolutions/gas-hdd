@@ -104,3 +104,26 @@ def test_refetched_observation_is_logged_not_overwritten(capsys):
     out = capsys.readouterr().out
     assert "revision ignored: 2026-11-01 us_hdd stored 10.00, refetched 11.00" in out
     assert "midwest_hdd stored" not in out                        # 0.2 HDD is inside the tolerance
+
+
+def test_totals_sum_members_and_only_full_weeks():
+    """15 days from Saturday 2026-11-07: two full Sat-Fri weeks (7th-13th, 14th-20th)
+    plus the 15-day total. Members spread 10..20 HDD every day -> sums spread
+    150..300 (median 225) for 15 days, 70..140 (median 105) for a week. Observed
+    15 every day -> 15-day observed 225, error 0, inside the band."""
+    from datetime import date, timedelta
+    dates = [date(2026, 11, 7) + timedelta(days=i) for i in range(15)]
+    temps = np.tile(np.linspace(55, 45, 31), (15, 1))             # [day, member] F -> 10..20 HDD
+    stations = {st: (temps, temps) for st in hdd.STATIONS}
+    forecasts = {datetime(2026, 11, 7): {"dates": dates, "stations": stations}}
+    observed = pd.DataFrame({"us_hdd": [15.0] * 15}, index=pd.Index([d.isoformat() for d in dates], name="date"))
+
+    assert [w for w, _ in score.windows(dates)] == ["15d", "week:2026-11-13", "week:2026-11-20"]
+    totals = score.build_totals(forecasts, observed)
+    us = totals[totals["index"] == "us_hdd"].set_index("window")
+    assert np.isclose(us.loc["15d", "median"], 225) and np.isclose(us.loc["15d", "observed"], 225)
+    assert np.isclose(us.loc["week:2026-11-13", "median"], 105) and us.loc["week:2026-11-13", "lead_day"] == 1
+    assert us.loc["week:2026-11-20", "lead_day"] == 8
+    assert bool(us.loc["15d", "inside_band"]) and us.loc["15d", "error"] == 0
+    t = score.total_stats(totals)["us_hdd"]
+    assert t["total15"]["n"] == 1 and t["week1"]["n"] == 1 and t["week2"]["n"] == 1

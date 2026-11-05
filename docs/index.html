@@ -206,6 +206,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
         : `Day-5 forecasts have been off by <b>${d5.mae.toFixed(1)} HDD</b> on average (raw GEFS ${d5.raw_mae.toFixed(1)}; ${d5.n} days scored);`) +
       (all.coverage === null ? ` The p10&ndash;p90 band: insufficient data (${all.n} scored, need ${a.min_n}).`
         : ` the calibrated p10&ndash;p90 band has contained the observed value <b>${(100 * all.coverage).toFixed(0)}%</b> of the time (target ${(100 * a.target_coverage).toFixed(0)}%; raw ${(100 * all.raw_coverage).toFixed(0)}%), error-to-spread ratio <b>${f(all.z_sd, 2)}</b>${width(all.z_sd)}.`) +
+      ((a.totals && a.totals.us_hdd && a.totals.us_hdd.total15.n >= a.min_n) ? ` <b>15-day total</b>: band held the truth ${pct(a.totals.us_hdd.total15.coverage)} of the time, error-to-spread ${f(a.totals.us_hdd.total15.z_sd, 2)}, off by ${f(a.totals.us_hdd.total15.mae, 1)} HDD on average (raw ${f(a.totals.us_hdd.total15.raw_mae, 1)}; ${a.totals.us_hdd.total15.n} windows).` : "") +
       (live && live.n ? ` Since go-live, graded on exactly what this page showed: ${live.n} forecast-days, coverage ${pct(live.coverage)}, error-to-spread ${f(live.z_sd, 2)}, MAE ${f(live.mae, 2)}.` : ` No forecast-days graded as published yet (go-live 2026-11-04).`);
 
     const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>Coverage</th><th>Error / spread</th><th>MAE</th><th>Bias</th><th>Raw cov.</th><th>Raw MAE</th><th>Skill</th></tr></thead><tbody>` +
@@ -222,6 +223,11 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <div class="headline">${headline}</div>
   <img src="${a.images.lead + v}" alt="MAE and band coverage by lead day">
   <img src="${a.images.bands + v}" alt="Observed HDD against the day-1, day-7 and day-14 forecast bands" style="margin-top:12px">
+  <h3>Totals: the 15-day sum and the EIA storage weeks (what the trade is on)</h3>
+  <p class="muted">From each member's sum, graded with today's fit for every run. Week 1 = the first Saturday&ndash;Friday week fully inside the window (starts on lead day 1&ndash;7), week 2 the next one.</p>
+  <table class="wide"><thead><tr><th>Index</th><th>Window</th><th>n</th><th>Coverage</th><th>Error / spread</th><th>MAE</th><th>Bias</th><th>Raw cov.</th><th>Raw MAE</th></tr></thead>
+    <tbody>${a.totals ? a.indexes.flatMap(k => [["total15", "15-day total"], ["week1", "EIA week 1"], ["week2", "EIA week 2"]].map(([w, lbl]) => { const r = a.totals[k][w];
+      return `<tr><td>${name(k)}</td><td>${lbl}</td><td>${r.n}</td><td>${pct(r.coverage)}</td><td>${f(r.z_sd, 2)}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${pct(r.raw_coverage)}</td><td>${f(r.raw_mae, 2)}</td></tr>`; })).join("") : ""}</tbody></table>
   <h3>By lead day</h3>
   <div class="cards" style="align-items:flex-start">${a.indexes.map(leadTable).join("")}</div>
   <h3>By month</h3>
@@ -256,6 +262,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <p class="muted">Fitted ${c.fitted_at} on ${c.train_from} to ${c.train_to}; tested on ${c.holdout_from} to ${c.holdout_to}, which the fit never saw.
     Gate (coverage 75&ndash;85% and MAE not worse at every lead): <b class="${c.gate.passed ? "up" : "down"}">${c.gate.passed ? "passed" : "not yet"}</b>.
     ${c.identity.length} of ${c.fits} airport-lead pairs left uncorrected (fit did not help on the holdout).
+    ${c.holdout_total15 ? `15-day total on the holdout winter: ` + Object.entries(c.holdout_total15).map(([k, t]) => `${name(k)} coverage ${pct(t.raw_coverage)} raw &rarr; ${pct(t.cal_coverage)} corrected, MAE ${f(t.raw_mae, 1)} &rarr; ${f(t.cal_mae, 1)} (${t.n} windows)`).join("; ") + "." : ""}
     ${c.live_fit ? `Fit in use: refit nightly on every archived day, currently ${c.live_fit.train_from} to ${c.live_fit.train_to} (${c.live_fit.fitted_at}); the holdout verdicts above decide which pairs get corrected.` : ""}</p>
   <img src="${c.image}?v=${encodeURIComponent(c.fitted_at)}" alt="Holdout MAE and coverage, raw vs corrected">
   <table class="wide"><thead><tr><th>Index</th><th>Lead day</th><th>n</th><th>Raw MAE</th><th>Corrected MAE</th><th>Raw coverage</th><th>Corrected coverage</th></tr></thead><tbody>${rows}</tbody></table>`;

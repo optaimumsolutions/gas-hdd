@@ -1,6 +1,6 @@
 {
- "fitted_at": "2026-11-04 21:40 UTC",
- "method": "EMOS / NGR per airport per lead, CRPS-minimised, applied to members as shift-and-scale (ECC)",
+ "fitted_at": "2026-11-05 15:05 UTC",
+ "method": "EMOS / NGR per airport per lead, CRPS-minimised, applied to members as shift-and-scale (ECC); then one spread multiplier per index per lead",
  "train_from": "2024-11-01",
  "train_to": "2025-03-31",
  "holdout_from": "2025-11-01",
@@ -398,6 +398,22 @@
    }
   ]
  },
+ "holdout_total15": {
+  "us_hdd": {
+   "n": 136,
+   "raw_mae": 23.86,
+   "raw_coverage": 0.544,
+   "cal_mae": 24.1,
+   "cal_coverage": 0.728
+  },
+  "midwest_hdd": {
+   "n": 136,
+   "raw_mae": 38.79,
+   "raw_coverage": 0.603,
+   "cal_mae": 38.47,
+   "cal_coverage": 0.772
+  }
+ },
  "gate": {
   "passed": false,
   "failures": [
@@ -416,7 +432,7 @@
  },
  "image": "calibration.png",
  "live_fit": {
-  "fitted_at": "2026-11-05 13:39 UTC",
+  "fitted_at": "2026-11-05 15:06 UTC",
   "train_from": "2024-11-01",
   "train_to": "2026-11-04",
   "fits": 330,
@@ -456,6 +472,10 @@
     1.15,
     1.101
    ]
+  },
+  "total_stretch": {
+   "us_hdd": 1.178,
+   "midwest_hdd": 1.078
   }
  }
 }

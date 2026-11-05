@@ -16,7 +16,7 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 | M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | DONE 2026-11-04 (`calibrate.py --nightly` in observe.yml 09:00 UTC; identity verdicts inherited from the holdout run) | fit timestamp on page advances daily |
 | M8 | ECMWF ENS second line (gated: after M6 and a few days of Pivotal checks) | gated on the founder's Pivotal check |
 | M9 | Band scorecard: grade the published calibrated band (coverage, error/spread, MAE) with raw alongside; `gefs.forecast_index` written per run; "as published" block accrues from go-live | DONE 2026-11-05 |
-| M10 | Totals scorecard (15-day total + EIA-week sums: coverage, error/spread, MAE) and no-skill shading on the chart | next |
+| M10 | Totals scorecard (15-day total + EIA-week sums: coverage, error/spread, MAE), a fitted spread multiplier for the 15-day total (key (index, 0) in spread_fit), and no-skill shading on the charts | DONE 2026-11-05: total holdout US 0.54→0.73, Midwest 0.60→0.77; weeks graded unstretched (0.77/0.79 week 1) |
 | M11 | Demand fitted to data: `fit_demand.py` (EIA monthly res+comm per state + weekly Midwest storage vs 10 winters of observed airport HDD); regions.py refit (Midwest 0.96 + 0.354·HDD, floor 1.82; storage change = 72.7 − 0.471·weekly HDD); reference tables A/B on the US and Midwest tabs | DONE 2026-11-05 | second score column on Accuracy tab |
 
 ## 1. Goal
