@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-ecmwf.py - archive ECMWF's open-data ensemble (IFS ENS, 51 members, 0.25°) at
+ecmwf_ens.py - archive ECMWF's open-data ensemble (IFS ENS, 50 perturbed members, 0.25°) at
 the 22 HDD airports, the way hdd.py archives GEFS (PRD-calibration.md, M8).
 
   1. Pick the newest complete 00Z or 12Z run on the public bucket (the 360 h
      file of the run must exist), or the run given with --run.
   2. For every 6-hourly step 0..360 h, fetch only the 2 m temperature messages
-     (51 members, ~100 MB per step via byte ranges), read the 22 airport grid
-     cells, and delete the step's file: the whole run never sits on disk.
+     (50 members, ~16 MB per step) with ECMWF's own open-data client, which
+     coalesces the byte ranges into one request per step and honours the
+     servers' Retry-After (the raw S3 mirror answers 503 SlowDown to naive
+     range requests). Sources tried in order: ecmwf, azure, aws. The 22 airport
+     grid cells are read and the step's file deleted: a run never sits on disk.
   3. Daily Tmax / Tmin per airport and member = max / min of the 6-hourly 2 m
      temperatures valid 00..24Z of each UTC day (the open-data ensemble has no
      6-hour max/min fields; the per-airport EMOS fit absorbs the difference
@@ -19,8 +22,8 @@ from Neon. Scoring and calibration: score.py --model ecmwf,
 calibrate.py --model ecmwf.
 
 Usage:
-  python ecmwf.py                        # newest complete 00Z/12Z run
-  python ecmwf.py --run 2026-11-01T00    # one run (backfill)
+  python ecmwf_ens.py                        # newest complete 00Z/12Z run
+  python ecmwf_ens.py --run 2026-11-01T00    # one run (backfill)
 """
 
 import argparse
@@ -31,8 +34,9 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
+import cfgrib
 import numpy as np
-from herbie import Herbie
+from ecmwf.opendata import Client
 
 import db
 import hdd
@@ -43,28 +47,32 @@ MODEL = "ecmwf"
 CACHE = hdd.CACHE / "ecmwf"
 STEPS = list(range(0, 361, 6))             # 6-hourly, 0..360 h (61 steps, 15 days)
 CYCLES = (0, 12)                           # the open-data ensemble runs to 360 h at 00Z and 12Z only
-THREADS = int(os.environ.get("THREADS", 3))   # the bucket answers "SlowDown" quickly; keep this low
-SEARCH = ":2t:"
+THREADS = int(os.environ.get("THREADS", 2))   # the servers rate-limit; keep this low
+SOURCES = os.environ.get("ECMWF_SOURCES", "ecmwf,azure,aws").split(",")
 
 
-def herbie(run, fxx):
-    return retry(lambda: Herbie(run, model="ecmwf", product="enfo", resolution="0p25", fxx=fxx,
-                                priority="aws", save_dir=CACHE, verbose=False))
+def client(source):
+    return Client(source=source, model="ifs", resol="0p25", maximum_retries=12, retry_after=20)
 
 
 def complete(run):
-    """A run is complete when its last step file and index exist."""
-    H = herbie(run, STEPS[-1])
-    return H.grib is not None and H.idx is not None
+    """A run is complete when its last step can be listed (the client's
+    latest() / the index for step 360 exist)."""
+    for source in SOURCES:
+        try:
+            c = client(source)
+            latest = c.latest(stream="enfo", type="cf", param="2t", step=STEPS[-1])
+            return run <= latest.replace(tzinfo=None)
+        except Exception as err:                                    # noqa: BLE001
+            print(f"  {source}: cannot check completeness ({str(err)[:80]})")
+    raise RuntimeError("no ECMWF source reachable")
 
 
 def pick_run(explicit):
     if explicit is not None:
         if explicit.hour not in CYCLES:
             raise RuntimeError(f"ECMWF ensemble runs to 360 h only at {CYCLES}Z; got {explicit:%H}Z")
-        if not complete(explicit):
-            raise RuntimeError(f"run {explicit:%Y-%m-%d %H}Z is not (yet) complete on the bucket")
-        return explicit
+        return explicit                                             # the fetch itself fails if it is missing
     now = datetime.now(timezone.utc).replace(tzinfo=None, minute=0, second=0, microsecond=0)
     latest = now.replace(hour=12 if now.hour >= 12 else 0)
     for k in range(4):
@@ -85,16 +93,39 @@ def station_cells(ds):
 
 def fetch_step(run, fxx):
     """2 m temperature at the 22 airports for all members at one step:
-    array [member, station] in K. The step's GRIB subset is deleted after."""
-    H = herbie(run, fxx)
-    retry(lambda: H.download(SEARCH))
-    ds = H.xarray(SEARCH, remove_grib=True)
-    t2m = ds["t2m"].values                                         # [member, lat, lon]
-    if t2m.ndim == 2:                                               # a single member would drop the axis
-        t2m = t2m[None]
-    cells = station_cells(ds)
-    out = np.array([[t2m[m, r, c] for r, c in cells] for m in range(t2m.shape[0])], dtype=np.float32)
-    ds.close()
+    array [member, station] in K, perturbed members 1..50 (the open-data
+    stream carries no control member for 2 m temperature).
+    The step's GRIB subset is deleted after."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    path = CACHE / f"{run:%Y%m%d%H}_{fxx:03d}.grib2"
+    last = None
+    for source in SOURCES:
+        try:
+            client(source).retrieve(date=run.strftime("%Y%m%d"), time=run.hour, step=fxx, stream="enfo",
+                                    type="pf", param="2t", target=str(path))
+            last = None
+            break
+        except Exception as err:                                    # noqa: BLE001
+            last = err
+            print(f"  step {fxx:3d}: {source} failed ({str(err)[:80]}), trying the next source", flush=True)
+    if last is not None:
+        raise RuntimeError(f"step {fxx} could not be fetched from any source: {last}")
+    blocks = []
+    for ds in cfgrib.open_datasets(str(path)):                      # normally one dataset (pf)
+        t2m = ds["t2m"].values
+        if t2m.ndim == 2:
+            t2m = t2m[None]
+        cells = station_cells(ds)
+        number = np.atleast_1d(ds["number"].values) if "number" in ds.coords else np.array([0])
+        pts = np.array([[t2m[m, r, c] for r, c in cells] for m in range(t2m.shape[0])], dtype=np.float32)
+        blocks.append((number, pts))
+        ds.close()
+    numbers = np.concatenate([n for n, _ in blocks])
+    pts = np.concatenate([p for _, p in blocks])
+    out = pts[np.argsort(numbers)]                                  # control (0) first, then 1..50
+    path.unlink(missing_ok=True)
+    for extra in CACHE.glob(path.name + "*.idx"):
+        extra.unlink(missing_ok=True)
     return fxx, out
 
 
@@ -125,7 +156,7 @@ def main():
         days = full_days(run, STEPS)
         needed = sorted({s for _, ss in days for s in ss})
 
-    with step(f"2/4 fetch 2 m temperature at {len(STATIONS)} airports, {len(needed)} steps x 51 members"):
+    with step(f"2/4 fetch 2 m temperature at {len(STATIONS)} airports, {len(needed)} steps x 50 members"):
         t0 = time.time()
         with ThreadPoolExecutor(THREADS) as pool:
             temps = dict(pool.map(lambda f: fetch_step(run, f), needed))   # step -> [member, station] K

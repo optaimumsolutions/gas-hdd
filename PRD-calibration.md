@@ -14,7 +14,7 @@ Status: decided 2026-11-04, not started. Owner: founder. Builder: Claude Code se
 | M5 | `calibrate.py`: EMOS per airport per lead + index spread stage, trained 2024-25, validated 2025-26 | BUILT 2026-11-04; holdout: 20 of 30 lead checks inside 75–85%, 7 over by ≤0.02, US days 1–3 at 71–75% (see M5 notes); founder decision on shipping | holdout coverage 0.75–0.85 at every lead, MAE below raw |
 | M6 | `hdd.py` applies the fit; chart shows corrected band + raw median grey line | DONE 2026-11-04 (founder: "ship") | local run 2026-11-03 00Z: 330 fits + 30 multipliers applied, raw grey line, `calibration` block in latest.json, `refit: true` |
 | M7 | Nightly refit on both winters; Accuracy tab reports out-of-sample from go-live | DONE 2026-11-04 (`calibrate.py --nightly` in observe.yml 09:00 UTC; identity verdicts inherited from the holdout run) | fit timestamp on page advances daily |
-| M8 | ECMWF ENS second line (gate lifted 2026-11-05, grill G3) | IN PROGRESS: ecmwf.py + ecmwf.yml + backfill --model + per-model score/calibrate + second line on charts shipped; first GitHub run, two-winter backfill, ECMWF fit and scorecard pending |
+| M8 | ECMWF ENS second line (gate lifted 2026-11-05, grill G3) | IN PROGRESS: ecmwf_ens.py + ecmwf.yml + backfill --model + per-model score/calibrate + second line on charts shipped; first GitHub run, two-winter backfill, ECMWF fit and scorecard pending |
 | M9 | Band scorecard: grade the published calibrated band (coverage, error/spread, MAE) with raw alongside; `gefs.forecast_index` written per run; "as published" block accrues from go-live | DONE 2026-11-05 |
 | M10 | Totals scorecard (15-day total + EIA-week sums: coverage, error/spread, MAE), a fitted spread multiplier for the 15-day total (key (index, 0) in spread_fit), and no-skill shading on the charts | DONE 2026-11-05: total holdout US 0.54→0.73, Midwest 0.60→0.77; weeks graded unstretched (0.77/0.79 week 1) |
 | M11 | Demand fitted to data: `fit_demand.py` (EIA monthly res+comm per state + weekly Midwest storage vs 10 winters of observed airport HDD); regions.py refit (Midwest 0.96 + 0.354·HDD, floor 1.82; storage change = 72.7 − 0.471·weekly HDD); reference tables A/B on the US and Midwest tabs | DONE 2026-11-05 | second score column on Accuracy tab |
@@ -222,7 +222,7 @@ training on every archived winter day up to yesterday. The Accuracy tab's headli
 statistics from go-live onward are out of sample by construction (each day's forecast
 was corrected with a fit that had not seen that day).
 
-**M8 — ECMWF ENS (built 2026-11-05).** `ecmwf.py`: herbie `model="ecmwf", product="enfo",
+**M8 — ECMWF ENS (built 2026-11-05).** `ecmwf_ens.py`: herbie `model="ecmwf", product="enfo",
 resolution="0p25"`, only the `2t` messages (51 members) of the 6-hourly steps 0–360 h,
 read at the 22 airports step by step and deleted (a run never sits on disk); daily
 Tmax/Tmin = max/min of the 6-hourly values valid 00–24Z (the open-data ensemble has no

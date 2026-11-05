@@ -27,4 +27,4 @@ jobs:
       - name: Archive the run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python ecmwf.py
+        run: python ecmwf_ens.py

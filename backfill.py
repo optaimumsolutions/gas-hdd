@@ -16,7 +16,7 @@ Three small commands, used by .github/workflows/backfill.yml:
 
 Only 00Z runs are backfilled (one per day). Nothing is written to docs/ or
 history/, and nothing is committed. --model ecmwf does the same for the ECMWF
-ensemble (ecmwf.py --run).
+ensemble (ecmwf_ens.py --run).
 """
 
 import argparse
@@ -66,7 +66,7 @@ def cmd_run(args):
     for i, run in enumerate(args.runs, 1):
         print(f"\n===== run {i}/{len(args.runs)}: {run} =====", flush=True)
         if args.model == "ecmwf":
-            cmd = [sys.executable, str(ROOT / "ecmwf.py"), "--run", run]
+            cmd = [sys.executable, str(ROOT / "ecmwf_ens.py"), "--run", run]
         else:
             cmd = [sys.executable, str(ROOT / "hdd.py"), "--run", run, "--no-docs"]
         result = subprocess.run(cmd)
