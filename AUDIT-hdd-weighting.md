@@ -51,17 +51,23 @@ calibration shifts and scales them. No lead day is weighted more than another in
 
 ## 3. What the archive says about the weights
 
-### 3a. The US population weights put 29 % of the index where gas heating is thin
+### 3a. The US population weights are far from the gas map
 
-Los Angeles (15 %), Houston (9 %) and Dallas (5 %) carry 29 % of the US index. Gas
-res+comm consumption shares of their states are far lower (section 3e gives the measured
-shares). The Midwest tab already uses consumption weights and its index tracks CPC's
-gas-weighted HDD within region-definition differences (bias −2.7 HDD, explained by CPC's
-census divisions including OH/ND/SD/NE). The US index has no such check, because it is
+Measured against each state's share of US residential + commercial gas consumption
+(appendix): New York carries 32 % of the index for 9 % of the gas; Texas 14 % for 5 %;
+California 15 % for 9 %. Michigan carries 2 % for 6 %, Ohio 4 % for 6 %, Pennsylvania 7 % for
+5 % but concentrated in Philadelphia; Minneapolis 1.6 % for Minnesota's 3 %. New Jersey,
+Wisconsin, Indiana, Washington, Virginia and Maryland (16 % of US gas heating together) have
+no city in the index at all. The 13 states represented hold 59 % of US gas heating.
+
+The Midwest tab already uses consumption weights and its index tracks CPC's gas-weighted
+HDD within region-definition differences (bias −2.7 HDD, explained by CPC's census
+divisions including OH/ND/SD/NE). The US index has no such check, because it is
 population-weighted and CPC's national number is gas-weighted.
 
-Consequence: a cold snap over Texas moves the US index by more than it moves US gas
-demand; a Minnesota cold snap by less. The demand fit (D1) absorbs the average effect
+Consequence: a cold snap centred on New York City moves the US index about three times
+more than it moves US gas demand; one centred on Michigan, Ohio and Wisconsin moves it
+about half as much as it should. The demand fit (D1) absorbs the average effect
 (r² 0.991), but the error of any single forecast depends on *where* the cold is, which is
 exactly the "locational positioning" the audit was asked about.
 
@@ -136,9 +142,9 @@ The audit's recommendation R1 uses them.
 
 **R1. Re-weight the US index by gas consumption, not population.** Replace `hdd.CITIES`
 weights with each state's res+comm consumption share (EIA, same source as the Midwest tab),
-cities standing for their states, and add the cities the gas map needs (Pacific Northwest,
-Upper Midwest and Northeast are under-represented; Southern California and Texas
-over-represented). Keep the population index available for one more winter as a scored
+cities standing for their states, and add the cities the gas map needs (Newark, Milwaukee,
+Indianapolis, Seattle, Richmond, Baltimore; Michigan and Ohio need more weight; New York
+City, Texas and Los Angeles less). Keep the population index available for one more winter as a scored
 alternative so the gain is measured, not assumed. Everything downstream re-fits
 automatically (calibration nightly, demand slope via `fit_demand.py`). This is the
 "locational positioning" fix: cold where gas heats homes counts more.
