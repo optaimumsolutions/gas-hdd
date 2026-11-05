@@ -163,12 +163,13 @@ def load_climatology(conn):
 
 def write_scores(conn, rows, model="gefs"):
     """Replace every score row for the model; rows = (run, date, lead_day,
-    index, median, p10, p90, observed, clim)."""
+    index, median, p10, p90, observed, clim, sd, raw_median, raw_p10, raw_p90, published)."""
     with conn.cursor() as cur:
         cur.execute("DELETE FROM gefs.scores WHERE model = %s", (model,))
         cur.executemany(
-            "INSERT INTO gefs.scores (model, run, date, lead_day, index, median, p10, p90, observed, clim) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO gefs.scores (model, run, date, lead_day, index, median, p10, p90, observed, clim, "
+            "sd, raw_median, raw_p10, raw_p90, published) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             [(model, r[0].replace(tzinfo=timezone.utc), *r[1:]) for r in rows])
     conn.commit()
     return len(rows)
@@ -221,3 +222,27 @@ def load_spread(conn, model="gefs"):
     with conn.cursor() as cur:
         cur.execute("SELECT index, lead_day, k FROM gefs.spread_fit WHERE model = %s", (model,))
         return {(i, l): k for i, l, k in cur.fetchall()}
+
+
+def write_forecast_index(conn, run, rows, model="gefs"):
+    """Upsert one run's published index numbers; rows = (index, date, lead_day,
+    median, p10, p90, sd, raw_median, raw_p10, raw_p90, raw_sd)."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO gefs.forecast_index (model, run, index, date, lead_day, median, p10, p90, sd, "
+            "raw_median, raw_p10, raw_p90, raw_sd) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (model, run, index, date) DO UPDATE SET lead_day = EXCLUDED.lead_day, "
+            "median = EXCLUDED.median, p10 = EXCLUDED.p10, p90 = EXCLUDED.p90, sd = EXCLUDED.sd, "
+            "raw_median = EXCLUDED.raw_median, raw_p10 = EXCLUDED.raw_p10, raw_p90 = EXCLUDED.raw_p90, "
+            "raw_sd = EXCLUDED.raw_sd",
+            [(model, run.replace(tzinfo=timezone.utc), *r) for r in rows])
+    conn.commit()
+    return len(rows)
+
+
+def load_forecast_index(conn, model="gefs"):
+    """{(run, index, date): (median, p10, p90, sd, raw_median, raw_p10, raw_p90, raw_sd)}."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT run, index, date, median, p10, p90, sd, raw_median, raw_p10, raw_p90, raw_sd "
+                    "FROM gefs.forecast_index WHERE model = %s", (model,))
+        return {(_naive_utc(r[0]), r[1], r[2]): tuple(r[3:]) for r in cur.fetchall()}

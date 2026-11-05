@@ -102,3 +102,23 @@ CREATE TABLE IF NOT EXISTS gefs.spread_fit (
     fitted_at  timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (model, index, lead_day)
 );
+
+-- What each run PUBLISHED per index and day (calibrated and raw), written by
+-- hdd.py: the numbers score.py grades, so the scorecard is for the band that
+-- was on the page, out of sample from go-live (2026-11-04 22:00 UTC).
+CREATE TABLE IF NOT EXISTS gefs.forecast_index (
+    model      text        NOT NULL DEFAULT 'gefs',
+    run        timestamptz NOT NULL,
+    index      text        NOT NULL,          -- us_hdd, midwest_hdd, midwest_bcf
+    date       date        NOT NULL,
+    lead_day   smallint    NOT NULL,
+    median     real NOT NULL, p10 real NOT NULL, p90 real NOT NULL, sd real NOT NULL,
+    raw_median real NOT NULL, raw_p10 real NOT NULL, raw_p90 real NOT NULL, raw_sd real NOT NULL,
+    PRIMARY KEY (model, run, index, date)
+);
+
+ALTER TABLE gefs.scores ADD COLUMN IF NOT EXISTS sd real;
+ALTER TABLE gefs.scores ADD COLUMN IF NOT EXISTS raw_median real;
+ALTER TABLE gefs.scores ADD COLUMN IF NOT EXISTS raw_p10 real;
+ALTER TABLE gefs.scores ADD COLUMN IF NOT EXISTS raw_p90 real;
+ALTER TABLE gefs.scores ADD COLUMN IF NOT EXISTS published boolean NOT NULL DEFAULT false;

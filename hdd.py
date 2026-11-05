@@ -401,6 +401,17 @@ def calibrated_members(data, index_name, cities, stretches):
     return stretch(members, ks)
 
 
+def index_rows(name, days, cal, raw):
+    """Rows for gefs.forecast_index from calibrated and raw members [member, day]."""
+    out = []
+    for i, d in enumerate(days):
+        cp10, cmed, cp90 = np.percentile(cal[:, i], [10, 50, 90])
+        rp10, rmed, rp90 = np.percentile(raw[:, i], [10, 50, 90])
+        out.append((name, d, i + 1, float(cmed), float(cp10), float(cp90), float(cal[:, i].std()),
+                    float(rmed), float(rp10), float(rp90), float(raw[:, i].std())))
+    return out
+
+
 def load_calibration():
     """(fits, stretches, meta) from Neon; (None, {}, None) when there is no fit."""
     with retry(db.connect) as conn:
@@ -657,10 +668,17 @@ def main():
         # A failure here never blocks the published forecast (the next run
         # re-ingests this one), except in backfill mode where the archive is the
         # only output.
+        published = index_rows("us_hdd", days, hdd, hdd_raw)
+        for r in REGIONS:
+            s = regional[r["key"]]
+            published += index_rows(f"{r['key']}_hdd", days, s["hdd"], s["hdd_raw"])
+            published += index_rows(f"{r['key']}_bcf", days, s["bcfd"], s["bcfd_raw"])
         try:
             with retry(db.connect) as conn:
                 n = db.write_forecast(conn, run.replace(tzinfo=timezone.utc), days, STATIONS, st_tmax, st_tmin)
-            print(f"  wrote {n} rows ({len(STATIONS)} airports x {len(days)} days) to gefs.forecast_station")
+                m = db.write_forecast_index(conn, run, published)
+            print(f"  wrote {n} rows ({len(STATIONS)} airports x {len(days)} days) to gefs.forecast_station "
+                  f"and {m} published index rows to gefs.forecast_index")
         except Exception as err:
             if args.no_docs:
                 raise

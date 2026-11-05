@@ -171,14 +171,16 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     const name = k => label[k] || k;
     const hddIdx = a.indexes.filter(k => k.endsWith("_hdd"));
 
-    const d5 = a.by_lead.us_hdd[4], all = a.overall.us_hdd;
+    const d5 = a.by_lead.us_hdd[4], all = a.overall.us_hdd, live = (a.live || {}).us_hdd;
+    const width = z => z === null || z === undefined ? "" : (z > 1.1 ? " (too narrow)" : z < 0.9 ? " (too wide)" : " (right width)");
     const headline = (d5.mae === null ? `Day-5 forecasts: insufficient data (${d5.n} scored, need ${a.min_n}).`
-        : `Day-5 forecasts have been off by <b>${d5.mae.toFixed(1)} HDD</b> on average (${d5.n} days scored);`) +
+        : `Day-5 forecasts have been off by <b>${d5.mae.toFixed(1)} HDD</b> on average (raw GEFS ${d5.raw_mae.toFixed(1)}; ${d5.n} days scored);`) +
       (all.coverage === null ? ` The p10&ndash;p90 band: insufficient data (${all.n} scored, need ${a.min_n}).`
-        : ` the p10&ndash;p90 band has contained the observed value <b>${(100 * all.coverage).toFixed(0)}%</b> of the time (target ${(100 * a.target_coverage).toFixed(0)}%, ${all.n} forecast-days).`);
+        : ` the calibrated p10&ndash;p90 band has contained the observed value <b>${(100 * all.coverage).toFixed(0)}%</b> of the time (target ${(100 * a.target_coverage).toFixed(0)}%; raw ${(100 * all.raw_coverage).toFixed(0)}%), error-to-spread ratio <b>${f(all.z_sd, 2)}</b>${width(all.z_sd)}.`) +
+      (live && live.n ? ` Since go-live, graded on exactly what this page showed: ${live.n} forecast-days, coverage ${pct(live.coverage)}, error-to-spread ${f(live.z_sd, 2)}, MAE ${f(live.mae, 2)}.` : ` No forecast-days graded as published yet (go-live 2026-11-04).`);
 
-    const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>MAE</th><th>Bias</th><th>RMSE</th><th>Coverage</th><th>Clim MAE</th><th>Skill</th></tr></thead><tbody>` +
-      a.by_lead[k].map(r => `<tr><td>${r.lead_day}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td><td>${f(r.clim_mae, 2)}</td><td>${pct(r.skill)}</td></tr>`).join("") +
+    const leadTable = k => `<div><b>${name(k)}</b><table><thead><tr><th>Lead day</th><th>n</th><th>Coverage</th><th>Error / spread</th><th>MAE</th><th>Bias</th><th>Raw cov.</th><th>Raw MAE</th><th>Skill</th></tr></thead><tbody>` +
+      a.by_lead[k].map(r => `<tr><td>${r.lead_day}</td><td>${r.n}</td><td>${pct(r.coverage)}</td><td>${f(r.z_sd, 2)}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${pct(r.raw_coverage)}</td><td>${f(r.raw_mae, 2)}</td><td>${pct(r.skill)}</td></tr>`).join("") +
       `</tbody></table></div>`;
     const monthRows = a.indexes.flatMap(k => a.by_month[k].map(r =>
       `<tr><td>${name(k)}</td><td>${r.month}</td><td>${r.n}</td><td>${f(r.mae, 2)}</td><td>${f(r.bias, 2)}</td><td>${f(r.rmse, 2)}</td><td>${pct(r.coverage)}</td></tr>`)).join("");
@@ -207,7 +209,10 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
   <p class="muted">Observations: ${a.sources.observations}. CPC reference: ${a.sources.cpc}; our Midwest HDD vs CPC:
     MAE ${f(a.cpc.mae, 2)}, bias ${f(a.cpc.bias, 2)} (${a.cpc.n} days). ${a.runs_scored} runs scored against
     ${a.dates_observed} observed days${a.observed_through ? " through " + a.observed_through : ""}; scores rebuilt ${a.generated_utc}.
-    A statistic needs at least ${a.min_n} scores. Skill = 1 &minus; MAE / climatology MAE (${a.sources.climatology});
+    A statistic needs at least ${a.min_n} scores. <b>Coverage</b>: share of days the calibrated p10&ndash;p90 band held the observed value (target 80%).
+    <b>Error / spread</b>: standard deviation of (median &minus; observed) / band standard deviation; 1.0 means the band is exactly as wide as the errors, above 1 too narrow, below 1 too wide.
+    Runs before 2026-11-04 are graded with today's fit applied after the fact; runs since are graded on what the page showed.
+    Skill = 1 &minus; MAE / climatology MAE (${a.sources.climatology});
     0% means no better than normals. ${a.excluded_at_floor || 0} Bcf/d scores excluded because observed demand sat at the summer floor.
     Full detail: table <code>gefs.scores</code> in Neon.</p>`;
     // calibration.json (written by calibrate.py): the EMOS fit and its holdout test
