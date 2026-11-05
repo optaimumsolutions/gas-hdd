@@ -1,13 +1,13 @@
 {
  "run": "2026-11-05 06Z",
  "run_id": "20261105_06z",
- "generated_utc": "2026-11-05 15:01 UTC",
- "note": "Newest cycle 2026-11-05 12Z was still uploading at 14:52 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
+ "generated_utc": "2026-11-05 17:43 UTC",
+ "note": "Newest cycle 2026-11-05 12Z was still uploading at 17:31 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
  "days": [
   {
    "day": 1,
    "date": "2026-11-06",
-   "median": 5.2,
+   "median": 5.3,
    "p10": 4.2,
    "p90": 6.5,
    "raw_median": 5.0
@@ -126,15 +126,15 @@
   }
  ],
  "total": {
-  "p10": 123.6,
+  "p10": 118.4,
   "median": 152.7,
-  "p90": 183.7,
+  "p90": 189.2,
   "raw_median": 153.0
  },
  "calibration": {
   "train_from": "2024-11-01",
   "train_to": "2026-11-04",
-  "fitted_at": "2026-11-05 13:39 UTC",
+  "fitted_at": "2026-11-05 17:05 UTC",
   "identity": [
    "BNA d10",
    "BNA d11",
@@ -246,6 +246,7 @@
    "STL d9"
   ]
  },
+ "second_model": null,
  "vs_prev": {
   "run": "2026-11-04 18Z",
   "delta": 10.5,
@@ -489,16 +490,16 @@
    ],
    "total_bcf": {
     "median": 98.0,
-    "cal_p10": 80.1,
-    "cal_p90": 122.1,
+    "cal_p10": 78.7,
+    "cal_p90": 123.9,
     "raw_median": 101.9,
     "raw_p10": 87.5,
     "raw_p90": 120.3
    },
    "total_hdd": {
-    "median": 236.2,
-    "p10": 184.6,
-    "p90": 304.1
+    "median": 236.3,
+    "p10": 180.6,
+    "p90": 309.4
    },
    "vs_prev": {
     "run": "2026-11-04 18Z",
@@ -537,6 +538,7 @@
      "high_bcf": 43.9
     }
    ],
+   "second_model": null,
    "model": {
     "slope": 0.354,
     "intercept": 0.96,
