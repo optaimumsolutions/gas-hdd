@@ -255,6 +255,20 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     Skill = 1 &minus; MAE / climatology MAE (${a.sources.climatology});
     0% means no better than normals. ${a.excluded_at_floor || 0} Bcf/d scores excluded because observed demand sat at the summer floor.
     Full detail: table <code>gefs.scores</code> in Neon.</p>`;
+    // accuracy_ecmwf.json (score.py --model ecmwf): the second model, same grading
+    try {
+      const re = await fetch("accuracy_ecmwf.json?t=" + Date.now(), { cache: "no-store" });
+      if (re.ok) {
+        const e = await re.json();
+        const row = (k, g, r) => `<tr><td>${name(k)}</td><td>${r.lead_day}</td><td>${r.n}</td><td>${pct(r.coverage)}</td><td>${f(r.z_sd, 2)}</td><td>${f(r.mae, 2)}</td><td>${f(g.by_lead[k][r.lead_day - 1].mae, 2)}</td><td>${pct(r.skill)}</td></tr>`;
+        const rows = e.indexes.filter(k => k.endsWith("_hdd")).flatMap(k => e.by_lead[k].filter(r => r.n >= e.min_n && [1, 3, 5, 7, 10, 15].includes(r.lead_day)).map(r => row(k, a, r))).join("");
+        document.getElementById("calibration").insertAdjacentHTML("beforebegin", `
+  <h3>ECMWF ensemble, graded the same way (${e.runs_scored} runs)</h3>
+  <p class="muted">The dashed red line on the charts. Calibrated with its own fit; totals and daily bands scored exactly like GEFS. GEFS MAE shown alongside for the same lead day.</p>
+  <table class="wide"><thead><tr><th>Index</th><th>Lead day</th><th>n</th><th>Coverage</th><th>Error / spread</th><th>ECMWF MAE</th><th>GEFS MAE</th><th>Skill</th></tr></thead><tbody>${rows || `<tr><td colspan="8">${NA}</td></tr>`}</tbody></table>`);
+      }
+    } catch (e) { /* no ECMWF scores yet */ }
+
     // calibration.json (written by calibrate.py): the EMOS fit and its holdout test
     try {
       const rc = await fetch("calibration.json?t=" + Date.now(), { cache: "no-store" });
