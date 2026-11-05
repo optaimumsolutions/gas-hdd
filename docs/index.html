@@ -101,6 +101,10 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     deltaCard("Change vs previous run", d.vs_prev) +
     deltaCard("Change vs 24 h earlier", d.vs_24h);
 
+  if (d.second_model) {
+    const sm = d.second_model, diff = sm.total_shared - sm.gefs_total_shared;
+    document.getElementById("cards").insertAdjacentHTML("afterend", `<p class="muted"><b>${sm.model.toUpperCase()} ${sm.run}</b> (${sm.calibrated ? "calibrated" : "raw, no fit yet"}, dashed red on the chart): over the ${sm.shared_days} days both models cover, ${sm.model.toUpperCase()} says <b>${sm.total_shared.toFixed(0)} HDD</b> vs GEFS ${sm.gefs_total_shared.toFixed(0)} (${diff > 0 ? "+" : ""}${diff.toFixed(0)}, ${Math.abs(diff) < 5 ? "models agree" : diff > 0 ? "ECMWF colder" : "ECMWF warmer"}).</p>`);
+  }
   if (d.calibration) {
     document.getElementById("cards").insertAdjacentHTML("afterend", `<p class="muted">Calibrated: each airport's members shifted and scaled per lead day (EMOS, fitted ${d.calibration.fitted_at} on ${d.calibration.train_from} to ${d.calibration.train_to}), then each index's band stretched to the width that held 80% of outcomes over that winter. The grey line on the charts is the raw GEFS median. Holdout test on the Accuracy tab.</p>`);
   } else {
@@ -137,6 +141,7 @@ Code: <a href="https://github.com/optaimumsolutions/gas-hdd">github.com/optaimum
     (calibrated range ${t.cal_p10.toFixed(0)}&ndash;${t.cal_p90.toFixed(0)}; raw ${t.raw_p10.toFixed(0)}&ndash;${t.raw_p90.toFixed(0)})
     <div class="muted">10% colder: +${sc.colder_bcf.toFixed(0)} Bcf &middot; 10% warmer: &minus;${Math.abs(sc.warmer_bcf).toFixed(0)} Bcf</div>
     <div>Previous run: ${bcfArrow(r.vs_prev)}</div><div>24 h earlier: ${bcfArrow(r.vs_24h)}</div>
+    ${r.second_model ? `<div class="muted">ECMWF over the shared days: ${r.second_model.total_bcf_shared.toFixed(0)} Bcf vs GEFS ${r.second_model.gefs_total_bcf_shared.toFixed(0)} Bcf</div>` : ""}
     <div class="weeks" style="margin-top:6px">${weeks}</div></div>
   <div class="stack">
     <img src="${r.images.bcf_chart + bust}" alt="${r.name} daily gas demand, Bcf/d">

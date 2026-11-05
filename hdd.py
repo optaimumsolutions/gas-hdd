@@ -412,6 +412,37 @@ def index_rows(name, days, cal, raw):
     return out
 
 
+def second_model(conn, model="ecmwf"):
+    """The newest archived run of the second model, airport-corrected with
+    that model's own fits when they exist. None when nothing is archived."""
+    runs = db.list_runs(conn, model=model)
+    if not runs:
+        return None
+    latest = max(runs)
+    loaded = db.load_forecasts(conn, model=model, run=latest)[latest]
+    fits, _ = db.load_emos(conn, model=model)
+    stretches = db.load_spread(conn, model=model) if fits else {}
+    return {"model": model, "run": latest, "dates": loaded["dates"], "calibrated": bool(fits),
+            "data": adjust_run(loaded["stations"], fits) if fits else loaded["stations"], "stretches": stretches}
+
+
+def second_line(other, index_name, cities, days, region=None):
+    """(label, dates, daily median, 15-day-window total) of the second model's
+    index on the days it shares with this run; None if no second model."""
+    if other is None:
+        return None
+    members = calibrated_members(other["data"], index_name, cities, other["stretches"])
+    if region is not None:
+        members = demand_bcfd(region, members)
+    median = np.median(members, axis=0)
+    shared = [i for i, d in enumerate(other["dates"]) if d in days]
+    if not shared:
+        return None
+    label = f"{other['model'].upper()} {other['run']:%m-%d %HZ} median ({'calibrated' if other['calibrated'] else 'raw'})"
+    return {"label": label, "dates": [other["dates"][i] for i in shared], "median": median[shared],
+            "total": float(np.median(members[:, shared].sum(axis=1)))}
+
+
 def load_calibration():
     """(fits, stretches, meta) from Neon; (None, {}, None) when there is no fit."""
     with retry(db.connect) as conn:
@@ -532,12 +563,15 @@ def shade_no_skill(ax, days, index):
                label=f"little skill beyond day {k - 1} (Accuracy tab)")
 
 
-def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD", raw_median=None, index="us_hdd"):
+def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted HDD", raw_median=None, index="us_hdd",
+               second=None):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     shade_no_skill(ax, days, index)
     ax.fill_between(days, p10, p90, color="tab:blue", alpha=0.2, label="10th-90th percentile (calibrated)")
     if raw_median is not None:
         ax.plot(days, raw_median, color="gray", lw=1.2, ls="-", alpha=0.8, label="Raw GEFS median")
+    if second is not None:
+        ax.plot(second["dates"], second["median"], color="tab:red", lw=1.6, ls="--", label=second["label"])
     ax.plot(days, median, color="tab:blue", lw=2.2, marker="o", ms=3.5, label="Ensemble median (calibrated)")
     ax.set_ylabel("Gas-weighted HDD (°F-days)")
     ax.set_ylim(bottom=0)
@@ -550,14 +584,16 @@ def make_chart(run, days, hdd, p10, median, p90, total, title="US gas-weighted H
     return png_bytes(fig)
 
 
-def make_bcf_chart(region, run, days, bcfd, raw_median, total):
+def make_bcf_chart(region, run, days, bcfd, raw_median, total, second=None):
     """Daily res/comm demand: calibrated median line and p10-p90 band, raw
-    GEFS median in grey."""
+    GEFS median in grey, the second model's median dashed."""
     p10, median, p90 = np.percentile(bcfd, [10, 50, 90], axis=0)
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     shade_no_skill(ax, days, f"{region['key']}_bcf")
     ax.fill_between(days, p10, p90, color="tab:orange", alpha=0.25, label="p10-p90 (calibrated)")
     ax.plot(days, raw_median, color="gray", lw=1.2, alpha=0.8, label="Raw GEFS median")
+    if second is not None:
+        ax.plot(second["dates"], second["median"], color="tab:red", lw=1.6, ls="--", label=second["label"])
     ax.plot(days, median, color="tab:orange", lw=2.2, marker="o", ms=3.5, label="Ensemble median (calibrated)")
     ax.set_ylabel("Res/comm gas demand (Bcf/d)")
     ax.set_ylim(bottom=0)
@@ -669,12 +705,17 @@ def main():
             s["implied_withdrawal"] = implied_withdrawal(r, s["hdd"], days)
 
     with step("5/8 compare with earlier runs"):
+        other = None
         try:
             with retry(db.connect) as conn:
                 prev, ago = earlier_runs(conn, run)
+                other = second_model(conn)
         except Exception as err:
             print(f"  WARNING: Neon unreachable, no run-to-run deltas: {err}")
             prev = ago = None
+        if other is not None:
+            print(f"  second model: {other['model']} {other['run']:%Y-%m-%d %H}Z, "
+                  f"{'calibrated' if other['calibrated'] else 'raw (no fit yet)'}")
         vs_prev, vs_24h = None, None
         for r in REGIONS:
             regional[r["key"]]["vs_prev"] = regional[r["key"]]["vs_24h"] = None
@@ -719,17 +760,23 @@ def main():
             return
 
     with step("7/8 draw chart and maps"):
-        pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total, raw_median=raw_median)}
+        us_second = second_line(other, "us_hdd", national_cities(), days)
+        pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total, raw_median=raw_median,
+                                               second=us_second)}
         for label, a, b in PERIODS:
             mean_f, uncertain, risk = maps[label]
             pngs[f"map_{label}.png"] = make_map(run, a, b, days, mean_f, uncertain, risk, lat, lon)
         for r in REGIONS:
             k, s = r["key"], regional[r["key"]]
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
+            s["second_hdd"] = second_line(other, f"{k}_hdd", region_cities(r), days)
+            s["second_bcf"] = second_line(other, f"{k}_hdd", region_cities(r), days, region=r)
             pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
                                               title=f"{r['name']} gas-consumption-weighted HDD",
-                                              raw_median=np.median(s["hdd_raw"], axis=0), index=f"{k}_hdd")
-            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], np.median(s["bcfd_raw"], axis=0), s["total"])
+                                              raw_median=np.median(s["hdd_raw"], axis=0), index=f"{k}_hdd",
+                                              second=s["second_hdd"])
+            pngs[f"{k}_bcf.png"] = make_bcf_chart(r, run, days, s["bcfd"], np.median(s["bcfd_raw"], axis=0), s["total"],
+                                                  second=s["second_bcf"])
             basins = [b for b in BASINS if b[0] in r["basins"]]
             points = [(c[2], c[3]) for c in r["cities"]]
             for label, a, b in PERIODS:
@@ -780,6 +827,11 @@ def main():
                      for i, d in enumerate(days)],
             "total": total,
             "calibration": cal_meta,
+            "second_model": None if us_second is None else {
+                "model": other["model"], "run": f"{other['run']:%Y-%m-%d %H}Z", "calibrated": other["calibrated"],
+                "shared_days": len(us_second["dates"]), "total_shared": round(us_second["total"], 1),
+                "gefs_total_shared": round(float(np.median(hdd[:, [days.index(d) for d in us_second["dates"]]].sum(axis=1))), 1),
+                "days": [{"date": d.isoformat(), "median": round(float(m), 1)} for d, m in zip(us_second["dates"], us_second["median"])]},
             "vs_prev": vs_prev,
             "vs_24h": vs_24h,
             "basin_freeze_risk": {label: {k: round(v, 2) for k, v in maps[label][2].items()}
@@ -807,6 +859,11 @@ def main():
                 "vs_24h": s["vs_24h"],
                 "scenario_10pct": s["scenario_10pct"],
                 "implied_withdrawal": s["implied_withdrawal"],
+                "second_model": None if s["second_bcf"] is None else {
+                    "total_bcf_shared": round(s["second_bcf"]["total"], 1),
+                    "gefs_total_bcf_shared": round(float(np.median(s["bcfd"][:, [days.index(d) for d in s["second_bcf"]["dates"]]].sum(axis=1))), 1),
+                    "days": [{"date": d.isoformat(), "hdd_median": round(float(h), 1), "bcfd_median": round(float(b), 2)}
+                             for d, h, b in zip(s["second_bcf"]["dates"], s["second_hdd"]["median"], s["second_bcf"]["median"])]},
                 "model": {"slope": r["slope_bcfd_per_hdd"], "intercept": r["intercept_bcfd"],
                           "floor": r["floor_bcfd"], "cold_kink_hdd": r["cold_kink_hdd"],
                           "cold_kink_extra_frac": r["cold_kink_extra_frac"],
