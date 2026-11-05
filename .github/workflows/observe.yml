@@ -33,6 +33,8 @@ jobs:
         run: python observe.py
 
       - name: Score the forecast archive
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python score.py
 
       - name: Nightly calibration refit on every archived day (a failure here only warns)
