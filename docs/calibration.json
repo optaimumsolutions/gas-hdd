@@ -432,7 +432,7 @@
  },
  "image": "calibration.png",
  "live_fit": {
-  "fitted_at": "2026-11-07 09:01 UTC",
+  "fitted_at": "2026-11-07 15:24 UTC",
   "train_from": "2024-11-01",
   "train_to": "2026-11-06",
   "fits": 330,
