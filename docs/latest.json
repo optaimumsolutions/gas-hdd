@@ -1,8 +1,8 @@
 {
  "run": "2026-11-09 06Z",
  "run_id": "20261109_06z",
- "generated_utc": "2026-11-09 14:17 UTC",
- "note": "Newest cycle 2026-11-09 12Z was still uploading at 14:06 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
+ "generated_utc": "2026-11-09 17:44 UTC",
+ "note": "Newest cycle 2026-11-09 12Z was still uploading at 17:31 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
  "days": [
   {
    "day": 1,
@@ -607,10 +607,10 @@
     {
      "week_ending": "2026-11-27",
      "days_in_forecast": 4,
-     "hdd_week": 135.5,
+     "hdd_week": 135.4,
      "median_bcf": 8.9,
-     "low_bcf": -12.8,
-     "high_bcf": 30.5
+     "low_bcf": -12.7,
+     "high_bcf": 30.6
     }
    ],
    "second_model": {
