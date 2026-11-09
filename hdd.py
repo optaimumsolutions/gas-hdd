@@ -828,7 +828,7 @@ def main():
             "total": total,
             "calibration": cal_meta,
             "second_model": None if us_second is None else {
-                "model": other["model"], "run": f"{other['run']:%Y-%m-%d %H}Z", "calibrated": other["calibrated"],
+                "model": second_run["model"], "run": f"{second_run['run']:%Y-%m-%d %H}Z", "calibrated": second_run["calibrated"],
                 "shared_days": len(us_second["dates"]), "total_shared": round(us_second["total"], 1),
                 "gefs_total_shared": round(float(np.median(hdd[:, [days.index(d) for d in us_second["dates"]]].sum(axis=1))), 1),
                 "days": [{"date": d.isoformat(), "median": round(float(m), 1)} for d, m in zip(us_second["dates"], us_second["median"])]},
