@@ -705,17 +705,17 @@ def main():
             s["implied_withdrawal"] = implied_withdrawal(r, s["hdd"], days)
 
     with step("5/8 compare with earlier runs"):
-        other = None
+        second_run = None
         try:
             with retry(db.connect) as conn:
                 prev, ago = earlier_runs(conn, run)
-                other = second_model(conn)
+                second_run = second_model(conn)
         except Exception as err:
             print(f"  WARNING: Neon unreachable, no run-to-run deltas: {err}")
             prev = ago = None
-        if other is not None:
-            print(f"  second model: {other['model']} {other['run']:%Y-%m-%d %H}Z, "
-                  f"{'calibrated' if other['calibrated'] else 'raw (no fit yet)'}")
+        if second_run is not None:
+            print(f"  second model: {second_run['model']} {second_run['run']:%Y-%m-%d %H}Z, "
+                  f"{'calibrated' if second_run['calibrated'] else 'raw (no fit yet)'}")
         vs_prev, vs_24h = None, None
         for r in REGIONS:
             regional[r["key"]]["vs_prev"] = regional[r["key"]]["vs_24h"] = None
@@ -760,7 +760,7 @@ def main():
             return
 
     with step("7/8 draw chart and maps"):
-        us_second = second_line(other, "us_hdd", national_cities(), days)
+        us_second = second_line(second_run, "us_hdd", national_cities(), days)
         pngs = {"hdd_forecast.png": make_chart(run, days, hdd, p10, median, p90, total, raw_median=raw_median,
                                                second=us_second)}
         for label, a, b in PERIODS:
@@ -769,8 +769,8 @@ def main():
         for r in REGIONS:
             k, s = r["key"], regional[r["key"]]
             hp10, hmed, hp90 = np.percentile(s["hdd"], [10, 50, 90], axis=0)
-            s["second_hdd"] = second_line(other, f"{k}_hdd", region_cities(r), days)
-            s["second_bcf"] = second_line(other, f"{k}_hdd", region_cities(r), days, region=r)
+            s["second_hdd"] = second_line(second_run, f"{k}_hdd", region_cities(r), days)
+            s["second_bcf"] = second_line(second_run, f"{k}_hdd", region_cities(r), days, region=r)
             pngs[f"{k}_hdd.png"] = make_chart(run, days, s["hdd"], hp10, hmed, hp90, s["total_hdd"],
                                               title=f"{r['name']} gas-consumption-weighted HDD",
                                               raw_median=np.median(s["hdd_raw"], axis=0), index=f"{k}_hdd",
