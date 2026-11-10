@@ -1,8 +1,8 @@
 {
  "run": "2026-11-10 06Z",
  "run_id": "20261110_06z",
- "generated_utc": "2026-11-10 13:51 UTC",
- "note": "Newest cycle 2026-11-10 12Z was still uploading at 13:38 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
+ "generated_utc": "2026-11-10 17:42 UTC",
+ "note": "Newest cycle 2026-11-10 12Z was still uploading at 17:31 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
  "days": [
   {
    "day": 1,
@@ -134,7 +134,7 @@
  "calibration": {
   "train_from": "2024-11-01",
   "train_to": "2026-11-09",
-  "fitted_at": "2026-11-10 09:01 UTC",
+  "fitted_at": "2026-11-10 16:47 UTC",
   "identity": [
    "BNA d10",
    "BNA d11",
