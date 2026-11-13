@@ -1,140 +1,140 @@
 {
- "run": "2026-11-12 18Z",
- "run_id": "20261112_18z",
- "generated_utc": "2026-11-13 05:36 UTC",
- "note": "Newest cycle 2026-11-13 00Z was still uploading at 05:31 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
+ "run": "2026-11-13 00Z",
+ "run_id": "20261113_00z",
+ "generated_utc": "2026-11-13 11:39 UTC",
+ "note": "Newest cycle 2026-11-13 06Z was still uploading at 11:31 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
  "days": [
   {
    "day": 1,
    "date": "2026-11-13",
-   "median": 14.1,
-   "p10": 12.8,
-   "p90": 15.4,
-   "raw_median": 13.8
+   "median": 13.9,
+   "p10": 13.0,
+   "p90": 15.9,
+   "raw_median": 13.9
   },
   {
    "day": 2,
    "date": "2026-11-14",
-   "median": 17.2,
-   "p10": 15.7,
-   "p90": 19.7,
-   "raw_median": 17.3
+   "median": 17.4,
+   "p10": 15.3,
+   "p90": 19.3,
+   "raw_median": 17.4
   },
   {
    "day": 3,
    "date": "2026-11-15",
-   "median": 15.4,
-   "p10": 14.8,
-   "p90": 17.6,
-   "raw_median": 15.7
+   "median": 15.8,
+   "p10": 13.8,
+   "p90": 17.8,
+   "raw_median": 15.6
   },
   {
    "day": 4,
    "date": "2026-11-16",
-   "median": 15.5,
-   "p10": 13.8,
-   "p90": 17.8,
-   "raw_median": 15.5
+   "median": 15.0,
+   "p10": 13.6,
+   "p90": 17.4,
+   "raw_median": 15.3
   },
   {
    "day": 5,
    "date": "2026-11-17",
-   "median": 14.7,
-   "p10": 12.9,
-   "p90": 16.5,
-   "raw_median": 14.8
+   "median": 14.3,
+   "p10": 12.2,
+   "p90": 15.9,
+   "raw_median": 14.5
   },
   {
    "day": 6,
    "date": "2026-11-18",
-   "median": 12.2,
-   "p10": 9.8,
-   "p90": 14.8,
-   "raw_median": 12.5
+   "median": 12.1,
+   "p10": 10.1,
+   "p90": 14.4,
+   "raw_median": 12.2
   },
   {
    "day": 7,
    "date": "2026-11-19",
-   "median": 10.6,
-   "p10": 8.1,
+   "median": 10.3,
+   "p10": 8.5,
    "p90": 12.8,
-   "raw_median": 10.9
+   "raw_median": 10.6
   },
   {
    "day": 8,
    "date": "2026-11-20",
-   "median": 9.8,
-   "p10": 8.6,
-   "p90": 11.5,
-   "raw_median": 10.0
+   "median": 9.7,
+   "p10": 8.4,
+   "p90": 11.9,
+   "raw_median": 9.7
   },
   {
    "day": 9,
    "date": "2026-11-21",
-   "median": 9.5,
-   "p10": 7.6,
-   "p90": 12.5,
-   "raw_median": 9.6
+   "median": 9.6,
+   "p10": 7.7,
+   "p90": 11.6,
+   "raw_median": 9.7
   },
   {
    "day": 10,
    "date": "2026-11-22",
-   "median": 10.2,
-   "p10": 7.7,
-   "p90": 13.1,
-   "raw_median": 10.4
+   "median": 9.6,
+   "p10": 7.5,
+   "p90": 13.9,
+   "raw_median": 9.7
   },
   {
    "day": 11,
    "date": "2026-11-23",
-   "median": 10.8,
-   "p10": 6.8,
-   "p90": 20.4,
-   "raw_median": 10.9
+   "median": 11.0,
+   "p10": 7.8,
+   "p90": 15.2,
+   "raw_median": 11.2
   },
   {
    "day": 12,
    "date": "2026-11-24",
-   "median": 12.9,
-   "p10": 7.2,
-   "p90": 22.0,
-   "raw_median": 13.0
+   "median": 13.3,
+   "p10": 7.9,
+   "p90": 19.1,
+   "raw_median": 13.4
   },
   {
    "day": 13,
    "date": "2026-11-25",
-   "median": 17.9,
-   "p10": 8.8,
-   "p90": 21.4,
-   "raw_median": 18.2
+   "median": 16.0,
+   "p10": 8.3,
+   "p90": 22.0,
+   "raw_median": 16.2
   },
   {
    "day": 14,
    "date": "2026-11-26",
-   "median": 18.4,
-   "p10": 12.5,
-   "p90": 22.8,
-   "raw_median": 18.5
+   "median": 16.3,
+   "p10": 8.6,
+   "p90": 20.7,
+   "raw_median": 16.6
   },
   {
    "day": 15,
    "date": "2026-11-27",
-   "median": 18.4,
-   "p10": 12.6,
-   "p90": 23.6,
-   "raw_median": 18.9
+   "median": 17.0,
+   "p10": 9.6,
+   "p90": 23.4,
+   "raw_median": 17.5
   }
  ],
  "total": {
-  "p10": 172.0,
-  "median": 208.2,
-  "p90": 245.2,
-  "raw_median": 212.2
+  "p10": 166.5,
+  "median": 200.3,
+  "p90": 241.3,
+  "raw_median": 202.4
  },
  "calibration": {
   "train_from": "2024-11-01",
-  "train_to": "2026-11-11",
-  "fitted_at": "2026-11-12 17:21 UTC",
+  "train_to": "2026-11-12",
+  "fitted_at": "2026-11-13 09:01 UTC",
   "identity": [
    "BNA d10",
    "BNA d11",
@@ -248,81 +248,85 @@
  },
  "second_model": {
   "model": "ecmwf",
-  "run": "2026-11-12 12Z",
+  "run": "2026-11-13 00Z",
   "calibrated": false,
-  "shared_days": 14,
-  "total_shared": 221.8,
-  "gefs_total_shared": 188.0,
+  "shared_days": 15,
+  "total_shared": 237.7,
+  "gefs_total_shared": 200.3,
   "days": [
    {
     "date": "2026-11-13",
-    "median": 16.1
+    "median": 15.7
    },
    {
     "date": "2026-11-14",
-    "median": 19.3
+    "median": 19.1
    },
    {
     "date": "2026-11-15",
-    "median": 18.1
+    "median": 17.5
    },
    {
     "date": "2026-11-16",
-    "median": 17.9
+    "median": 17.6
    },
    {
     "date": "2026-11-17",
-    "median": 18.1
+    "median": 17.5
    },
    {
     "date": "2026-11-18",
-    "median": 15.4
-   },
-   {
-    "date": "2026-11-19",
-    "median": 13.6
-   },
-   {
-    "date": "2026-11-20",
-    "median": 13.1
-   },
-   {
-    "date": "2026-11-21",
-    "median": 12.5
-   },
-   {
-    "date": "2026-11-22",
-    "median": 13.1
-   },
-   {
-    "date": "2026-11-23",
     "median": 15.0
    },
    {
+    "date": "2026-11-19",
+    "median": 13.4
+   },
+   {
+    "date": "2026-11-20",
+    "median": 12.7
+   },
+   {
+    "date": "2026-11-21",
+    "median": 12.3
+   },
+   {
+    "date": "2026-11-22",
+    "median": 12.5
+   },
+   {
+    "date": "2026-11-23",
+    "median": 14.4
+   },
+   {
     "date": "2026-11-24",
-    "median": 16.7
+    "median": 15.8
    },
    {
     "date": "2026-11-25",
-    "median": 16.7
+    "median": 16.1
    },
    {
     "date": "2026-11-26",
-    "median": 17.3
+    "median": 17.9
+   },
+   {
+    "date": "2026-11-27",
+    "median": 19.1
    }
   ]
  },
  "vs_prev": {
-  "run": "2026-11-12 12Z",
-  "delta": 1.8,
+  "run": "2026-11-12 18Z",
+  "delta": -7.7,
   "shared_days": 15,
-  "other_total": 206.4
+  "other_total": 208.0
  },
  "vs_24h": {
-  "run": "2026-11-11 18Z",
-  "delta": -1.6,
+  "run": "2026-11-12 00Z",
+  "delta": -2.2,
   "shared_days": 14,
-  "other_total": 189.7
+  "other_total": 185.2
  },
  "basin_freeze_risk": {
   "d1-5": {
@@ -341,16 +345,16 @@
    "Eagle Ford / San Antonio": 0.0,
    "Appalachia / Pittsburgh": 0.0,
    "DJ / Greeley CO": 0.0,
-   "Bakken / Williston ND": 0.03
+   "Bakken / Williston ND": 0.0
   },
   "d11-15": {
    "Permian / Midland TX": 0.0,
    "Haynesville / Shreveport LA": 0.0,
-   "Anadarko / Oklahoma City": 0.03,
+   "Anadarko / Oklahoma City": 0.0,
    "Eagle Ford / San Antonio": 0.0,
    "Appalachia / Pittsburgh": 0.0,
    "DJ / Greeley CO": 0.0,
-   "Bakken / Williston ND": 0.06
+   "Bakken / Williston ND": 0.0
   }
  },
  "images": {
@@ -380,312 +384,317 @@
     {
      "day": 1,
      "date": "2026-11-13",
-     "hdd_median": 26.9,
-     "hdd_p10": 25.2,
-     "hdd_p90": 28.6,
-     "bcfd_median": 10.47,
-     "bcfd_p10": 9.88,
-     "bcfd_p90": 11.07,
-     "hdd_raw_median": 27.4,
-     "bcfd_raw_median": 10.66
+     "hdd_median": 26.4,
+     "hdd_p10": 24.8,
+     "hdd_p90": 27.7,
+     "bcfd_median": 10.31,
+     "bcfd_p10": 9.72,
+     "bcfd_p90": 10.78,
+     "hdd_raw_median": 26.9,
+     "bcfd_raw_median": 10.47
     },
     {
      "day": 2,
      "date": "2026-11-14",
      "hdd_median": 26.3,
-     "hdd_p10": 24.8,
-     "hdd_p90": 29.6,
-     "bcfd_median": 10.28,
-     "bcfd_p10": 9.74,
-     "bcfd_p90": 11.42,
-     "hdd_raw_median": 27.3,
-     "bcfd_raw_median": 10.63
+     "hdd_p10": 24.7,
+     "hdd_p90": 28.9,
+     "bcfd_median": 10.27,
+     "bcfd_p10": 9.71,
+     "bcfd_p90": 11.21,
+     "hdd_raw_median": 27.0,
+     "bcfd_raw_median": 10.51
     },
     {
      "day": 3,
      "date": "2026-11-15",
-     "hdd_median": 24.3,
-     "hdd_p10": 21.8,
+     "hdd_median": 23.8,
+     "hdd_p10": 21.6,
      "hdd_p90": 26.5,
-     "bcfd_median": 9.55,
-     "bcfd_p10": 8.69,
-     "bcfd_p90": 10.36,
-     "hdd_raw_median": 24.8,
-     "bcfd_raw_median": 9.75
+     "bcfd_median": 9.37,
+     "bcfd_p10": 8.6,
+     "bcfd_p90": 10.34,
+     "hdd_raw_median": 24.3,
+     "bcfd_raw_median": 9.56
     },
     {
      "day": 4,
      "date": "2026-11-16",
-     "hdd_median": 22.0,
-     "hdd_p10": 19.3,
-     "hdd_p90": 24.8,
-     "bcfd_median": 8.75,
-     "bcfd_p10": 7.8,
-     "bcfd_p90": 9.74,
-     "hdd_raw_median": 22.7,
-     "bcfd_raw_median": 9.0
+     "hdd_median": 21.6,
+     "hdd_p10": 19.1,
+     "hdd_p90": 24.9,
+     "bcfd_median": 8.61,
+     "bcfd_p10": 7.73,
+     "bcfd_p90": 9.78,
+     "hdd_raw_median": 22.4,
+     "bcfd_raw_median": 8.88
     },
     {
      "day": 5,
      "date": "2026-11-17",
-     "hdd_median": 19.6,
-     "hdd_p10": 16.3,
+     "hdd_median": 19.0,
+     "hdd_p10": 15.9,
      "hdd_p90": 22.7,
-     "bcfd_median": 7.89,
-     "bcfd_p10": 6.75,
-     "bcfd_p90": 8.98,
-     "hdd_raw_median": 20.4,
-     "bcfd_raw_median": 8.2
+     "bcfd_median": 7.68,
+     "bcfd_p10": 6.59,
+     "bcfd_p90": 9.0,
+     "hdd_raw_median": 19.9,
+     "bcfd_raw_median": 8.02
     },
     {
      "day": 6,
      "date": "2026-11-18",
-     "hdd_median": 17.1,
-     "hdd_p10": 13.5,
-     "hdd_p90": 21.3,
-     "bcfd_median": 7.01,
-     "bcfd_p10": 5.75,
-     "bcfd_p90": 8.51,
-     "hdd_raw_median": 18.1,
-     "bcfd_raw_median": 7.36
+     "hdd_median": 16.5,
+     "hdd_p10": 12.1,
+     "hdd_p90": 19.7,
+     "bcfd_median": 6.81,
+     "bcfd_p10": 5.25,
+     "bcfd_p90": 7.94,
+     "hdd_raw_median": 17.6,
+     "bcfd_raw_median": 7.2
     },
     {
      "day": 7,
      "date": "2026-11-19",
-     "hdd_median": 13.3,
-     "hdd_p10": 10.1,
-     "hdd_p90": 16.6,
-     "bcfd_median": 5.65,
-     "bcfd_p10": 4.52,
-     "bcfd_p90": 6.84,
-     "hdd_raw_median": 14.3,
-     "bcfd_raw_median": 6.02
+     "hdd_median": 13.0,
+     "hdd_p10": 9.9,
+     "hdd_p90": 17.1,
+     "bcfd_median": 5.57,
+     "bcfd_p10": 4.45,
+     "bcfd_p90": 7.02,
+     "hdd_raw_median": 14.0,
+     "bcfd_raw_median": 5.91
     },
     {
      "day": 8,
      "date": "2026-11-20",
-     "hdd_median": 12.0,
-     "hdd_p10": 7.5,
-     "hdd_p90": 15.9,
-     "bcfd_median": 5.19,
-     "bcfd_p10": 3.61,
-     "bcfd_p90": 6.6,
-     "hdd_raw_median": 12.8,
-     "bcfd_raw_median": 5.5
+     "hdd_median": 12.2,
+     "hdd_p10": 7.4,
+     "hdd_p90": 16.8,
+     "bcfd_median": 5.27,
+     "bcfd_p10": 3.57,
+     "bcfd_p90": 6.92,
+     "hdd_raw_median": 13.1,
+     "bcfd_raw_median": 5.6
     },
     {
      "day": 9,
      "date": "2026-11-21",
-     "hdd_median": 11.9,
-     "hdd_p10": 8.1,
-     "hdd_p90": 19.6,
-     "bcfd_median": 5.17,
-     "bcfd_p10": 3.84,
-     "bcfd_p90": 7.9,
-     "hdd_raw_median": 12.3,
-     "bcfd_raw_median": 5.3
+     "hdd_median": 10.9,
+     "hdd_p10": 7.3,
+     "hdd_p90": 16.7,
+     "bcfd_median": 4.83,
+     "bcfd_p10": 3.53,
+     "bcfd_p90": 6.86,
+     "hdd_raw_median": 11.4,
+     "bcfd_raw_median": 5.01
     },
     {
      "day": 10,
      "date": "2026-11-22",
-     "hdd_median": 13.3,
-     "hdd_p10": 8.2,
-     "hdd_p90": 25.7,
-     "bcfd_median": 5.65,
-     "bcfd_p10": 3.87,
-     "bcfd_p90": 10.06,
-     "hdd_raw_median": 13.5,
-     "bcfd_raw_median": 5.74
+     "hdd_median": 13.0,
+     "hdd_p10": 7.0,
+     "hdd_p90": 21.2,
+     "bcfd_median": 5.57,
+     "bcfd_p10": 3.46,
+     "bcfd_p90": 8.46,
+     "hdd_raw_median": 13.4,
+     "bcfd_raw_median": 5.69
     },
     {
      "day": 11,
      "date": "2026-11-23",
-     "hdd_median": 22.7,
-     "hdd_p10": 7.1,
-     "hdd_p90": 35.2,
-     "bcfd_median": 8.99,
-     "bcfd_p10": 3.46,
-     "bcfd_p90": 13.41,
-     "hdd_raw_median": 22.4,
-     "bcfd_raw_median": 8.9
+     "hdd_median": 23.4,
+     "hdd_p10": 7.8,
+     "hdd_p90": 31.9,
+     "bcfd_median": 9.26,
+     "bcfd_p10": 3.72,
+     "bcfd_p90": 12.26,
+     "hdd_raw_median": 23.4,
+     "bcfd_raw_median": 9.26
     },
     {
      "day": 12,
      "date": "2026-11-24",
-     "hdd_median": 27.1,
-     "hdd_p10": 13.7,
-     "hdd_p90": 37.5,
-     "bcfd_median": 10.57,
-     "bcfd_p10": 5.81,
-     "bcfd_p90": 14.23,
-     "hdd_raw_median": 27.4,
-     "bcfd_raw_median": 10.67
+     "hdd_median": 24.8,
+     "hdd_p10": 7.7,
+     "hdd_p90": 34.1,
+     "bcfd_median": 9.75,
+     "bcfd_p10": 3.67,
+     "bcfd_p90": 13.04,
+     "hdd_raw_median": 24.9,
+     "bcfd_raw_median": 9.78
     },
     {
      "day": 13,
      "date": "2026-11-25",
-     "hdd_median": 32.3,
-     "hdd_p10": 20.9,
-     "hdd_p90": 35.1,
-     "bcfd_median": 12.41,
-     "bcfd_p10": 8.36,
-     "bcfd_p90": 13.37,
-     "hdd_raw_median": 32.0,
-     "bcfd_raw_median": 12.27
+     "hdd_median": 28.0,
+     "hdd_p10": 11.9,
+     "hdd_p90": 37.6,
+     "bcfd_median": 10.87,
+     "bcfd_p10": 5.16,
+     "bcfd_p90": 14.28,
+     "hdd_raw_median": 28.2,
+     "bcfd_raw_median": 10.95
     },
     {
      "day": 14,
      "date": "2026-11-26",
-     "hdd_median": 29.4,
-     "hdd_p10": 21.5,
-     "hdd_p90": 39.3,
-     "bcfd_median": 11.37,
-     "bcfd_p10": 8.58,
-     "bcfd_p90": 14.87,
-     "hdd_raw_median": 30.3,
-     "bcfd_raw_median": 11.67
+     "hdd_median": 25.6,
+     "hdd_p10": 17.0,
+     "hdd_p90": 35.4,
+     "bcfd_median": 10.04,
+     "bcfd_p10": 6.98,
+     "bcfd_p90": 13.49,
+     "hdd_raw_median": 26.7,
+     "bcfd_raw_median": 10.4
     },
     {
      "day": 15,
      "date": "2026-11-27",
-     "hdd_median": 28.7,
-     "hdd_p10": 18.6,
-     "hdd_p90": 36.7,
-     "bcfd_median": 11.12,
-     "bcfd_p10": 7.53,
-     "bcfd_p90": 13.95,
-     "hdd_raw_median": 29.7,
-     "bcfd_raw_median": 11.48
+     "hdd_median": 26.2,
+     "hdd_p10": 16.4,
+     "hdd_p90": 39.9,
+     "bcfd_median": 10.25,
+     "bcfd_p10": 6.77,
+     "bcfd_p90": 15.08,
+     "hdd_raw_median": 27.8,
+     "bcfd_raw_median": 10.79
     }
    ],
    "total_bcf": {
-    "median": 131.1,
-    "cal_p10": 106.7,
-    "cal_p90": 143.6,
-    "raw_median": 134.2,
-    "raw_p10": 116.9,
-    "raw_p90": 142.7
+    "median": 125.9,
+    "cal_p10": 99.0,
+    "cal_p90": 142.1,
+    "raw_median": 128.4,
+    "raw_p10": 110.8,
+    "raw_p90": 139.1
    },
    "total_hdd": {
-    "median": 329.7,
-    "p10": 260.8,
-    "p90": 364.9
+    "median": 315.0,
+    "p10": 239.0,
+    "p90": 360.9
    },
    "vs_prev": {
-    "run": "2026-11-12 12Z",
+    "run": "2026-11-12 18Z",
     "shared_days": 15,
-    "other_total": 131.8,
-    "delta_bcf": -0.7
+    "other_total": 131.2,
+    "delta_bcf": -5.3
    },
    "vs_24h": {
-    "run": "2026-11-11 18Z",
+    "run": "2026-11-12 00Z",
     "shared_days": 14,
-    "other_total": 119.9,
-    "delta_bcf": -1.1
+    "other_total": 117.3,
+    "delta_bcf": -3.1
    },
    "scenario_10pct": {
-    "colder_bcf": 11.6,
-    "warmer_bcf": -11.6
+    "colder_bcf": 11.0,
+    "warmer_bcf": -11.0
    },
    "implied_withdrawal": [
     {
      "week_ending": "2026-11-13",
      "days_in_forecast": 1,
-     "hdd_week": 188.0,
-     "median_bcf": -15.8,
-     "low_bcf": -37.5,
-     "high_bcf": 5.8
+     "hdd_week": 185.0,
+     "median_bcf": -14.4,
+     "low_bcf": -36.1,
+     "high_bcf": 7.2
     },
     {
      "week_ending": "2026-11-20",
      "days_in_forecast": 7,
-     "hdd_week": 134.3,
-     "median_bcf": 9.4,
-     "low_bcf": -12.2,
-     "high_bcf": 31.1
+     "hdd_week": 135.5,
+     "median_bcf": 8.9,
+     "low_bcf": -12.8,
+     "high_bcf": 30.5
     },
     {
      "week_ending": "2026-11-27",
      "days_in_forecast": 7,
-     "hdd_week": 162.0,
-     "median_bcf": -3.6,
-     "low_bcf": -25.3,
-     "high_bcf": 18.0
+     "hdd_week": 149.9,
+     "median_bcf": 2.1,
+     "low_bcf": -19.6,
+     "high_bcf": 23.8
     }
    ],
    "second_model": {
-    "total_bcf_shared": 123.0,
-    "gefs_total_bcf_shared": 118.8,
+    "total_bcf_shared": 129.5,
+    "gefs_total_bcf_shared": 125.9,
     "days": [
      {
       "date": "2026-11-13",
-      "hdd_median": 27.0,
-      "bcfd_median": 10.5
+      "hdd_median": 26.9,
+      "bcfd_median": 10.47
      },
      {
       "date": "2026-11-14",
-      "hdd_median": 27.8,
-      "bcfd_median": 10.8
+      "hdd_median": 27.4,
+      "bcfd_median": 10.65
      },
      {
       "date": "2026-11-15",
-      "hdd_median": 26.1,
-      "bcfd_median": 10.21
+      "hdd_median": 25.8,
+      "bcfd_median": 10.08
      },
      {
       "date": "2026-11-16",
-      "hdd_median": 24.9,
-      "bcfd_median": 9.77
+      "hdd_median": 24.4,
+      "bcfd_median": 9.59
      },
      {
       "date": "2026-11-17",
-      "hdd_median": 22.1,
-      "bcfd_median": 8.79
+      "hdd_median": 22.0,
+      "bcfd_median": 8.75
      },
      {
       "date": "2026-11-18",
-      "hdd_median": 20.2,
-      "bcfd_median": 8.12
+      "hdd_median": 19.9,
+      "bcfd_median": 8.01
      },
      {
       "date": "2026-11-19",
-      "hdd_median": 16.8,
-      "bcfd_median": 6.91
+      "hdd_median": 15.5,
+      "bcfd_median": 6.44
      },
      {
       "date": "2026-11-20",
-      "hdd_median": 13.8,
-      "bcfd_median": 5.85
+      "hdd_median": 13.2,
+      "bcfd_median": 5.65
      },
      {
       "date": "2026-11-21",
-      "hdd_median": 15.3,
-      "bcfd_median": 6.36
+      "hdd_median": 14.0,
+      "bcfd_median": 5.92
      },
      {
       "date": "2026-11-22",
-      "hdd_median": 19.2,
-      "bcfd_median": 7.77
+      "hdd_median": 17.1,
+      "bcfd_median": 7.02
      },
      {
       "date": "2026-11-23",
-      "hdd_median": 23.5,
-      "bcfd_median": 9.29
+      "hdd_median": 20.9,
+      "bcfd_median": 8.34
      },
      {
       "date": "2026-11-24",
-      "hdd_median": 23.6,
-      "bcfd_median": 9.31
+      "hdd_median": 21.9,
+      "bcfd_median": 8.72
      },
      {
       "date": "2026-11-25",
-      "hdd_median": 24.4,
-      "bcfd_median": 9.6
+      "hdd_median": 24.5,
+      "bcfd_median": 9.63
      },
      {
       "date": "2026-11-26",
-      "hdd_median": 26.0,
-      "bcfd_median": 10.16
+      "hdd_median": 25.8,
+      "bcfd_median": 10.1
+     },
+     {
+      "date": "2026-11-27",
+      "hdd_median": 26.6,
+      "bcfd_median": 10.36
      }
     ]
    },
