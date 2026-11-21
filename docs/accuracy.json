@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-21 04:10 UTC",
+ "generated_utc": "2026-11-21 09:01 UTC",
  "min_n": 5,
  "target_coverage": 0.8,
  "runs_scored": 399,
@@ -2266,9 +2266,9 @@
   }
  ],
  "cpc": {
-  "n": 378,
-  "mae": 3.27,
-  "bias": -3.22
+  "n": 379,
+  "mae": 3.28,
+  "bias": -3.23
  },
  "storage": {
   "n": 0,
