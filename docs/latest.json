@@ -1,8 +1,8 @@
 {
  "run": "2026-11-27 12Z",
  "run_id": "20261127_12z",
- "generated_utc": "2026-11-27 23:39 UTC",
- "note": "Newest cycle 2026-11-27 18Z was still uploading at 23:31 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
+ "generated_utc": "2026-11-28 00:49 UTC",
+ "note": "Newest cycle 2026-11-28 00Z was still uploading at 00:36 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown. Newest cycle 2026-11-27 18Z was still uploading at 00:36 UTC (a cycle is complete ~5 h after it starts), so the latest complete run is shown.",
  "days": [
   {
    "day": 1,
